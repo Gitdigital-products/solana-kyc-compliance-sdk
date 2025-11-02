@@ -1,0 +1,11 @@
+[package]
+name = "compliance_registry"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "compliance_registry"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+anchor-lang = "0.30.1"
