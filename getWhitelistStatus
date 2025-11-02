@@ -1,0 +1,5 @@
+mkdir solana-kyc-sdk
+cd solana-kyc-sdk
+npm init -y
+npm install @solana/web3.js typescript ts-node @types/node
+npx tsc --init # Set up TypeScript configuration
