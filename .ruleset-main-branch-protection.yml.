@@ -1,0 +1,34 @@
+# .github/ruleset-main-branch-protection.yml
+name: "main-branch-protection"
+target: branch
+enforcement: active
+
+conditions:
+  ref_name:
+    include:
+      - "main"
+
+rules:
+  - type: required_status_checks
+    parameters:
+      strict_required_status_checks_policy: true
+      required_status_checks:
+        - "build (Rust)"
+        - "build (SDK)"
+  - type: pull_request
+    parameters:
+      required_approving_review_count: 1
+      dismiss_stale_reviews_on_new_push: true
+      require_code_owner_review: false
+      restrict_pull_request_merges: true
+  - type: linear_history
+  - type: non_fast_forward
+  - type: deletion
+    parameters:
+      block_deletions: true
+  - type: force_push
+    parameters:
+      block_force_pushes: true
+  - type: commit_signature
+    parameters:
+      require_signed_commits: true
