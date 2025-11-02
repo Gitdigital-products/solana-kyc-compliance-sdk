@@ -1,0 +1,16 @@
+{
+  "name": "@ricks/solana-kyc-compliance-sdk",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p .",
+    "test": "node ./dist/test.js || echo 'Add unit tests'"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.95.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
