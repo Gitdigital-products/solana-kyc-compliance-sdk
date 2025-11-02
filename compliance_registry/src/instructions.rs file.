@@ -1,0 +1,131 @@
+useinitialize_extra_account_meta_list, to your programs/compliance_registry/src/instructions.rs file. anchor_lang::prelude::*;
+use anchor_spl::token_interface::Mint;
+use spl_tlv_account_resolution::{
+    account::{Account, AccountData},
+    state::ExtraAccountMetaList,
+};
+use solana_program::program::{invoke, invoke_signed};
+
+// We will need the following constants to find the required PDAs
+const EXTRA_ACCOUNT_METAS_SEED: &[u8] = b"extra-account-metas";
+const COMPLIANCE_STATUS_SEED: &[u8] = b"compliance_status";
+
+// --- NEW INSTRUCTION CONTEXT ---
+
+// Context for initializing the ExtraAccountMetaList PDA.
+#[derive(Accounts)]
+pub struct InitializeExtraAccountMetaList<'info> {
+    // The account that pays for the rent of the new EAML account
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    // The Mint account for which we are configuring the Transfer Hook
+    // MUST be a Token-2022 mint with the Transfer Hook extension enabled
+    pub mint: InterfaceAccount<'info, Mint>,
+
+    // The PDA that will store the list of extra accounts.
+    /// CHECK: The PDA must be created at this exact address by the instruction.
+    #[account(
+        mut,
+        // The EAML PDA is derived from the "extra-account-metas" seed, the mint key, 
+        // and the Transfer Hook Program ID (which is this program's ID).
+        seeds = [EXTRA_ACCOUNT_METAS_SEED, mint.key().as_ref()],
+        bump,
+    )]
+    pub extra_account_meta_list: AccountInfo<'info>,
+
+    // The Token-2022 Program is required for the CPI call
+    /// CHECK: This must be the actual Token-2022 Program ID
+    pub token_2022_program: AccountInfo<'info>,
+    
+    // The System Program is required to create the new account
+    pub system_program: Program<'info, System>,
+}
+
+// --- NEW INSTRUCTION HANDLER ---
+
+pub fn initialize_extra_account_meta_list(ctx: Context<InitializeExtraAccountMetaList>) -> Result<()> {
+    // 1. Define the accounts required by the Transfer Hook at runtime.
+    // Our transfer hook logic (`processor.rs`) needs two accounts:
+    //   - The Source wallet's ComplianceStatus PDA
+    //   - The Destination wallet's ComplianceStatus PDA
+    //
+    // Since the Transfer Hook doesn't know the exact Source/Destination wallets 
+    // until the transfer, we use **ExtraAccountMeta::new_with_seeds** which allows
+    // the client to automatically resolve the PDA based on the seed and the wallet key.
+    
+    let account_metas = vec![
+        // Account 1: Source Compliance Status PDA
+        spl_tlv_account_resolution::state::ExtraAccountMeta::new_with_seeds(
+            &[
+                spl_tlv_account_resolution::state::Seed::Literal {
+                    bytes: COMPLIANCE_STATUS_SEED.to_vec(),
+                },
+                // The seed is derived from the authority (owner of the source token account).
+                // Index 3 is the Authority account in the Token Transfer instruction.
+                spl_tlv_account_resolution::state::Seed::InstructionData {
+                    instruction_account_index: 3, 
+                    length: 32,
+                    offset: 0,
+                },
+            ],
+            false, // is_signer: false (PDA cannot sign transfers)
+            false, // is_writable: false (We only read the status)
+        )?,
+        // Account 2: Destination Compliance Status PDA
+        spl_tlv_account_resolution::state::ExtraAccountMeta::new_with_seeds(
+            &[
+                spl_tlv_account_resolution::state::Seed::Literal {
+                    bytes: COMPLIANCE_STATUS_SEED.to_vec(),
+                },
+                // The seed is derived from the destination owner.
+                // Index 2 is the Destination token account in the Token Transfer instruction.
+                // We use the account's data (the owner field at offset 32) as the seed.
+                spl_tlv_account_resolution::state::Seed::AccountData {
+                    account_index: 2, 
+                    length: 32,
+                    offset: 32, // Owner field starts at byte 32 in the SPL Token Account data
+                },
+            ],
+            false, // is_signer: false
+            false, // is_writable: false
+        )?,
+    ];
+
+    // 2. Calculate the required space for the EAML account
+    let size = ExtraAccountMetaList::size_of(account_metas.len())
+        .checked_add(4) // Add space for the instruction discriminator
+        .unwrap();
+
+    // 3. Create the instruction to initialize the EAML account
+    let mint_key = ctx.accounts.mint.key();
+    let signer_seeds: &[&[&[u8]]] = &[&[
+        EXTRA_ACCOUNT_METAS_SEED,
+        mint_key.as_ref(),
+        &[ctx.bumps.extra_account_meta_list],
+    ]];
+
+    let instruction = spl_token_2022::extension::transfer_hook::instruction::initialize_extra_account_meta_list(
+        &ctx.accounts.token_2022_program.key(),
+        &ctx.accounts.extra_account_meta_list.key(),
+        &ctx.accounts.mint.key(),
+        ctx.accounts.payer.key(),
+        account_metas.as_slice(),
+    )?;
+
+    // 4. Invoke the instruction to the Token-2022 program via CPI
+    // The EAML PDA is created and initialized in this single CPI.
+    invoke_signed(
+        &instruction,
+        &[
+            ctx.accounts.extra_account_meta_list.to_account_info(),
+            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.mint.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
+        ],
+        signer_seeds,
+    )?;
+
+    msg!("Extra Account Meta List initialized for mint: {}", mint_key);
+    Ok(())
+}
