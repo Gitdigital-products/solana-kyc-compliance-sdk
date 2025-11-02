@@ -1,0 +1,57 @@
+name: CI & Anchor Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+
+    - name: Build Rust program
+      run: |
+        cd programs/compliance_registry
+        cargo build-bpf --release
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Build SDK
+      run: |
+        cd ../../sdk/typescript
+        npm ci
+        npm run build
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'  # only deploy on main branch
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Solana CLI
+      run: |
+        sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+        solana --version
+
+    - name: Deploy to Devnet
+      env:
+        SOLANA_PRIVATE_KEY: ${{ secrets.SOLANA_PRIVATE_KEY }}
+      run: |
+        solana-keygen recover 'prompt://?key=0/0' <<< $SOLANA_PRIVATE_KEY
+        cd programs/compliance_registry
+        anchor deploy --provider.cluster devnet
