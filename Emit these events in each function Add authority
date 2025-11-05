@@ -1,0 +1,17 @@
+pub fn add_authority(ctx: Context<UpdateAuthority>, new_authority: Pubkey) -> Result<()> {
+    let config = &mut ctx.accounts.registry_config;
+    require!(
+        !config.authorities.contains(&new_authority),
+        CustomError::AlreadyAuthorized
+    );
+    config.authorities.push(new_authority);
+
+    emit!(AuthorityAdded {
+        new_authority,
+        added_by: ctx.accounts.super_admin.key(),
+        timestamp: Clock::get()?.unix_timestamp,
+    });
+
+    msg!("✅ Added new authority: {}", new_authority);
+    Ok(())
+}
