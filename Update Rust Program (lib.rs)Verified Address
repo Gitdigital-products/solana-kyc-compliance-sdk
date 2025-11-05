@@ -1,0 +1,32 @@
+// In lib.rs:
+#[derive(Accounts)]
+#[instruction(mint: Pubkey)] // Add the mint as instruction data/context
+pub struct VerifyAddress<'info> {
+    // 1. Initialize the ComplianceStatus account as a PDA
+    #[account(
+        init, 
+        payer = signer, 
+        space = state::ComplianceStatus::LEN,
+        seeds = [b"compliance", mint.as_ref(), user_to_verify.key().as_ref()], 
+        bump
+    )]
+    pub compliance_status_pda: Account<'info, state::ComplianceStatus>,
+    
+    // The authority calling the verification
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    
+    // The user whose compliance is being verified (passed as a key, not data)
+    /// CHECK: This account is only used as a seed for the PDA
+    pub user_to_verify: AccountInfo<'info>, 
+    
+    pub system_program: Program<'info, System>,
+    // You'd also need to update the instruction signature
+}
+
+// And update the instruction in the program mod:
+pub fn verify_address(ctx: Context<VerifyAddress>, mint: Pubkey) -> Result<()> {
+    // Logic to set the compliance_status_pda fields
+    // e.g., ctx.accounts.compliance_status_pda.status = state::KycStatus::Approved;
+    Ok(())
+}
