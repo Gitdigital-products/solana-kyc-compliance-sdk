@@ -1,0 +1,27 @@
+use anchor_lang::prelude::*;
+use crate::state::registry_config::*;
+
+#[derive(Accounts)]
+pub struct InitRegistryConfig<'info> {
+    #[account(
+        init,
+        payer = super_admin,
+        space = 8 + 32 + (4 + 10 * 32), // discriminator + super_admin + vec (max 10)
+        seeds = [b"registry-config"],
+        bump
+    )]
+    pub registry_config: Account<'info, RegistryConfig>,
+
+    #[account(mut)]
+    pub super_admin: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+
+pub fn init_registry_config(ctx: Context<InitRegistryConfig>) -> Result<()> {
+    let config = &mut ctx.accounts.registry_config;
+    config.super_admin = ctx.accounts.super_admin.key();
+    config.authorities = vec![config.super_admin];
+    msg!("✅ Registry config initialized by {}", config.super_admin);
+    Ok(())
+}
