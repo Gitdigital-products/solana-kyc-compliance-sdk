@@ -1,0 +1,7 @@
+-- all verifications
+SELECT * FROM registry_events WHERE name = 'AddressVerified' ORDER BY timestamp DESC;
+
+-- all admin changes
+SELECT * FROM registry_events
+WHERE name IN ('AuthorityAdded','AuthorityRemoved','SuperAdminTransferred')
+ORDER BY timestamp DESC;
