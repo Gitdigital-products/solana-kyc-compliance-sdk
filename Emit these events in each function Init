@@ -1,0 +1,13 @@
+herepub fn init_registry_config(ctx: Context<InitRegistryConfig>) -> Result<()> {
+    let config = &mut ctx.accounts.registry_config;
+    config.super_admin = ctx.accounts.super_admin.key();
+    config.authorities = vec![config.super_admin];
+
+    emit!(RegistryInitialized {
+        super_admin: config.super_admin,
+        timestamp: Clock::get()?.unix_timestamp,
+    });
+
+    msg!("✅ Registry config initialized by {}", config.super_admin);
+    Ok(())
+}
