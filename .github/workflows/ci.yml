@@ -20,6 +20,7 @@ jobs:
 
     - name: Build Rust program
       run: |
+      set -e
         cd programs/compliance_registry
         cargo build-bpf --release
 
@@ -30,6 +31,7 @@ jobs:
 
     - name: Build SDK
       run: |
+      set -e
         cd ../../sdk/typescript
         npm ci
         npm run build
@@ -42,11 +44,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Solana CLI
-      run: |
-        sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
-        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-        solana --version
+- name: Set up Solana CLI
+  run: |
+  set -e
+    sh -c "$(curl -sSfL https://release.solana.com/${{ env.SOLANA_VERSION }}/install)"
+    export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+    echo "$PATH" >> $GITHUB_PATH
+    solana --version
 
     - name: Deploy to Devnet
       env:
