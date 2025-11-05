@@ -1,0 +1,13 @@
+#[error_code]
+pub enum CustomError {
+    #[msg("This address is not verified.")]
+    AddressNotVerified,
+    #[msg("User key mismatch.")]
+    UserKeyMismatch,
+    #[msg("Not an authorized registry authority.")]
+    NotAuthorized,
+    #[msg("Authority already exists.")]
+    AlreadyAuthorized,
+    #[msg("Authority not found.")]
+    AuthorityNotFound,
+}
