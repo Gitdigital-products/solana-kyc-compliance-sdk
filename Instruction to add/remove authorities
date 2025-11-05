@@ -1,0 +1,27 @@
+#[derive(Accounts)]
+pub struct UpdateAuthority<'info> {
+    #[account(mut, has_one = super_admin)]
+    pub registry_config: Account<'info, RegistryConfig>,
+
+    pub super_admin: Signer<'info>,
+}
+
+pub fn add_authority(ctx: Context<UpdateAuthority>, new_authority: Pubkey) -> Result<()> {
+    let config = &mut ctx.accounts.registry_config;
+    require!(
+        !config.authorities.contains(&new_authority),
+        CustomError::AlreadyAuthorized
+    );
+    config.authorities.push(new_authority);
+    msg!("✅ Added new authority: {}", new_authority);
+    Ok(())
+}
+
+pub fn remove_authority(ctx: Context<UpdateAuthority>, remove_key: Pubkey) -> Result<()> {
+    let config = &mut ctx.accounts.registry_config;
+    let before = config.authorities.len();
+    config.authorities.retain(|a| a != &remove_key);
+    require!(config.authorities.len() < before, CustomError::AuthorityNotFound);
+    msg!("🚫 Removed authority: {}", remove_key);
+    Ok(())
+}
