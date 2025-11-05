@@ -1,0 +1,15 @@
+pub fn remove_authority(ctx: Context<UpdateAuthority>, remove_key: Pubkey) -> Result<()> {
+    let config = &mut ctx.accounts.registry_config;
+    let before = config.authorities.len();
+    config.authorities.retain(|a| a != &remove_key);
+    require!(config.authorities.len() < before, CustomError::AuthorityNotFound);
+
+    emit!(AuthorityRemoved {
+        removed_authority: remove_key,
+        removed_by: ctx.accounts.super_admin.key(),
+        timestamp: Clock::get()?.unix_timestamp,
+    });
+
+    msg!("🚫 Removed authority: {}", remove_key);
+    Ok(())
+}
