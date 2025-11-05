@@ -1,0 +1,55 @@
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useAddressVerification } from "../hooks/useAddressVerification";
+import { PublicKey } from "@solana/web3.js";
+
+export function VerifyPanel({ target }: { target: string }) {
+  const { publicKey } = useWallet();
+  const { record, verify, revoke, getRecord, isAdmin, loading } = useAddressVerification();
+
+  useEffect(() => {
+    if (publicKey && target) getRecord(new PublicKey(target));
+  }, [publicKey, target]);
+
+  return (
+    <div className="p-4 rounded-xl shadow-md bg-white">
+      <h2 className="font-bold text-lg mb-2">Verification Status</h2>
+
+      {record ? (
+        <div>
+          <p className="text-green-600">✅ Verified</p>
+          <p className="text-xs text-gray-500">
+            Verified by: {record.verifier.toBase58()}
+          </p>
+          {isAdmin && (
+            <button
+              disabled={loading}
+              onClick={() => revoke(new PublicKey(target))}
+              className="mt-2 px-3 py-1 rounded bg-red-500 text-white"
+            >
+              Revoke
+            </button>
+          )}
+        </div>
+      ) : (
+        <div>
+          <p className="text-gray-600">❌ Not verified</p>
+          {isAdmin && (
+            <button
+              disabled={loading}
+              onClick={() => verify(new PublicKey(target))}
+              className="mt-2 px-3 py-1 rounded bg-blue-600 text-white"
+            >
+              Verify
+            </button>
+          )}
+        </div>
+      )}
+
+      {!isAdmin && (
+        <p className="mt-2 text-sm text-gray-400 italic">
+          You are not authorized to verify or revoke addresses.
+        </p>
+      )}
+    </div>
+  );
+}
