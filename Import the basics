@@ -1,0 +1,3 @@
+import * as anchor from "@coral-xyz/anchor";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { ComplianceRegistry } from "../target/types/compliance_registry"; // <-- auto-generated IDL
