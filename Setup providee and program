@@ -1,0 +1,8 @@
+hereconst provider = anchor.AnchorProvider.env(); // uses ANCHOR_PROVIDER_URL + wallet
+anchor.setProvider(provider);
+
+const program = new anchor.Program<ComplianceRegistry>(
+  require("../target/idl/compliance_registry.json"),
+  new PublicKey("YOUR_PROGRAM_ID_HERE"), // Replace with actual deployed ID
+  provider
+);
