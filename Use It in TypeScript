@@ -1,0 +1,16 @@
+hereasync function transferSuperAdmin(program: anchor.Program, newAdmin: PublicKey) {
+  const [configPda] = await PublicKey.findProgramAddress(
+    [Buffer.from("registry-config")],
+    program.programId
+  );
+
+  const txSig = await program.methods
+    .transferSuperAdmin(newAdmin)
+    .accounts({
+      registryConfig: configPda,
+      superAdmin: program.provider.wallet.publicKey,
+    })
+    .rpc();
+
+  console.log("👑 Super admin transferred:", txSig);
+}
