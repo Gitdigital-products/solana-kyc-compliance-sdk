@@ -1,0 +1,13 @@
+import { EventParser } from "@coral-xyz/anchor";
+
+async function listenToEvents(program: anchor.Program) {
+  const parser = new EventParser(program.programId, program.coder);
+
+  connection.onLogs(program.programId, (logInfo) => {
+    const logs = logInfo.logs;
+    for (const event of parser.parseLogs(logs)) {
+      console.log("📡 Event:", event.name, event.data);
+      // You can dispatch to Redux/Zustand here to update UI
+    }
+  });
+}
