@@ -1,0 +1,23 @@
+herepub fn transfer_super_admin(ctx: Context<TransferSuperAdmin>, new_super_admin: Pubkey) -> Result<()> {
+    let config = &mut ctx.accounts.registry_config;
+    let old_admin = config.super_admin;
+
+    require!(
+        old_admin == ctx.accounts.super_admin.key(),
+        CustomError::NotAuthorized
+    );
+
+    config.super_admin = new_super_admin;
+    if !config.authorities.contains(&new_super_admin) {
+        config.authorities.push(new_super_admin);
+    }
+
+    emit!(SuperAdminTransferred {
+        old_admin,
+        new_admin: new_super_admin,
+        timestamp: Clock::get()?.unix_timestamp,
+    });
+
+    msg!("👑 Super admin ownership transferred to {}", new_super_admin);
+    Ok(())
+}
