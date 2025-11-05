@@ -1,0 +1,7 @@
+CREATE TABLE registry_events (
+  id SERIAL PRIMARY KEY,
+  name TEXT,
+  data JSONB,
+  slot BIGINT,
+  timestamp TIMESTAMP DEFAULT NOW()
+);
