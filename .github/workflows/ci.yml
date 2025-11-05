@@ -2,56 +2,189 @@ name: CI & Anchor Deploy
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [main, testnet, devnet]
+    tags:
+      - "deploy-*"
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: "Select Solana cluster (devnet, testnet, mainnet-beta)"
+        required: true
+        default: "devnet"
+
+env:
+  SOLANA_VERSION: stable
+  NODE_VERSION: 20
+  ANCHOR_VERSION: latest
+  SDK_REPO: "your-org/your-sdk-repo" # 🔁 Change this to your SDK or frontend repo
+  SDK_BRANCH: "main"
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-    - name: Build Rust program
-      run: |
-        cd programs/compliance_registry
-        cargo build-bpf --release
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
+      - name: Build Rust BPF program
+        run: |
+          cd programs/compliance_registry
+          cargo build-bpf --release
+          if [ ! -f target/deploy/compliance_registry.so ]; then
+            echo "Error: .so build artifact missing!"
+            exit 1
+          fi
 
-    - name: Build SDK
-      run: |
-        cd ../../sdk/typescript
-        npm ci
-        npm run build
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache Node dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Build TypeScript SDK
+        run: |
+          cd sdk/typescript
+          npm ci
+          npm run build
+          if [ ! -d dist ]; then
+            echo "Error: SDK build failed, dist folder missing!"
+            exit 1
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            programs/compliance_registry/target/deploy/
+            sdk/typescript/dist/
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Solana CLI
-      run: |
-        sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
-        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-        solana --version
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: ./build
 
-    - name: Deploy to Devnet
-      env:
-        SOLANA_PRIVATE_KEY: ${{ secrets.SOLANA_PRIVATE_KEY }}
-      run: |
-        solana-keygen recover 'prompt://?key=0/0' <<< $SOLANA_PRIVATE_KEY
-        cd programs/compliance_registry
-        anchor deploy --provider.cluster devnet
+      - name: Set up Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/${{ env.SOLANA_VERSION }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          solana --version
+
+      - name: Install Anchor CLI
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor avm --locked
+          avm install ${{ env.ANCHOR_VERSION }}
+          avm use ${{ env.ANCHOR_VERSION }}
+          anchor --version
+
+      - name: Recover Solana Keypair
+        env:
+          SOLANA_PRIVATE_KEY: ${{ secrets.SOLANA_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.config/solana
+          echo "$SOLANA_PRIVATE_KEY" > ~/.config/solana/id.json
+          solana address
+
+      - name: Determine target cluster
+        id: cluster
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            CLUSTER="${{ github.event.inputs.cluster }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/testnet" ]]; then
+            CLUSTER="testnet"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            CLUSTER="devnet"
+          elif [[ "${{ github.ref }}" == refs/tags/deploy-mainnet* ]]; then
+            CLUSTER="mainnet-beta"
+          else
+            CLUSTER="devnet"
+          fi
+          echo "cluster=$CLUSTER" >> $GITHUB_OUTPUT
+          echo "Deploying to $CLUSTER"
+
+      - name: Configure Solana cluster
+        run: |
+          solana config set --url https://api.${{ steps.cluster.outputs.cluster }}.solana.com
+          solana config get
+
+      - name: Validate Anchor IDL and artifacts
+        run: |
+          cd programs/compliance_registry
+          if [ ! -f ../../build/target/deploy/compliance_registry.so ]; then
+            echo "Error: Missing .so artifact!"
+            exit 1
+          fi
+          if [ ! -f target/idl/compliance_registry.json ]; then
+            echo "Warning: IDL not found, regenerating..."
+            anchor idl init compliance_registry || anchor idl upgrade compliance_registry
+          fi
+
+      - name: Confirm before Mainnet deployment
+        if: steps.cluster.outputs.cluster == 'mainnet-beta'
+        run: |
+          echo "🚨 MAINNET DEPLOY WARNING 🚨"
+          echo "This will deploy to mainnet-beta!"
+          echo "Waiting 10 seconds before continuing..."
+          sleep 10
+
+      - name: Deploy to selected cluster
+        run: |
+          cd programs/compliance_registry
+          anchor deploy --provider.cluster ${{ steps.cluster.outputs.cluster }} --provider.wallet ~/.config/solana/id.json
+
+      - name: Verify deployment
+        id: verify
+        run: |
+          PROGRAM_ID=$(solana address)
+          echo "✅ Deployment successful!"
+          echo "Cluster: ${{ steps.cluster.outputs.cluster }}"
+          echo "Program ID: $PROGRAM_ID"
+          solana program show $PROGRAM_ID
+          echo "program_id=$PROGRAM_ID" >> $GITHUB_OUTPUT
+
+      - name: Sync IDL and Program ID to SDK repo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "📦 Syncing IDL and Program ID to ${{ env.SDK_REPO }}"
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+
+          git clone --depth 1 https://x-access-token:${{ env.GH_TOKEN }}@github.com/${{ env.SDK_REPO }} sdk-repo
+          cp programs/compliance_registry/target/idl/compliance_registry.json sdk-repo/idl/
+          echo "${{ steps.verify.outputs.program_id }}" > sdk-repo/idl/PROGRAM_ID.txt
+
+          cd sdk-repo
+          git add .
+          git commit -m "Auto-sync IDL + Program ID from CI deployment"
+          git push origin ${{ env.SDK_BRANCH }}
