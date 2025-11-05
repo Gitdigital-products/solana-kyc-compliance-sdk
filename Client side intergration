@@ -1,0 +1,8 @@
+async function fetchConfig() {
+  const [configPda] = await PublicKey.findProgramAddress(
+    [Buffer.from("registry-config")],
+    program.programId
+  );
+  const config = await program.account.registryConfig.fetch(configPda);
+  return config.authorities.map((a: PublicKey) => a.toBase58());
+}
