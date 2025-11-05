@@ -1,0 +1,6 @@
+supabase
+  .channel('registry_events')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'registry_events' },
+    (payload) => console.log('📡 Realtime:', payload.new)
+  )
+  .subscribe();
