@@ -1,0 +1,19 @@
+async function verifyUserAddress(userPubkey: PublicKey) {
+  const registryAuthority = provider.wallet.publicKey; // your admin wallet
+  const [verifiedPda, bump] = await findVerifiedAddressPda(userPubkey);
+
+  console.log("Verifying address:", userPubkey.toBase58());
+  console.log("Derived PDA:", verifiedPda.toBase58());
+
+  const txSig = await program.methods
+    .verifyAddress() // no args, just context
+    .accounts({
+      registryAuthority,
+      verifiedAddress: verifiedPda,
+      user: userPubkey,
+      systemProgram: SystemProgram.programId,
+    })
+    .rpc();
+
+  console.log("✅ Verification transaction:", txSig);
+}
