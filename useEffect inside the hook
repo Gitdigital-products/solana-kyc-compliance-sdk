@@ -1,0 +1,15 @@
+useEffect(() => {
+  if (!wallet || !connection) return;
+  const provider = new anchor.AnchorProvider(connection, wallet, {
+    preflightCommitment: "processed",
+  });
+  const prog = new anchor.Program(idl as anchor.Idl, PROGRAM_ID, provider);
+  setProgram(prog);
+
+  // Fetch admin list from chain
+  fetchConfig()
+    .then((admins) => {
+      setIsAdmin(admins.includes(wallet.publicKey.toBase58()));
+    })
+    .catch(() => setIsAdmin(false));
+}, [wallet, connection]);
