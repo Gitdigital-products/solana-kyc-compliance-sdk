@@ -1,0 +1,8 @@
+# ensure wasm-pack installed
+curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+# build wasm with features (enable rmp-serde and brotli)
+# wasm-pack supports passing -- --features "wasm", but with wasm-pack we pass cargo args after --
+cd sdk/typescript
+# this will output JS + wasm into src/wasm/pkg
+wasm-pack build ../../crates/kyc-core --out-dir ./src/wasm/pkg --target bundler -- --features wasm --no-default-features
