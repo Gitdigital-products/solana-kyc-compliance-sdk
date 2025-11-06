@@ -1,0 +1,161 @@
+*** Begin Patch
+*** Update File: crates/kyc-core/Cargo.toml
+@@
+ [package]
+ name = "kyc-core"
+ version = "0.1.0"
+ edition = "2021"
+ description = "Core KYC logic: deterministic seeds, hashing helpers, serialization helpers (pure Rust - no Anchor deps)."
+ license = "MIT"
+ 
+ [lib]
+ name = "kyc_core"
+ path = "src/lib.rs"
+-crate-type = ["rlib"]
++crate-type = ["rlib", "cdylib"]
+ 
+ [dependencies]
+ sha2 = "0.10"
+ bytemuck = "1.14"
+ bs58 = "0.4"
++wasm-bindgen = { version = "0.2.84", optional = true }
++
++[features]
++default = []
++wasm = ["wasm-bindgen"]
+*** End Patch
+*** Begin Patch
+*** Update File: crates/kyc-core/src/lib.rs
+@@
+-//! kyc-core: pure-rust utilities shared across on-chain and client code
+-//! Keep this crate dependency-free of Anchor so it can be compiled to wasm later.
+-use sha2::{Digest, Sha256};
+-use solana_program::pubkey::Pubkey;
+-
+-/// Compute SHA256 digest of metadata bytes and return hex (or raw).
+-pub fn metadata_hash(metadata: &[u8]) -> [u8; 32] {
+-    let mut hasher = Sha256::new();
+-    hasher.update(metadata);
+-    let res = hasher.finalize();
+-    let mut out = [0u8; 32];
+-    out.copy_from_slice(&res);
+-    out
+-}
+-
+-/// Deterministic PDA seed helpers (same order as on-chain utils.rs).
+-pub const USER_KYC_SEED: &[u8] = b"user_kyc";
+-pub const REGISTRY_SEED: &[u8] = b"registry";
+-
+-/// Convert a Pubkey (solana_program::pubkey::Pubkey) to bytes for seeding.
+-pub fn pk_bytes(pk: &Pubkey) -> [u8; 32] {
+-    pk.to_bytes()
+-}
++//! kyc-core: pure-rust utilities shared across on-chain and client code
++//! This crate is intentionally free of Solana runtime types so it can be compiled to wasm.
++use sha2::{Digest, Sha256};
++
++/// Compute SHA256 digest of metadata bytes and return an array of 32 bytes.
++pub fn metadata_hash(metadata: &[u8]) -> [u8; 32] {
++    let mut hasher = Sha256::new();
++    hasher.update(metadata);
++    let res = hasher.finalize();
++    let mut out = [0u8; 32];
++    out.copy_from_slice(&res);
++    out
++}
++
++/// Deterministic seed constants used across the stack.
++pub const USER_KYC_SEED: &[u8] = b"user_kyc";
++pub const REGISTRY_SEED: &[u8] = b"registry";
++
++// -------------------------------
++// Wasm bindings (when compiled to wasm via wasm-pack)
++// -------------------------------
++#[cfg(target_arch = "wasm32")]
++use wasm_bindgen::prelude::*;
++
++/// wasm-bindgen wrapper: accept `Uint8Array` from JS and return `Uint8Array` with the sha256 bytes.
++#[cfg(target_arch = "wasm32")]
++#[wasm_bindgen]
++pub fn metadata_hash_js(data: &[u8]) -> Vec<u8> {
++    metadata_hash(data).to_vec()
++}
+*** End Patch
+*** Begin Patch
+*** Update File: sdk/typescript/package.json
+@@
+   "scripts": {
+-    "build": "esbuild src/index.ts --bundle --minify --platform=browser --outfile=dist/bundle.js",
++    "build": "esbuild src/index.ts --bundle --minify --platform=browser --outfile=dist/bundle.js",
++    "build:wasm": "wasm-pack build ../../crates/kyc-core --out-dir ./src/wasm/pkg --target bundler -- --no-typescript",
+     "test": "mocha -r ts-node/register test/**/*.test.ts",
+     "lint": "eslint . --ext .ts"
+   },
+*** End Patch
+*** Begin Patch
+*** Add File: sdk/typescript/src/wasm/loader.ts
++// tiny loader for the wasm package produced by `wasm-pack`
++// Usage:
++//   await initWasm(); const hash = metadataHash(Uint8Array.from([...]));
++
++let _wasmInit: any = null;
++
++export async function initWasm(): Promise<void> {
++  if (_wasmInit) return;
++  // dynamic import expects the wasm pack output to be at ./wasm/pkg
++  // path: sdk/typescript/src/wasm/pkg/kyc_core.js (wasm-pack default)
++  // when bundling, adjust paths as needed.
++  const pkg = await import("./wasm/pkg/kyc_core.js");
++  if (pkg && pkg.default) {
++    // some wasm-pack outputs default init function
++    await pkg.default();
++  }
++  _wasmInit = pkg;
++}
++
++export function metadataHash(input: Uint8Array): Uint8Array {
++  if (!_wasmInit) {
++    throw new Error("WASM not initialized. Call initWasm() first.");
++  }
++  // metadata_hash_js exported as a function that returns Vec<u8>
++  const res: number[] = _wasmInit.metadata_hash_js(Array.from(input));
++  return Uint8Array.from(res);
++}
+*** End Patch
+*** Begin Patch
+*** Update File: .github/workflows/workspace-build.yml
+@@
+       - name: Build workspace crates
+         run: |
+           source $HOME/.cargo/env
+           cd crates/kyc-core && cargo build --release
+           cd ../../crates/kyc-utils && cargo build --release
+ 
+       - name: Run Rust tests
+         run: |
+           source $HOME/.cargo/env
+           cargo test --workspace --all-targets --verbose
++
++      - name: Install wasm-pack
++        run: |
++          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
++
++      - name: Build WASM package for kyc-core (wasm-pack)
++        run: |
++          cd sdk/typescript
++          npm ci
++          npm run build:wasm
+*** End Patch
+*** Begin Patch
+*** Update File: README-WORKSPACE.md
+@@
+ Next recommended steps:
+ 1. Move shared pure-rust logic from the program into `crates/kyc-core` (small refactor).  
+ 2. Replace direct seed code in the on-chain program with `kyc-utils` helpers.  
+ 3. Start a tiny wasm build for `kyc-core` for mobile (Wave 3).
++4. Wave 3 done: `kyc-core` can be compiled to wasm. Run `npm run build:wasm` from `sdk/typescript` to produce the wasm package under `sdk/typescript/src/wasm/pkg`.
++
++Notes:
+ +- The wasm build uses `wasm-pack`. CI installs `wasm-pack` and runs `npm run build:wasm`. If you prefer another wasm pipeline (like `cargo + wasm-bindgen-cli`), I can adapt the scripts.
++- The wasm helper `metadata_hash_js` takes a byte array and returns the SHA256 bytes; it's tiny and perfect for doing off-chain hashing that matches on-chain digesting.
+*** End Patch
