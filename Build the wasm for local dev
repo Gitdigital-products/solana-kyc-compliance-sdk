@@ -1,0 +1,3 @@
+cd sdk/typescript
+npm ci
+npm run build:wasm
