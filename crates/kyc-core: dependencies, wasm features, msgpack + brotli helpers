@@ -1,0 +1,92 @@
+*** Begin Patch
+*** Update File: crates/kyc-core/Cargo.toml
+@@
+ [dependencies]
+ sha2 = "0.10"
+ bytemuck = "1.14"
+ bs58 = "0.4"
+-wasm-bindgen = { version = "0.2.84", optional = true }
+-
+-[features]
+-default = []
+-wasm = ["wasm-bindgen"]
++wasm-bindgen = { version = "0.2.84", optional = true }
++serde = { version = "1.0", features = ["derive"] }
++rmp-serde = { version = "1.1", optional = true }
++brotli = { version = "3.3", optional = true }
++
++[features]
++default = []
++wasm = ["wasm-bindgen", "rmp-serde", "brotli"]
+*** End Patch
+*** Begin Patch
+*** Update File: crates/kyc-core/src/lib.rs
+@@
+ use sha2::{Digest, Sha256};
+ 
+ /// Compute SHA256 digest of metadata bytes and return an array of 32 bytes.
+ pub fn metadata_hash(metadata: &[u8]) -> [u8; 32] {
+     let mut hasher = Sha256::new();
+     hasher.update(metadata);
+     let res = hasher.finalize();
+     let mut out = [0u8; 32];
+     out.copy_from_slice(&res);
+     out
+ }
+ 
+ /// Deterministic seed constants used across the stack.
+ pub const USER_KYC_SEED: &[u8] = b"user_kyc";
+ pub const REGISTRY_SEED: &[u8] = b"registry";
+ 
+ // -------------------------------
+ // Wasm bindings (when compiled to wasm via wasm-pack)
+ // -------------------------------
+ #[cfg(target_arch = "wasm32")]
+ use wasm_bindgen::prelude::*;
+ 
+ /// wasm-bindgen wrapper: accept `Uint8Array` from JS and return `Uint8Array` with the sha256 bytes.
+ #[cfg(target_arch = "wasm32")]
+ #[wasm_bindgen]
+ pub fn metadata_hash_js(data: &[u8]) -> Vec<u8> {
+     metadata_hash(data).to_vec()
+ }
++
++// -------------------------------
++// Optional: MessagePack + Brotli helpers for mobile/wasm (feature gated)
++// -------------------------------
++#[cfg(all(target_arch = "wasm32", feature = "rmp-serde"))]
++use rmp_serde::{to_vec_named as msgpack_serialize};
++
++#[cfg(all(target_arch = "wasm32", feature = "brotli"))]
++use brotli::CompressorWriter;
++
++#[cfg(all(target_arch = "wasm32", feature = "rmp-serde"))]
++#[wasm_bindgen]
++pub fn metadata_pack_js(input: JsValue) -> Vec<u8> {
++    // input is expected to be a JS object — we receive as serde_json::Value via wasm-bindgen
++    let v: serde_json::Value = input.into_serde().unwrap_or(serde_json::Value::Null);
++    // serialize to msgpack (rmp-serde)
++    let packed = msgpack_serialize(&v).unwrap_or_else(|_| vec![]);
++    packed
++}
++
++#[cfg(all(target_arch = "wasm32", feature = "brotli"))]
++#[wasm_bindgen]
++pub fn metadata_brotli_js(packed: &[u8], quality: u32) -> Vec<u8> {
++    // quality: 0-11 typical for brotli; keep small default on mobile
++    let mut out: Vec<u8> = Vec::new();
++    {
++        let mut comp = CompressorWriter::new(&mut out, 4096, quality as u32, 22);
++        let _ = comp.write_all(packed);
++        let _ = comp.flush();
++    }
++    out
++}
++
++#[cfg(all(target_arch = "wasm32", feature = "rmp-serde", feature = "brotli"))]
++#[wasm_bindgen]
++pub fn pack_and_compress_js(input: JsValue, quality: u32) -> Vec<u8> {
++    let packed = metadata_pack_js(input);
++    metadata_brotli_js(&packed, quality)
++}
+*** End Patch
