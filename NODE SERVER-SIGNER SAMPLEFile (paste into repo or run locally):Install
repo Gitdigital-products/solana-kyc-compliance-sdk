@@ -1,0 +1,1 @@
+npm i tweetnacl js-sha256 rmp-serde @msgpack/msgpack node-fetch ipfs-http-client
