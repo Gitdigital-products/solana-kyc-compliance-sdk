@@ -1,0 +1,4 @@
+cd sdk/typescript
+npm ci
+npm run build:wasm
+# This will place the wasm package under sdk/typescript/src/wasm/pkg
