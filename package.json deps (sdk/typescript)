@@ -1,0 +1,12 @@
+*** Begin Patch
+*** Update File: sdk/typescript/package.json
+@@
+   "dependencies": {
+-    "@coral-xyz/anchor": "^0.27.0",
+-    "@solana/web3.js": "^1.57.0"
++    "@coral-xyz/anchor": "^0.27.0",
++    "@solana/web3.js": "^1.57.0",
++    "tweetnacl": "^1.0.3",
++    "ipfs-http-client": "^60.0.0"
+   },
+*** End Patch
