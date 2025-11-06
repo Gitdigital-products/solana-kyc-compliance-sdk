@@ -1,0 +1,22 @@
+name: Anchor CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Anchor
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor avm --locked
+          avm install latest
+          avm use latest
+      - name: Install dependencies
+        run: npm install --prefix sdk/typescript
+      - name: Build
+        run: anchor build
+      - name: Test
+        run: anchor test
