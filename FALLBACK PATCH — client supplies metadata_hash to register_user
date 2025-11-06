@@ -1,0 +1,92 @@
+*** Begin Patch
+*** Update File: programs/kyc_compliance/src/instructions/register_user.rs
+@@
+-#[derive(Accounts)]
+-#[instruction(user_key: Pubkey)]
+-pub struct RegisterUser<'info> {
+-    #[account(mut, has_one = authority)]
+-    pub registry: Account<'info, Registry>,
+-
+-    #[account(
+-        init,
+-        payer = registry_authority,
+-        space = UserKyc::LEN,
+-        seeds = [b"user_kyc", registry.key().as_ref(), user_key.as_ref()],
+-        bump
+-    )]
+-    pub user_kyc: Account<'info, UserKyc>,
+-
+-    #[account(mut)]
+-    pub registry_authority: Signer<'info>,
+-
+-    pub system_program: Program<'info, System>,
+-}
+-
+-pub fn handler(ctx: Context<RegisterUser>, user_key: Pubkey, metadata: Vec<u8>) -> Result<()> {
+-    let user_kyc = &mut ctx.accounts.user_kyc;
+-    let registry = &ctx.accounts.registry;
+-
+-    user_kyc.user = user_key;
+-    user_kyc.verified = false;
+-    user_kyc.verified_at = None;
+-    user_kyc.registry = registry.key();
+-    // compute metadata hash and store on-chain
+-    let h = metadata_hash(&metadata);
+-    user_kyc.metadata_hash = h;
+-
+-    // Emit on-chain event for off-chain indexers / auditing
+-    let now = Clock::get()?.unix_timestamp;
+-    emit!(UserRegistered {
+-        user: user_key,
+-        registry: registry.key(),
+-        registrar: ctx.accounts.registry_authority.key(),
+-        registered_at: now,
+-    });
+-
+-    Ok(())
+-}
++#[derive(Accounts)]
++#[instruction(user_key: Pubkey)]
++pub struct RegisterUser<'info> {
++    #[account(mut, has_one = authority)]
++    pub registry: Account<'info, Registry>,
++
++    #[account(
++        init,
++        payer = registry_authority,
++        space = UserKyc::LEN,
++        seeds = [b"user_kyc", registry.key().as_ref(), user_key.as_ref()],
++        bump
++    )]
++    pub user_kyc: Account<'info, UserKyc>,
++
++    #[account(mut)]
++    pub registry_authority: Signer<'info>,
++
++    pub system_program: Program<'info, System>,
++}
++
++/// Fallback-safe handler: client sends the 32-byte SHA256(metadata_or_compressed_bytes)
++/// as `metadata_hash` (so we avoid linking non-BPF crates).
++pub fn handler(ctx: Context<RegisterUser>, user_key: Pubkey, metadata_hash: [u8; 32]) -> Result<()> {
++    let user_kyc = &mut ctx.accounts.user_kyc;
++    let registry = &ctx.accounts.registry;
++
++    user_kyc.user = user_key;
++    user_kyc.verified = false;
++    user_kyc.verified_at = None;
++    user_kyc.registry = registry.key();
++    user_kyc.metadata_hash = metadata_hash;
++
++    // Emit on-chain event for off-chain indexers / auditing
++    let now = Clock::get()?.unix_timestamp;
++    emit!(UserRegistered {
++        user: user_key,
++        registry: registry.key(),
++        registrar: ctx.accounts.registry_authority.key(),
++        registered_at: now,
++    });
++
++    Ok(())
++}
+*** End Patch
