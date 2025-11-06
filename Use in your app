@@ -1,0 +1,4 @@
+import { initWasm, metadataHashHex } from "./wasm";
+await initWasm();
+const hex = metadataHashHex(new TextEncoder().encode(JSON.stringify({ name: "Boss" })));
+console.log(hex);
