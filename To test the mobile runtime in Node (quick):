@@ -1,0 +1,12 @@
+// quick-test.js
+import { initWasm } from "./sdk/typescript/src/wasm/loader.js";
+import { prepareMetadataForUpload, computeMetadataHash } from "./sdk/typescript/dist/mobile-bundle.js"; // or import from src/mobile in dev
+const run = async () => {
+  await initWasm();
+  const obj = { name: "Boss", country: "US", id: 12345 };
+  const compressed = await prepareMetadataForUpload(obj, 4);
+  console.log("compressed length", compressed.length);
+  const hash = computeMetadataHash(compressed);
+  console.log("hash len", hash.length);
+};
+run();
