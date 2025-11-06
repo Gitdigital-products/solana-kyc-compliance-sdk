@@ -1,0 +1,19 @@
+*** Begin Patch
+*** Update File: .github/workflows/workspace-build.yml
+@@
+       - name: Build workspace crates
+         run: |
+           source $HOME/.cargo/env
+           cd crates/kyc-core && cargo build --release
+           cd ../../crates/kyc-utils && cargo build --release
++
++      - name: Install wasm-pack
++        run: |
++          npm install -g wasm-pack
++
++      - name: Build wasm for kyc-core
++        run: |
++          cd sdk/typescript
++          npm ci
++          npm run build:wasm
+*** End Patch
