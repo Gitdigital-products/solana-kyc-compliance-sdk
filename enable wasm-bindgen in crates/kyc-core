@@ -1,0 +1,19 @@
+*** Begin Patch
+*** Update File: crates/kyc-core/Cargo.toml
+@@
+ [lib]
+ name = "kyc_core"
+ path = "src/lib.rs"
+-crate-type = ["rlib"]
++crate-type = ["rlib", "cdylib"]
+ 
+ [dependencies]
+ sha2 = "0.10"
+ bytemuck = "1.14"
+ bs58 = "0.4"
++wasm-bindgen = { version = "0.2", optional = true }
++
++[features]
++default = []
++wasm = ["wasm-bindgen"]
+*** End Patch
