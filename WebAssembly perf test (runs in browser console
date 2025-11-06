@@ -1,0 +1,13 @@
+*** Begin Patch
+*** Add File: sdk/typescript/test/wasm_perf_test.ts
++import { initWasm, metadataHash } from "../src/wasm/loader";
++
++(async () => {
++  await initWasm();
++  const input = new Uint8Array(1024 * 50); // 50KB fake metadata
++  console.time("wasm metadata_hash");
++  const out = metadataHash(input);
++  console.timeEnd("wasm metadata_hash");
++  console.log("output:", out.length, "bytes");
++})();
+*** End Patch
