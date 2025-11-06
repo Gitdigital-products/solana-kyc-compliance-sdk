@@ -1,0 +1,29 @@
+*** Begin Patch
+*** Update File: README.md
+@@
+ ## Verify Address
+
+-Users self-verify their wallet by signing a transaction:
+-
+-```bash
+-anchor test -- --test verify-address
+-```
+-
+-This creates a VerifiedAddress PDA owned by the user.
+-
++Registry authorities verify addresses. The user being verified is a non-signer; the registry authority signs and pays for the PDA creation.
++
++Example:
++
++```typescript
++await program.methods.verifyAddress(metadataBytes).accounts({
++  user: userPublicKey,
++  registry: registryPda,
++  verifiedAddress: verifiedPda,
++  registryAuthority: wallet.publicKey,
++  systemProgram: SystemProgram.programId,
++}).signers([wallet.payer]).rpc();
++```
++
++This creates a `VerifiedAddress` PDA linked to the user, registered under that `registry`.
+*** End Patch
