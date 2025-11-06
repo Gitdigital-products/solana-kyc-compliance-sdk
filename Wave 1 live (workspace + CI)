@@ -1,0 +1,68 @@
+*** Begin Patch
+*** Update File: programs/kyc_compliance/Cargo.toml
+@@
+ [dependencies]
+ anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }
+ solana-program = "1.17"
+ kyca = { path = "../../crates/kyc-core" }
++kyc-utils = { path = "../../crates/kyc-utils" }
+*** End Patch
+*** Update File: programs/kyc_compliance/src/utils.rs
+@@
+-use solana_program::pubkey::Pubkey;
+-
+-pub const USER_KYC_SEED: &[u8] = b"user_kyc";
+-pub const REGISTRY_SEED: &[u8] = b"registry";
+-
+-pub fn derive_registry_pda(program_id: &Pubkey, registry_authority: &Pubkey) -> (Pubkey, u8) {
+-    Pubkey::find_program_address(&[REGISTRY_SEED, registry_authority.as_ref()], program_id)
+-}
+-
+-pub fn derive_user_kyc_pda(program_id: &Pubkey, registry: &Pubkey, user: &Pubkey) -> (Pubkey, u8) {
+-    Pubkey::find_program_address(&[USER_KYC_SEED, registry.as_ref(), user.as_ref()], program_id)
+-}
++use kyc_utils::{derive_registry_pda, derive_user_kyc_pda};
++
++// Re-export to keep external code unchanged
++pub use kyc_utils::{REGISTRY_SEED, USER_KYC_SEED};
+*** End Patch
+*** Add File: crates/kyc-utils/tests/pda_derive.rs
++use solana_program::pubkey::Pubkey;
++use kyc_utils::{derive_registry_pda, derive_user_kyc_pda};
++
++#[test]
++fn test_registry_pda_deterministic() {
++    let program_id = Pubkey::new_unique();
++    let authority = Pubkey::new_unique();
++    let (pda1, bump1) = derive_registry_pda(&program_id, &authority);
++    let (pda2, bump2) = derive_registry_pda(&program_id, &authority);
++    assert_eq!(pda1, pda2, "PDA should be deterministic");
++    assert_eq!(bump1, bump2, "Bump should be consistent");
++}
++
++#[test]
++fn test_user_pda_differs_for_users() {
++    let program_id = Pubkey::new_unique();
++    let registry = Pubkey::new_unique();
++    let user1 = Pubkey::new_unique();
++    let user2 = Pubkey::new_unique();
++
++    let (pda1, _) = derive_user_kyc_pda(&program_id, &registry, &user1);
++    let (pda2, _) = derive_user_kyc_pda(&program_id, &registry, &user2);
++
++    assert_ne!(pda1, pda2, "User-specific PDAs must differ");
++}
+*** End Patch
+*** Update File: .github/workflows/workspace-build.yml
+@@
+       - name: Build workspace crates
+         run: |
+           source $HOME/.cargo/env
+           cd crates/kyc-core && cargo build --release
+           cd ../../crates/kyc-utils && cargo build --release
++
++      - name: Run Rust tests
++        run: |
++          source $HOME/.cargo/env
++          cargo test --workspace --all-targets --verbose
+*** End Patch
