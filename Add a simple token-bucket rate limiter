@@ -1,0 +1,57 @@
+*** Begin Patch
+*** Add File: crates/kyc-utils/src/rate_limiter.rs
++use std::time::{Duration, Instant};
++use tokio::sync::Mutex;
++use std::sync::Arc;
++
++/// Simple token-bucket limiter safe to use from async contexts.
++/// capacity: max tokens, refill_amount: tokens added each interval, refill_interval: duration
++#[derive(Clone)]
++pub struct TokenBucket {
++    inner: Arc<Mutex<TokenBucketInner>>,
++}
++
++struct TokenBucketInner {
++    capacity: u64,
++    tokens: u64,
++    refill_amount: u64,
++    last_refill: Instant,
++    refill_interval: Duration,
++}
++
++impl TokenBucket {
++    pub fn new(capacity: u64, refill_amount: u64, refill_interval: Duration) -> Self {
++        let inner = TokenBucketInner {
++            capacity,
++            tokens: capacity,
++            refill_amount,
++            last_refill: Instant::now(),
++            refill_interval,
++        };
++        Self {
++            inner: Arc::new(Mutex::new(inner)),
++        }
++    }
++
++    /// Try to consume `n` tokens. Returns true if allowed.
++    pub async fn allow(&self, n: u64) -> bool {
++        let mut guard = self.inner.lock().await;
++        let now = Instant::now();
++        let elapsed = now.duration_since(guard.last_refill);
++        if elapsed >= guard.refill_interval {
++            let ticks = elapsed.as_secs_f64() / guard.refill_interval.as_secs_f64();
++            let to_add = (ticks.floor() as u64).saturating_mul(guard.refill_amount);
++            guard.tokens = std::cmp::min(guard.capacity, guard.tokens.saturating_add(to_add));
++            guard.last_refill = now;
++        }
++
++        if guard.tokens >= n {
++            guard.tokens -= n;
++            true
++        } else {
++            false
++        }
++    }
++}
++
+*** End Patch
