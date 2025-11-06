@@ -1,0 +1,23 @@
+*** Begin Patch
+*** Update File: sdk/typescript/examples/verify.ts
+@@
+-// previous call that assumed user was a signer
+-const tx = await program.rpc.verifyAddress(metadata, {
+-  accounts: {
+-    user: wallet.publicKey,
+-    registry: registryPda,
+-    verifiedAddress: verifiedPda,
+-    systemProgram: anchor.web3.SystemProgram.programId,
+-  },
+-});
++// New call: pass the user's public key as a non-signer account and registryAuthority as signer (payer)
++const tx = await program.rpc.verifyAddress(metadata, {
++  accounts: {
++    user: userPublicKey, // this is the address being verified — NOT the signer
++    registry: registryPda,
++    verifiedAddress: verifiedPda,
++    systemProgram: anchor.web3.SystemProgram.programId,
++  },
++  signers: [registryAuthorityKeypair], // registry authority signs and pays for PDA init
++});
+*** End Patch
