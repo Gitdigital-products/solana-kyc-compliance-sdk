@@ -1,0 +1,9 @@
+// node-test.js
+import { initWasm, metadataHash } from './sdk/typescript/src/wasm/loader.js';
+const run = async () => {
+  await initWasm();
+  const input = new Uint8Array([1,2,3,4]);
+  const h = metadataHash(input);
+  console.log('hash bytes length', h.length);
+};
+run();
