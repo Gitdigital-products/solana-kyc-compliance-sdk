@@ -1,0 +1,13 @@
+*** Begin Patch
+*** Update File: sdk/typescript/package.json
+@@
+   "scripts": {
+-    "build": "esbuild src/index.ts --bundle --minify --platform=browser --outfile=dist/bundle.js",
+-    "build:wasm": "wasm-pack build ../../crates/kyc-core --out-dir ./src/wasm/pkg --target bundler -- --no-typescript",
++    "build": "esbuild src/index.ts --bundle --minify --platform=browser --outfile=dist/bundle.js",
++    "build:wasm": "wasm-pack build ../../crates/kyc-core --out-dir ./src/wasm/pkg --target bundler -- --no-typescript",
++    "build:mobile": "esbuild src/mobile/index.ts --bundle --minify --platform=browser --outfile=dist/mobile-bundle.js --target=es2019 --format=esm --external:@coral-xyz/anchor",
+     "test": "mocha -r ts-node/register test/**/*.test.ts",
+     "lint": "eslint . --ext .ts"
+   },
+*** End Patch
