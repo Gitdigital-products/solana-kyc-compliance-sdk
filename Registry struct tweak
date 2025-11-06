@@ -1,0 +1,12 @@
+*** Begin Patch
+*** Update File: programs/compliance_registry/src/state/registry.rs
+@@
+ #[account]
+ pub struct Registry {
+     pub bump: u8,
+     pub name: String,
+     pub description: String,
++    /// The authority (signer) that can verify/revoke addresses.
++    pub authority: Pubkey,
+ }
+*** End Patch
