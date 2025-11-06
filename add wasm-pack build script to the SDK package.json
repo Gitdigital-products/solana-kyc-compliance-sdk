@@ -1,0 +1,10 @@
+*** Begin Patch
+*** Update File: sdk/typescript/package.json
+@@
+   "scripts": {
+     "build": "esbuild src/index.ts --bundle --minify --platform=browser --outfile=dist/bundle.js",
++    "build:wasm": "cd ../../crates/kyc-core && wasm-pack build --release --target web --out-dir ../../sdk/typescript/src/wasm/pkg -- --features wasm",
+     "test": "mocha -r ts-node/register test/**/*.test.ts",
+     "lint": "eslint . --ext .ts"
+   },
+*** End Patch
