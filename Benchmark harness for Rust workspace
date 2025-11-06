@@ -1,0 +1,13 @@
+*** Begin Patch
+*** Add File: benches/kyc_bench.rs
++use criterion::{criterion_group, criterion_main, Criterion};
++use kyc_core::metadata_hash;
++
++fn bench_metadata_hash(c: &mut Criterion) {
++    let data = vec![0u8; 1024];
++    c.bench_function("metadata_hash 1KB", |b| b.iter(|| metadata_hash(&data)));
++}
++
++criterion_group!(benches, bench_metadata_hash);
++criterion_main!(benches);
+*** End Patch
