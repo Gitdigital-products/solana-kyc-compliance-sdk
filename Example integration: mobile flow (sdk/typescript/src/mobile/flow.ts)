@@ -1,0 +1,62 @@
+*** Begin Patch
+*** Add File: sdk/typescript/src/mobile/flow.ts
++import { initMobileRuntime, prepareMetadataForUpload, computeMetadataHash } from "./index";
++import { initIpfs, uploadCompressedMetadata } from "../ipfs/uploader";
++import { enqueue, processQueue, QueueItem } from "../offline/queue";
++import { Keypair, PublicKey } from "@solana/web3.js";
++import { verifyEd25519 } from "../crypto/verify";
++import { v4 as uuidv4 } from "uuid";
++
++/** Example: offline-first register flow
++ *  1. pack+compress metadata
++ *  2. upload to IPFS when network available (or queue upload)
++ *  3. when IPFS CID present, create & sign registration tx (or queue tx)
++ */
++export async function mobileRegisterFlow(ipfsCfg: any, metadata: any, signer: Keypair, onUploadCid?: (cid:string)=>void) {
++  await initMobileRuntime();
++  const client = await initIpfs(ipfsCfg);
++
++  // Step 1 -> pack & compress
++  const compressed = await prepareMetadataForUpload(metadata, 4);
++
++  // try upload immediately; if fails, enqueue upload action
++  try {
++    const cid = await uploadCompressedMetadata(client, metadata, 4);
++    onUploadCid?.(cid);
++
++    // compute metadata hash to register on-chain (we hash the compressed bytes for provenance)
++    const hash = computeMetadataHash(compressed); // Uint8Array(32)
++
++    // Build a queue item to submit the on-chain register tx later (client can sign+send)
++    const txItem: QueueItem = {
++      id: uuidv4(),
++      ts: Date.now(),
++      action: "register_onchain",
++      payload: {
++        cid,
++        metadata_hash: Array.from(hash),
++        // any other fields: registry pubkey, fee payer, etc
++      }
++    };
++    enqueue(txItem);
++    // optionally process queue immediately
++    await processQueue(async (item) => {
++      // Here you'd call your SDK to sign+send tx. Pseudocode:
++      // await yourSdk.registerUserOnchain(item.payload, signer)
++      console.log("would send tx for item", item.id);
++    });
++  } catch (e) {
++    // offline path: enqueue compressed bytes for later upload
++    const qItem: QueueItem = {
++      id: uuidv4(),
++      ts: Date.now(),
++      action: "upload_metadata",
++      payload: {
++        compressed: Array.from(compressed),
++        metadata_preview: { title: metadata.title }
++      }
++    };
++    enqueue(qItem);
++  }
++}
+*** End Patch
