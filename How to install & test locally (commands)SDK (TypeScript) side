@@ -1,0 +1,8 @@
+cd sdk/typescript
+npm ci
+# build wasm first (must have wasm-pack)
+npm run build:wasm
+# then build mobile bundle
+npm run build:mobile
+# run your mocha tests if any
+npm test
