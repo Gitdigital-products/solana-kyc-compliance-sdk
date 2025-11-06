@@ -1,0 +1,7 @@
+# in sdk/typescript
+npm ci
+npm run build:wasm
+npm run build:mobile
+# results:
+# - sdk/typescript/src/wasm/pkg/*  (wasm + JS bindings)
+# - sdk/typescript/dist/mobile-bundle.js
