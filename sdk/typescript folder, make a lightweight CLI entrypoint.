@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+import { Command } from 'commander';
+import { verifyAddress } from './commands/verify.js';
+
+const program = new Command();
+program
+  .command('verify <user>')
+  .description('Verify an address via the registry authority')
+  .option('-m, --metadata <path>', 'JSON file with metadata')
+  .action(verifyAddress);
+
+program.parse();
