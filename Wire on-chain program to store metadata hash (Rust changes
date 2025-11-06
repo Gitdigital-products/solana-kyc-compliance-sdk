@@ -1,0 +1,120 @@
+*** Begin Patch
+*** Update File: programs/kyc_compliance/Cargo.toml
+@@
+ [dependencies]
+ anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }
+ solana-program = "1.17"
+ kyca = { path = "../../crates/kyc-core" }
+ kyc-utils = { path = "../../crates/kyc-utils" }
++kyc-core = { path = "../../crates/kyc-core" }
+*** End Patch
+*** Begin Patch
+*** Update File: programs/kyc_compliance/src/state/user.rs
+@@
+ use anchor_lang::prelude::*;
+ 
+ #[account]
+ pub struct UserKyc {
+     pub user: Pubkey,
+     pub verified: bool,
+-    pub verified_at: Option<i64>,
+-    pub registry: Pubkey,
++    pub verified_at: Option<i64>,
++    pub registry: Pubkey,
++    /// SHA256(metadata) stored on-chain (32 bytes)
++    pub metadata_hash: [u8; 32],
+ }
+ 
+ impl UserKyc {
+-    pub const LEN: usize = 8 + 32 + 1 + 9 + 32;
++    // discriminator (8) + user (32) + verified (1) + Option<i64> (1 + 8) + registry (32) + metadata_hash (32)
++    pub const LEN: usize = 8 + 32 + 1 + 9 + 32 + 32;
+ }
+*** End Patch
+*** Begin Patch
+*** Update File: programs/kyc_compliance/src/instructions/register_user.rs
+@@
+ use crate::state::{registry::*, user::*};
+ use crate::errors::KycError;
+ use crate::events::*;
+ use anchor_lang::prelude::Clock;
++use kyc_core::metadata_hash;
++use std::convert::TryInto;
+ 
+ #[derive(Accounts)]
+ #[instruction(user_key: Pubkey)]
+ pub struct RegisterUser<'info> {
+@@
+ pub fn handler(ctx: Context<RegisterUser>, user_key: Pubkey, metadata: Vec<u8>) -> Result<()> {
+     let user_kyc = &mut ctx.accounts.user_kyc;
+     let registry = &ctx.accounts.registry;
+ 
+     user_kyc.user = user_key;
+     user_kyc.verified = false;
+-    user_kyc.verified_at = None;
++    user_kyc.verified_at = None;
+     user_kyc.registry = registry.key();
++    // compute metadata hash and store on-chain
++    let h = metadata_hash(&metadata);
++    user_kyc.metadata_hash = h;
+ 
+     // Emit on-chain event for off-chain indexers / auditing
+     let now = Clock::get()?.unix_timestamp;
+     emit!(UserRegistered {
+         user: user_key,
+         registry: registry.key(),
+         registrar: ctx.accounts.registry_authority.key(),
+         registered_at: now,
+     });
+ 
+     Ok(())
+ }
+*** End Patch
+*** Begin Patch
+*** Update File: programs/kyc_compliance/src/instructions/verify_user.rs
+@@
+ use crate::state::{registry::*, user::*};
+ use crate::errors::KycError;
+ use crate::events::*;
+ use anchor_lang::prelude::Clock;
++use kyc_core::metadata_hash;
+ 
+ #[derive(Accounts)]
+ pub struct VerifyUser<'info> {
+@@
+ pub fn handler(ctx: Context<VerifyUser>) -> Result<()> {
+     let registry = &mut ctx.accounts.registry;
+     let user_kyc = &mut ctx.accounts.user_kyc;
+ 
+     require_keys_eq!(
+         registry.authority,
+         ctx.accounts.registry_authority.key(),
+         KycError::Unauthorized
+     );
+ 
+     // Prevent double verification
+     if user_kyc.verified {
+         return err!(KycError::AlreadyVerified);
+     }
+ 
+     user_kyc.verified = true;
+-    let now = Clock::get()?.unix_timestamp;
+-    user_kyc.verified_at = Some(now);
++    let now = Clock::get()?.unix_timestamp;
++    user_kyc.verified_at = Some(now);
+ 
+     registry.total_verified = registry
+         .total_verified
+         .checked_add(1)
+         .ok_or(error!(KycError::InvalidUser))?;
+ 
+     // Emit verification event for indexers and audits
+     emit!(UserVerified {
+         user: user_kyc.user,
+         registry: registry.key(),
+         verifier: ctx.accounts.registry_authority.key(),
+         verified_at: now,
+     });
+     Ok(())
+ }
+*** End Patch
