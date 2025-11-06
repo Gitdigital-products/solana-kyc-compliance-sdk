@@ -1,0 +1,2 @@
+npm i tweetnacl js-sha256 @msgpack/msgpack brotli ipfs-http-client bs58
+node server-signer.js
