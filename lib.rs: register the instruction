@@ -1,0 +1,21 @@
+*** Begin Patch
+*** Update File: programs/compliance_registry/src/lib.rs
+@@
+ pub mod state;
+ pub mod errors;
+ pub mod instructions;
+ 
+ use anchor_lang::prelude::*;
++use instructions::verify_address;
+ 
+ #[program]
+ pub mod compliance_registry {
+     use super::*;
+ 
++    pub fn verify_address(ctx: Context<instructions::VerifyAddress>, metadata: Vec<u8>) -> Result<()> {
++        instructions::verify_address::verify_address(ctx, metadata)
++    }
++
+     // ... other handlers ...
+ }
+*** End Patch
