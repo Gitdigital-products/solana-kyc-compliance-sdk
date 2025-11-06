@@ -1,0 +1,54 @@
+// rn/kycQueue.ts (React Native)
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Keychain from "react-native-keychain";
+import { v4 as uuidv4 } from "uuid";
+import { initMobileRuntime, prepareMetadataForUpload, computeMetadataHash } from "./mobileBundle"; // import your built bundle
+import { create as createIpfsClient } from "ipfs-http-client";
+import { PublicKey, Keypair, Transaction } from "@solana/web3.js";
+import { sendAndConfirmTransaction } from './solanaHelpers'; // your SDK call
+
+const QUEUE_KEY = "kyc_mobile_queue_v1";
+
+export async function enqueueItem(item: any) {
+  const raw = await AsyncStorage.getItem(QUEUE_KEY);
+  const list = raw ? JSON.parse(raw) : [];
+  list.push(item);
+  await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(list));
+}
+
+export async function processQueue() {
+  const raw = await AsyncStorage.getItem(QUEUE_KEY);
+  const list = raw ? JSON.parse(raw) : [];
+  const remaining = [];
+  for (const item of list) {
+    try {
+      if (item.action === "upload_metadata") {
+        // try IPFS upload
+        const client = createIpfsClient({ url: "https://ipfs.infura.io:5001" });
+        const compressed = Uint8Array.from(item.payload.compressed);
+        const { cid } = await client.add(compressed);
+        // compute hash
+        const hash = computeMetadataHash(compressed); // Uint8Array(32)
+        // now build tx or ask server to sign
+        // here we enqueue another action to register on-chain
+        await enqueueItem({
+          id: uuidv4(),
+          ts: Date.now(),
+          action: "register_onchain",
+          payload: {
+            cid: cid.toString(),
+            metadata_hash: Array.from(hash)
+          }
+        });
+      } else if (item.action === "register_onchain") {
+        // make on-chain call via your SDK - the registry authority must sign
+        // if client signs, ensure client is the registry authority (unlikely). Typical: ask server to submit or sign as authority
+        // example pseudo:
+        // await yourSdk.registerUser(item.payload.metadata_hash, ...);
+      }
+    } catch (e) {
+      remaining.push(item); // keep for retry
+    }
+  }
+  await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
+}
