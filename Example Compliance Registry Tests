@@ -1,0 +1,57 @@
+// tests/compliance-registry.test.ts
+describe('Compliance Registry Program', () => {
+  let admin: Keypair;
+  let user: Keypair;
+  
+  it('should ADD user to compliance registry', async () => {
+    const userPubkey = user.publicKey;
+    const tier = 'ACCREDITED_INVESTOR';
+    
+    const tx = await addToComplianceRegistry({
+      admin: admin,
+      user: userPubkey,
+      kycTier: tier,
+      jurisdiction: 'US'
+    });
+    
+    await expect(tx).toConfirm();
+    
+    // Verify user is in registry
+    const status = await getComplianceStatus(userPubkey);
+    expect(status.isVerified).to.be.true;
+    expect(status.tier).to.equal(tier);
+  });
+
+  it('should REVOKE KYC status immediately', async () => {
+    // First add user
+    await addToComplianceRegistry({ user: user.publicKey });
+    
+    // Then revoke
+    await revokeKycStatus({
+      admin: admin,
+      user: user.publicKey,
+      reason: 'DOCUMENT_EXPIRED'
+    });
+    
+    // Verify immediate blocking
+    const status = await getComplianceStatus(user.publicKey);
+    expect(status.isVerified).to.be.false;
+    
+    // Test transfer fails after revocation
+    await expect(attemptTransfer(user.publicKey)).to.be.rejected;
+  });
+
+  it('should handle GEOGRAPHIC restrictions', async () => {
+    // Test jurisdiction-based compliance
+    await setJurisdictionPolicy({
+      jurisdiction: 'RESTRICTED_COUNTRY',
+      allowed: false
+    });
+    
+    const restrictedUser = await createUserWithJurisdiction('RESTRICTED_COUNTRY');
+    
+    await expect(
+      addToComplianceRegistry({ user: restrictedUser })
+    ).to.be.rejectedWith('JURISDICTION_NOT_ALLOWED');
+  });
+});
