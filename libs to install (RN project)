@@ -1,0 +1,3 @@
+yarn add @react-native-async-storage/async-storage ipfs-http-client tweetnacl react-native-blob-util
+# For secure storage (iOS/Android): expo-secure-store or react-native-keychain
+yarn add react-native-keychain
