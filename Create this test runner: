@@ -1,0 +1,10 @@
+// package.json scripts
+{
+  "scripts": {
+    "test:unit": "mocha tests/**/*.test.ts",
+    "test:integration": "mocha tests/integration.test.ts",
+    "test:security": "mocha audit/**/*.test.ts",
+    "test:performance": "mocha tests/performance.test.ts",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:security && npm run test:performance"
+  }
+}
