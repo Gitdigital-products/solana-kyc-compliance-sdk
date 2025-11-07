@@ -1,0 +1,21 @@
+#[account]
+pub struct VerificationQueue {
+    pub jobs: Vec<Pubkey>, // each is a user waiting for off-chain KYC
+}
+
+#[derive(Accounts)]
+pub struct SubmitKycResult<'info> {
+    #[account(mut)]
+    pub queue: Account<'info, VerificationQueue>,
+    #[account(mut)]
+    pub user_kyc: Account<'info, KycData>,
+    pub authority: Signer<'info>,
+}
+
+pub fn submit_kyc_result(
+    ctx: Context<SubmitKycResult>,
+    verified: bool,
+) -> Result<()> {
+    ctx.accounts.user_kyc.verified = verified;
+    Ok(())
+}
