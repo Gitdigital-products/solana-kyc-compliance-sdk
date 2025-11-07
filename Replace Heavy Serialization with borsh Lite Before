@@ -1,0 +1,8 @@
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize)]
+pub struct KycData {
+    pub user_address: Pubkey,
+    pub verified: bool,
+    pub expiry_timestamp: i64,
+}
