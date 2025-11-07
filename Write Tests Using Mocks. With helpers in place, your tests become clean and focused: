@@ -1,0 +1,14 @@
+// transfer-hook.test.ts
+import { setupTestEnvironment, createMockComplianceProgram } from './test-helpers';
+
+describe('Transfer Hook Logic', () => {
+  test('should BLOCK transfer for non-KYC user', async () => {
+    // Arrange
+    const { program, connection, wallet } = setupTestEnvironment();
+    // Set up the mock to simulate a non-verified user
+    program.account.complianceState.fetch.mockResolvedValue(null);
+    
+    // Act & Assert
+    // ... Your test logic to attempt a transfer and expect a failure
+  });
+});
