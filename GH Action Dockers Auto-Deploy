@@ -1,0 +1,12 @@
+deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to Docker Hub
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin
+      - name: Push image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USER }}/solana-kyc-signer:latest ./server-signer
+          docker push ${{ secrets.DOCKERHUB_USER }}/solana-kyc-signer:latest
