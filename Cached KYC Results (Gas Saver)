@@ -1,0 +1,10 @@
+#[account]
+pub struct KycCache {
+    pub user: Pubkey,
+    pub last_verified: i64,
+    pub status: bool,
+}
+
+pub fn is_recently_verified(cache: &KycCache, current_time: i64) -> bool {
+    current_time - cache.last_verified < 3600 * 24 // 24 hours
+}
