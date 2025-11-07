@@ -1,0 +1,2 @@
+docker build -t solana-kyc-signer .
+docker run -p 3001:3001 -e SIGNER_API_KEY=dev-key solana-kyc-signer
