@@ -1,0 +1,8 @@
+# 1) bump versions in Cargo.toml and package.json (or use cargo-release / npm version)
+# Example: update version to 1.2.3 in crates and TS package.json
+# 2) commit
+git add .
+git commit -m "chore(release): v1.2.3"
+git tag v1.2.3
+git push origin main --follow-tags
+# CI will pick up the tag and run release.yml
