@@ -1,0 +1,40 @@
+name: Publish Docs
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Rust docs
+        run: |
+          cargo doc --workspace --no-deps --document-private-items
+          # copy to docs/html/crate-name for each crate
+          rm -rf docs/html || true
+          mkdir -p docs/html
+          cp -r target/doc docs/html/
+
+      - name: Build TypeScript docs (typedoc)
+        run: |
+          cd sdk/typescript
+          npm ci
+          npx typedoc --out ../docs/ts-docs src
+        continue-on-error: true
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
