@@ -1,0 +1,30 @@
+// audit/compliance-logic.test.ts
+describe('Compliance Logic Audit', () => {
+  it('should maintain CONSISTENT state across transfers', async () => {
+    // Test race conditions when KYC status changes during transfer
+    const user = await createVerifiedUser();
+    
+    const transferPromise = createLargeTransfer(user);
+    
+    // Revoke KYC mid-transfer
+    await revokeKycStatus({ user: user.publicKey });
+    
+    // Transfer should still be blocked even if initiated before revocation
+    await expect(transferPromise).to.be.rejected;
+  });
+
+  it('should handle TOKEN_FREEZE correctly', async () => {
+    const user = await createVerifiedUser();
+    await mintTo(user, 1000);
+    
+    // Freeze tokens
+    await freezeTokens({ user: user.publicKey });
+    
+    // Verify no transfers possible
+    await expect(attemptTransfer(user.publicKey)).to.be.rejectedWith('TOKENS_FROZEN');
+    
+    // Unfreeze and verify transfers work again
+    await unfreezeTokens({ user: user.publicKey });
+    await expect(attemptTransfer(user.publicKey)).to.confirm();
+  });
+});
