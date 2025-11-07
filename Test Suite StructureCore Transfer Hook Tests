@@ -1,0 +1,56 @@
+// tests/transfer-hook.test.ts
+import { Keypair, PublicKey, Transaction } from '@solana/web3.js';
+import { createMint, createAccount, mintTo, transfer } from '@solana/spl-token';
+import * as anchor from '@coral-xyz/anchor';
+
+describe('Transfer Hook Compliance', () => {
+  let kycVerifiedUser: Keypair;
+  let nonKycUser: Keypair;
+  let complianceMint: PublicKey;
+  
+  beforeEach(async () => {
+    // Setup test accounts
+    kycVerifiedUser = await createKycVerifiedAccount();
+    nonKycUser = Keypair.generate();
+    complianceMint = await createComplianceMint();
+  });
+
+  it('should ALLOW transfer between KYC-verified addresses', async () => {
+    const transferAmount = 1000;
+    const transaction = await transfer({
+      from: kycVerifiedUser.publicKey,
+      to: kycVerifiedUser.publicKey, // Another verified user
+      amount: transferAmount,
+      mint: complianceMint
+    });
+    
+    await expect(transaction).toConfirm();
+  });
+
+  it('should BLOCK transfer to non-KYC address', async () => {
+    const transferAmount = 1000;
+    
+    await expect(
+      transfer({
+        from: kycVerifiedUser.publicKey,
+        to: nonKycUser.publicKey,
+        amount: transferAmount,
+        mint: complianceMint
+      })
+    ).to.be.rejectedWith('KYC_COMPLIANCE_VIOLATION');
+  });
+
+  it('should BLOCK transfer from non-KYC address', async () => {
+    // This tests the Permanent Delegate functionality
+    const transferAmount = 1000;
+    
+    await expect(
+      transfer({
+        from: nonKycUser.publicKey,
+        to: kycVerifiedUser.publicKey,
+        amount: transferAmount,
+        mint: complianceMint
+      })
+    ).to.be.rejectedWith('UNAUTHORIZED_TRANSFER');
+  });
+});
