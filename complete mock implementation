@@ -1,0 +1,62 @@
+// tests/test-helpers/mock-wallet.ts
+import { Keypair, PublicKey, Transaction } from '@solana/web3.js';
+
+export class MockWallet {
+  constructor(public keypair: Keypair = Keypair.generate()) {}
+  
+  publicKey = this.keypair.publicKey;
+  
+  async signTransaction(tx: Transaction): Promise<Transaction> {
+    tx.sign(this.keypair);
+    return tx;
+  }
+  
+  async signAllTransactions(txs: Transaction[]): Promise<Transaction[]> {
+    return txs.map(tx => {
+      tx.sign(this.keypair);
+      return tx;
+    });
+  }
+}
+
+// tests/test-helpers/mock-program.ts
+export const createMockComplianceProgram = () => ({
+  methods: {
+    verifyUser: jest.fn().mockReturnValue({
+      accounts: jest.fn().mockReturnValue({
+        accounts: jest.fn().mockReturnValue({
+          rpc: jest.fn().mockResolvedValue('mock_tx_signature')
+        })
+      })
+    }),
+    revokeKyc: jest.fn().mockReturnValue({
+      accounts: jest.fn().mockReturnValue({
+        rpc: jest.fn().mockResolvedValue('mock_revoke_tx')
+      })
+    })
+  },
+  account: {
+    complianceState: {
+      fetch: jest.fn().mockResolvedValue({
+        isVerified: true,
+        tier: 'ACCREDITED',
+        jurisdiction: 'US'
+      })
+    }
+  }
+});
+
+// tests/test-helpers/mock-connection.ts
+export const createMockConnection = () => ({
+  getAccountInfo: jest.fn().mockResolvedValue({
+    executable: false,
+    owner: new PublicKey('11111111111111111111111111111111'),
+    lamports: 1000000,
+    data: Buffer.alloc(0)
+  }),
+  sendTransaction: jest.fn().mockResolvedValue('mock_tx_signature'),
+  getLatestBlockhash: jest.fn().mockResolvedValue({
+    blockhash: 'mock_blockhash',
+    lastValidBlockHeight: 1000
+  })
+});
