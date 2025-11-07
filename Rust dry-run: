@@ -1,0 +1,6 @@
+# run tests & dry-run publish
+cargo test --workspace
+cd crates/kyc-core
+cargo publish --dry-run
+cd ../kyc-utils
+cargo publish --dry-run
