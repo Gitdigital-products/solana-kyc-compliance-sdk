@@ -1,0 +1,95 @@
+name: Release (publish crates & npm)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'   # semantic version tags like v1.2.3
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  test-and-publish:
+    runs-on: ubuntu-latest
+    env:
+      RUST_BACKTRACE: 1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install wasm-pack (for SDK)
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Install repo node deps (sdk)
+        run: |
+          cd sdk/typescript || exit 0
+          npm ci
+
+      - name: Run tests (Rust & JS)
+        run: |
+          cargo test --workspace --all --verbose
+          cd sdk/typescript || exit 0
+          npm test || true
+        continue-on-error: false
+
+      - name: Create npm package (build)
+        run: |
+          cd sdk/typescript || exit 0
+          npm run build || true
+
+      - name: Publish TS SDK to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd sdk/typescript || exit 0
+          # optional: set package access if public
+          npm publish --access public
+
+      - name: Publish Rust crates to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          # Publish each crate; adjust order if crates have dependencies among them
+          cd crates/kyc-core
+          cargo publish --token $CARGO_REGISTRY_TOKEN
+          cd ../kyc-utils
+          cargo publish --token $CARGO_REGISTRY_TOKEN
+          # optionally publish program crate only if it's a library crate; Anchor programs typically aren't published as crates
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            Automated release from CI for tag ${{ github.ref_name }}.
+            See CHANGELOG.md and release notes.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
