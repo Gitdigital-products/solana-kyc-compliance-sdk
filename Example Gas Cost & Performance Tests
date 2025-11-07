@@ -1,0 +1,26 @@
+// tests/performance.test.ts
+describe('Performance & Gas Costs', () => {
+  it('should measure transfer hook gas overhead', async () => {
+    const baseTransferCost = await measureBaseTransferGas();
+    const complianceTransferCost = await measureComplianceTransferGas();
+    
+    const overhead = complianceTransferCost - baseTransferCost;
+    
+    console.log(`Compliance overhead: ${overhead} lamports`);
+    expect(overhead).to.be.lessThan(5000); // Maximum acceptable overhead
+  });
+
+  it('should handle high volume of compliance checks', async () => {
+    const concurrentTransfers = 100;
+    const transferPromises = [];
+    
+    for (let i = 0; i < concurrentTransfers; i++) {
+      transferPromises.push(createCompliantTransfer());
+    }
+    
+    const results = await Promise.allSettled(transferPromises);
+    const successful = results.filter(r => r.status === 'fulfilled').length;
+    
+    expect(successful).to.equal(concurrentTransfers);
+  });
+});
