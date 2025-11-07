@@ -1,0 +1,12 @@
+#[derive(Accounts)]
+pub struct RotateAuthority<'info> {
+    #[account(mut, has_one = registry_authority)]
+    pub registry: Account<'info, Registry>,
+    pub registry_authority: Signer<'info>,
+    pub new_authority: Signer<'info>,
+}
+
+pub fn rotate_authority(ctx: Context<RotateAuthority>) -> Result<()> {
+    ctx.accounts.registry.registry_authority = ctx.accounts.new_authority.key();
+    Ok(())
+}
