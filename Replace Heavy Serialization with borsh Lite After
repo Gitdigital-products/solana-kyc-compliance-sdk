@@ -1,0 +1,8 @@
+use borsh::{BorshSerialize, BorshDeserialize};
+
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct KycData {
+    pub user_address: Pubkey,
+    pub verified: bool,
+    pub expiry_timestamp: i64,
+}
