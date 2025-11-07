@@ -1,0 +1,13 @@
+use futures::stream::{self, StreamExt};
+
+pub async fn run_verification_job(rpc: &RpcClient) -> Result<(), Box<dyn std::error::Error>> {
+    let jobs = get_pending_jobs(rpc).await?;
+    stream::iter(jobs)
+        .for_each_concurrent(8, |job| async move {
+            if let Err(e) = verify_and_report(job).await {
+                eprintln!("Job failed: {:?}", e);
+            }
+        })
+        .await;
+    Ok(())
+}
