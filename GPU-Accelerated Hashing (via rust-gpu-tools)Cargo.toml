@@ -1,0 +1,3 @@
+[dependencies]
+rust-gpu-tools = "0.4"
+sha2 = "0.10"
