@@ -1,0 +1,30 @@
+// audit/security-audit.test.ts
+describe('Security Audit Checks', () => {
+  it('should prevent UNAUTHORIZED registry modifications', async () => {
+    // Test that non-admin cannot modify compliance registry
+    const attacker = Keypair.generate();
+    
+    await expect(
+      addToComplianceRegistry({
+        admin: attacker, // Non-admin trying to act as admin
+        user: someUser
+      })
+    ).to.be.rejectedWith('ADMIN_ACCESS_REQUIRED');
+  });
+
+  it('should prevent TRANSFER_TAKEOVER via reentrancy', async () => {
+    // Test for reentrancy attacks on transfer hook
+    await expect(
+      maliciousReentrantTransfer()
+    ).to.be.rejectedWith('REENTRANCY_PROTECTION');
+  });
+
+  it('should validate ALL input accounts in transfer hook', async () => {
+    // Ensure no fake accounts can bypass checks
+    const fakeMint = Keypair.generate().publicKey;
+    
+    await expect(
+      transferWithFakeAccounts({ fakeMint })
+    ).to.be.rejectedWith('INVALID_ACCOUNTS');
+  });
+});
