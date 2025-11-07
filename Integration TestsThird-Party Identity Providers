@@ -1,0 +1,26 @@
+// tests/integration.test.ts
+describe('Third-Party Integrations', () => {
+  it('should integrate with CIVIC identity provider', async () => {
+    const civicVerification = await civic.verifyIdentity(user);
+    const kycStatus = await convertCivicToComplianceTier(civicVerification);
+    
+    await addToComplianceRegistry({
+      user: user.publicKey,
+      kycTier: kycStatus
+    });
+    
+    expect(await canTransfer(user.publicKey)).to.be.true;
+  });
+
+  it('should work with popular WALLETS', async () => {
+    // Test Phantom, Backpack integration
+    const wallet = new PhantomWallet();
+    const transaction = await wallet.createTransferWithCompliance({
+      from: user.publicKey,
+      to: recipient.publicKey,
+      amount: 100
+    });
+    
+    await expect(wallet.sendTransaction(transaction)).to.confirm();
+  });
+});
