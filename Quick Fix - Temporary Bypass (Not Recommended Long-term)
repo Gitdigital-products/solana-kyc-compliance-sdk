@@ -1,0 +1,9 @@
+# Pull latest changes first
+git pull origin main
+
+# Make your changes and commit
+git add .
+git commit -m "Emergency fix"
+
+# Force push (use with caution)
+git push origin main
