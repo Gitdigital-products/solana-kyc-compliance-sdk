@@ -1,0 +1,5 @@
+# Common protection rules that cause the red X:
+- Require status checks to pass before merging
+- Require pull request reviews before merging  
+- Require linear history
+- Include administrators
