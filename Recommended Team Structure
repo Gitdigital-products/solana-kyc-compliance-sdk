@@ -1,0 +1,4 @@
+Repository Roles:
+- Maintainers (2-3 people): Can merge to main, bypass in emergencies
+- Developers: Can create feature branches and PRs
+- Security Team: Required approval for security-related changes
