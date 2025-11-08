@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest tests/integration/",
+    "test:unit": "jest tests/unit/",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "build": "tsc && node -e \"require('fs').copyFileSync('src/idl/compliance.json', 'dist/idl/compliance.json')\"",
+    "ci:test": "npm run lint && npm run test:coverage && npm run build"
+  }
+}
