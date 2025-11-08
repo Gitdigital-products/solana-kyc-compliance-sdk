@@ -1,0 +1,54 @@
+// Example using Jest in test-helpers.ts
+import { PublicKey, Connection } from '@solana/web3.js';
+
+// Mock for the Solana Connection
+export const createMockConnection = () => {
+  const mockConnection = {
+    getAccountInfo: jest.fn(),
+    sendTransaction: jest.fn(),
+    // ... other methods you use
+  };
+  return mockConnection;
+};
+
+// Mock for a Wallet
+export const createMockWallet = (publicKey: string) => {
+  return {
+    publicKey: new PublicKey(publicKey),
+    signTransaction: jest.fn(),
+    signAllTransactions: jest.fn(),
+  };
+};
+
+// Mock for your Compliance Registry Program
+export const createMockComplianceProgram = () => {
+  const mockProgram = {
+    methods: {
+      verifyUser: jest.fn().mockReturnValue({
+        accounts: jest.fn(),
+        signers: jest.fn(),
+        rpc: jest.fn().mockResolvedValue('tx_signature'),
+      }),
+      // ... other methods
+    },
+    account: {
+      complianceState: {
+        fetch: jest.fn(), // Mock fetching a compliance state account
+      },
+    },
+  };
+  return mockProgram;
+};
+
+// Helper function to set up a standard test environment
+export const setupTestEnvironment = () => {
+  const mockConnection = createMockConnection();
+  const mockWallet = createMockWallet('your_test_public_key_here');
+  const mockProgram = createMockComplianceProgram();
+  
+  return {
+    connection: mockConnection,
+    wallet: mockWallet,
+    program: mockProgram,
+  };
+};
