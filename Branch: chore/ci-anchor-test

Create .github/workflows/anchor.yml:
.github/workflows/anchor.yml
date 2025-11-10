@@ -1,0 +1,34 @@
+name: anchor-test
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain-action@v1
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: |
+          cd programs/compliance_registry
+          cargo install --locked anchor-cli --version 0.27.0 || true
+          rustup component add rustfmt
+          cd ../..
+          yarn install --frozen-lockfile || npm install
+      - name: Run clippy
+        run: |
+          cd programs/compliance_registry
+          cargo clippy --all-targets -- -D warnings
+      - name: Run tests
+        run: |
+          cd programs/compliance_registry
+          anchor test
