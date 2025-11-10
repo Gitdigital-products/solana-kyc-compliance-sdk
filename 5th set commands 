@@ -1,0 +1,6 @@
+git checkout origin/main -b chore/ci-anchor-test
+# add .github/workflows/anchor.yml
+git add .github/workflows/anchor.yml
+git commit -m "ci: add anchor test workflow and clippy -D warnings"
+git push -u origin chore/ci-anchor-test
+gh pr create --title "chore(ci): anchor tests + clippy" --body "Run anchor test and cargo clippy -D warnings on PRs."
