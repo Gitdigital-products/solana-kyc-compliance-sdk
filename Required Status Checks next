@@ -1,0 +1,5 @@
+Required Status Checks:
+- ✅ Test TypeScript SDK
+- ✅ Test Rust Program  
+- ✅ Security Scan
+- ✅ All Checks Passed
