@@ -1,0 +1,8 @@
+#[tokio::test]
+async fn migrate_v1_to_v2_works() {
+    // 1) create v1 account with old seeds (simulate existing state)
+    // 2) fund and verify account exists
+    // 3) call migrate_v1_to_v2 with superadmin signer
+    // 4) assert old account lamports == 0 (or account no longer exists)
+    // 5) assert new account exists with expected data
+}
