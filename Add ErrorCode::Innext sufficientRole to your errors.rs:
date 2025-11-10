@@ -1,0 +1,6 @@
+#[error_code]
+pub enum ErrorCode {
+    #[msg("Insufficient role for this operation")]
+    InsufficientRole,
+    // ... existing errors
+}
