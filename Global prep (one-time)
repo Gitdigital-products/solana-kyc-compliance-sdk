@@ -1,0 +1,2 @@
+git fetch origin
+git checkout -b feat/prepare-commits origin/main
