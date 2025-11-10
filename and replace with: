@@ -1,0 +1,1 @@
+#[account(init, seeds = [b"kyc", &[SEED_VERSION], user.key().as_ref()], bump)]
