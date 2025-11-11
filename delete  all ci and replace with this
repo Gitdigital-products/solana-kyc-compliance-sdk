@@ -1,0 +1,136 @@
+name: Multi-Program CI & Anchor Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+      SOLANA_VERSION: stable
+      ANCHOR_VERSION: latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --- Install Solana CLI ---
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/${SOLANA_VERSION}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      # --- Install Anchor CLI ---
+      - name: Install Anchor CLI
+        run: cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
+
+      # --- Setup Solana keypair from secret ---
+      - name: Setup Devnet keypair
+        env:
+          DEVNET_KEYPAIR: ${{ secrets.DEVNET_KEYPAIR }}
+        run: |
+          mkdir -p ~/.config/solana
+          echo "$DEVNET_KEYPAIR" > ~/.config/solana/id.json
+          chmod 600 ~/.config/solana/id.json
+          solana config set --url https://api.devnet.solana.com
+
+      - name: Verify versions
+        run: |
+          solana --version
+          anchor --version
+          rustc --version
+
+      # --- Detect all programs and build each ---
+      - name: Build all Anchor programs
+        run: |
+          for dir in programs/*; do
+            if [ -d "$dir" ] && [ -f "$dir/Cargo.toml" ]; then
+              echo "🚀 Building $dir"
+              cd "$dir"
+              anchor build
+              cd - >/dev/null
+            fi
+          done
+
+      # --- Run tests (global or per-program) ---
+      - name: Run Anchor tests
+        run: |
+          for dir in programs/*; do
+            if [ -d "$dir" ] && [ -f "$dir/Cargo.toml" ]; then
+              echo "🧪 Testing $dir"
+              cd "$dir"
+              anchor test || exit 1
+              cd - >/dev/null
+            fi
+          done
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor CLI
+        run: cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
+
+      - name: Setup Devnet keypair
+        env:
+          DEVNET_KEYPAIR: ${{ secrets.DEVNET_KEYPAIR }}
+        run: |
+          mkdir -p ~/.config/solana
+          echo "$DEVNET_KEYPAIR" > ~/.config/solana/id.json
+          chmod 600 ~/.config/solana/id.json
+          solana config set --url https://api.devnet.solana.com
+          solana address
+
+      # --- Deploy each program automatically ---
+      - name: Deploy all programs to Devnet
+        run: |
+          for dir in programs/*; do
+            if [ -d "$dir" ] && [ -f "$dir/Cargo.toml" ]; then
+              echo "🚀 Deploying $dir"
+              cd "$dir"
+              anchor deploy || exit 1
+              cd - >/dev/null
+            fi
+          done
+
+      # --- Notify ClickUp ---
+      - name: Notify ClickUp
+        if: always()
+        env:
+          CLICKUP_WEBHOOK: ${{ secrets.CLICKUP_WEBHOOK }}
+          STATUS: ${{ job.status }}
+        run: |
+          if [ "$STATUS" = "success" ]; then
+            EVENT="anchor_multi_deploy_success"
+            MSG="All programs deployed successfully"
+          else
+            EVENT="anchor_multi_deploy_failure"
+            MSG="One or more program deploys failed"
+          fi
+
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{
+                \"event\": \"$EVENT\",
+                \"repository\": \"$GITHUB_REPOSITORY\",
+                \"commit\": \"$GITHUB_SHA\",
+                \"actor\": \"$GITHUB_ACTOR\",
+                \"status\": \"$STATUS\",
+                \"message\": \"$MSG\",
+                \"workflow_url\": \"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"
+              }" \
+          $CLICKUP_WEBHOOK
