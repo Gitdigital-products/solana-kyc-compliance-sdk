@@ -1,0 +1,4 @@
+cd programs/compliance_registry
+ls Cargo.toml- name: Build program
+  working-directory: programs/compliance_registry
+  run: anchor build
