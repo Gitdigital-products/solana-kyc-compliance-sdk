@@ -1,0 +1,3 @@
+git add .github/workflows
+git commit -m "ci: full clean build + codeql setup"
+git push origin main
