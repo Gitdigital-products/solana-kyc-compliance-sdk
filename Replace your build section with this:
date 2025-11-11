@@ -1,0 +1,3 @@
+- name: Build Solana program with Anchor
+  working-directory: programs/compliance_registry
+  run: anchor build
