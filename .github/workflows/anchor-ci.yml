@@ -1,0 +1,54 @@
+name: CI & Anchor Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config build-essential libudev-dev
+
+      - name: Install Solana CLI
+        run: sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+
+      - name: Add Solana to PATH
+        run: echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor
+        run: cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked
+
+      - name: Verify versions
+        run: |
+          solana --version
+          anchor --version
+          rustc --version
+
+      - name: Build program
+        run: |
+          cd programs/compliance_registry
+          anchor build
+
+      - name: Run tests
+        run: anchor test
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy program
+        run: |
+          echo "Deployment would go here — add your solana program deploy command"
