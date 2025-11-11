@@ -1,0 +1,8 @@
+with:
+  languages: ${{ matrix.language }}
+  queries: security-extended
+  paths-ignore: |
+    sdk/js/node_modules
+    sdk/js/dist
+    sdk/js/test
+    **/*.spec.ts
