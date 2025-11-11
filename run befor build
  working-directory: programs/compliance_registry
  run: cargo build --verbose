@@ -1,0 +1,3 @@
+- name: Build Solana program
+  working-directory: programs/compliance_registry
+  run: cargo build --verbose
