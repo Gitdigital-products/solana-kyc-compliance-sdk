@@ -1,4 +1,6 @@
 name: CI & Anchor Deploy
+permissions:
+  contents: read
 
 on:
   push:
