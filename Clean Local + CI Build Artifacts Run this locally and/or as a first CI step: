@@ -1,0 +1,5 @@
+- name: Clean build artifacts
+  run: |
+    cargo clean || true
+    anchor clean || true
+    rm -rf ~/.config/solana/test-ledger || true
