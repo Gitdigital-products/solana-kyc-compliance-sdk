@@ -1,0 +1,7 @@
+- name: Auto-detect Cargo.toml directory
+  id: find_dir
+  run: echo "cargo_dir=$(dirname $(find . -name Cargo.toml | head -n 1))" >> $GITHUB_ENV
+
+- name: Build dynamically
+  run: cargo build --verbose
+  working-directory: ${{ env.cargo_dir }}
