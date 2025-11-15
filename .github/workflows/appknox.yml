@@ -20,6 +20,9 @@
 #    action executes, check the 'Security' tab for results
 
 name: Appknox
+permissions:
+  contents: read
+  security-events: write
 
 on:
   push:
