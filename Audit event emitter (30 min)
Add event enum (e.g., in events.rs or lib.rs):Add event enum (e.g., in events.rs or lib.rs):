@@ -1,0 +1,5 @@
+#[event]
+pub enum KycEvent {
+    StatusChanged { user: Pubkey, old_level: u8, new_level: u8 },
+    DocumentHashStored { user: Pubkey, doc_hash: [u8; 32] },
+}

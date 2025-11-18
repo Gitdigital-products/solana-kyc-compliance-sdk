@@ -1,0 +1,10 @@
+use anchor_lang::prelude::*;
+
+// 🚨 CHECK THIS LINE! 🚨
+// This must be a valid Base58 string (32-44 characters).
+declare_id!("<YOUR_INVALID_BASE58_STRING_HERE>");
+
+#[program]
+pub mod your_program_name {
+    // ... program logic
+}

@@ -1,0 +1,7 @@
+git checkout origin/main -b feat/roles
+# add files/edits
+git add programs/compliance_registry/src/access_control.rs
+git add -A
+git commit -m "feat(access): add Role enum, check_role! macro, and role fields on signer accounts"
+git push -u origin feat/roles
+gh pr create --title "feat: role-based access control macro + role fields" --body "Add Role enum, check_role! macro, add role field to signer accounts, and tests for role enforcement."

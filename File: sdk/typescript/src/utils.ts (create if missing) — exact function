@@ -1,0 +1,14 @@
+import * as nacl from "tweetnacl";
+import { aesGcmEncrypt } from "some-aes-gcm-lib"; // pick your lib; show sample using node crypto below
+
+export function packEncrypted(hash: Uint8Array, aesKey: Uint8Array, plaintext: string): Uint8Array {
+  // 12 byte IV
+  const iv = nacl.randomBytes(12);
+  // AES-GCM encryption (using Node crypto example)
+  const crypto = require("crypto");
+  const cipher = crypto.createCipheriv("aes-256-gcm", Buffer.from(aesKey), Buffer.from(iv));
+  const enc = Buffer.concat([cipher.update(Buffer.from(plaintext, "utf8")), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  // We'll store cipher||tag
+  return Buffer.concat([Buffer.from(hash), Buffer.from(iv), enc, tag]);
+}

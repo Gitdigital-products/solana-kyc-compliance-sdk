@@ -1,0 +1,4 @@
+- name: Debug repo layout
+  run: |
+    pwd
+    ls -R | head -50

@@ -1,0 +1,4 @@
+- name: Create dummy Solana keypair
+  run: |
+    mkdir -p ~/.config/solana
+    echo '[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]' > ~/.config/solana/id.json

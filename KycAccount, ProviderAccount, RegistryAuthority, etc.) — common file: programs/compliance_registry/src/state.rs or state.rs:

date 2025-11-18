@@ -1,0 +1,7 @@
+#[account]
+pub struct KycAccount {
+    pub owner: Pubkey,
+    pub level: u8,
+    pub role: crate::access_control::Role,
+    // ... other fields
+}

@@ -1,0 +1,3 @@
+- name: Build Rust project
+  working-directory: ./program   # 👈 replace with the actual folder from your ls command
+  run: cargo build --verbose

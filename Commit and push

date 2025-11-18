@@ -1,0 +1,4 @@
+git checkout -b fix/anchor-build
+git add .github/workflows/anchor.yml
+git commit -m "fix(ci): replace cargo build-bpf with anchor build"
+git push origin fix/anchor-build

@@ -1,0 +1,14 @@
+#[tokio::test]
+async fn provider_only_instruction_with_user_role_fails() {
+    // Setup test context
+    // create signer account with Role::User
+    // attempt to call provider-only instruction
+    // assert error == InsufficientRole
+}
+
+#[tokio::test]
+async fn superadmin_instruction_with_provider_role_fails() {
+    // as above
+}
+
+// add tests for Auditor and SuperAdmin success path, etc.

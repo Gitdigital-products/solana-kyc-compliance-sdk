@@ -1,0 +1,7 @@
+use crate::access_control::Role;
+use crate::access_control::check_role;
+
+pub fn update_kyc_level(ctx: Context<UpdateKyc>, /*...*/) -> Result<()> {
+    check_role!(ctx.accounts.signer.role, Role::Provider);
+    // existing handler body...
+}

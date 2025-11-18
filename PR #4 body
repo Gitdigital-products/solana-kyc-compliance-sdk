@@ -1,0 +1,5 @@
+Audit event emitter
+
+- Add KycEvent event enum (StatusChanged, DocumentHashStored)
+- Emit events in update_kyc_level and document-store instructions
+- Add integration test to assert event emission

@@ -1,0 +1,7 @@
+git checkout origin/main -b feat/secure-seeds
+# make edits
+git add -A
+git commit -m "feat(seeds): versioned PDA seeds using SEED_VERSION and update PDA derivations"
+git push -u origin feat/secure-seeds
+# then open PR on GitHub or via cli:
+gh pr create --title "feat: seed hardening (versioned PDA seeds)" --body "Replace user PDA seeds with versioned seeds and add SEED_VERSION constant. Add unit test proving collision resistance."

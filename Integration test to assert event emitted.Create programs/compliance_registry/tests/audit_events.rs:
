@@ -1,0 +1,7 @@
+#[tokio::test]
+async fn update_level_emits_status_changed_event() {
+    // Setup program test
+    // Call update_kyc_level
+    // Parse transaction meta logs or events
+    // Assert KycEvent::StatusChanged exists with expected fields
+}

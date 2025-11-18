@@ -1,0 +1,6 @@
+Migration instruction v1 -> v2
+
+- Add migrate_v1_to_v2 instruction
+- Close old PDA and create new PDA using v2 seed
+- Gate migration to Role::SuperAdmin
+- Add tests verifying migration

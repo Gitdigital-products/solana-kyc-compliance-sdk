@@ -1,0 +1,1 @@
+#[account(init, seeds = [b"user", user.key().as_ref()], bump)]

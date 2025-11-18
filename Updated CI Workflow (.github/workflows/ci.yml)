@@ -1,0 +1,32 @@
+# ... (existing steps)
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install WASM target
+        run: rustup target add wasm32-unknown-unknown
+
+      # ➡️ NEW STEP: Ensure a valid program keypair exists for Anchor
+      - name: Generate Program Keypair for CI
+        run: |
+          # 🚨 IMPORTANT: Replace 'my_program' with your actual program's snake_case name!
+          PROGRAM_NAME="<MY_PROGRAM>" 
+          KEYPAIR_PATH="./target/deploy/${PROGRAM_NAME}-keypair.json"
+          
+          # Create the necessary directory for Anchor's default keypair location
+          mkdir -p ./target/deploy/
+          
+          # Generate a new, non-password protected, temporary keypair
+          # Anchor will use the Public Key derived from this file for its build process.
+          solana-keygen new --no-passphrase --force --outfile $KEYPAIR_PATH
+          echo "CI Keypair generated at $KEYPAIR_PATH"
+      # ⬅️ END NEW STEP
+
+      - name: Install dependencies
+        run: npm ci --prefix server-signer
+        
+      # ... (The failing step, now replaced with anchor build if you added it)
+      - name: Build Rust workspace
+        # 💡 If you are using Anchor, this should be 'anchor build'
+        run: cargo build --workspace --all-targets --release
+        
+      # ... (rest of your existing steps)

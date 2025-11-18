@@ -1,0 +1,6 @@
+git checkout origin/main -b feat/encrypt-hash
+# make edits
+git add -A
+git commit -m "feat(encrypt): remove on-chain raw PII fields, add document_hash + encrypted_payload and JS packEncrypted helper"
+git push -u origin feat/encrypt-hash
+gh pr create --title "feat: data minimization & encrypted PII blob" --body "Remove raw PII fields; store SHA-256 and AES-GCM blob. Add packEncrypted helper to SDK."

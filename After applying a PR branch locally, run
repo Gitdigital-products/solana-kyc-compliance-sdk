@@ -1,0 +1,3 @@
+# in repo root
+cd programs/compliance_registry
+anchor test
