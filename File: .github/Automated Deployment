@@ -1,0 +1,29 @@
+name: Set up Python
+    uses: actions/setup-python@v4
+    with:
+      python-version: '3.11'
+
+  - name: Install dependencies
+    run: pip install -r requirements.txt
+
+  - name: Run tests and backtest
+    run: |
+      # Add a command to run your test suite
+      # For example: python -m unittest discover tests
+      # Add a command to run your backtest and generate reports
+      python run_backtest.py
+
+  - name: Upload artifacts for deployment
+    uses: actions/upload-artifact@v3
+    with:
+      name: deployment-artifacts
+      path: |
+        .
+        !__pycache__/
+        !.git/
+        !.github/
+        !tests/
+        !*.yml
+        !*.md
+
+
