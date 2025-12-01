@@ -1,0 +1,8 @@
+# Add these to your KYC SDK repo
+solana-kyc-compliance-sdk/
+├── 📄 docs/INTEGRATION_GUIDE.md              # KYC-specific guide
+├── 📄 examples/dex-kyc-integration.ts
+├── 📄 examples/circle-api-integration.ts    # New: Payment rails example
+├── 📄 test/kyc-integration.test.ts
+├── 📄 test/sas-integration.test.ts          # New: SAS-specific tests
+└── 📄 test/zk-proofs.test.ts                # New: Zero-knowledge tests
