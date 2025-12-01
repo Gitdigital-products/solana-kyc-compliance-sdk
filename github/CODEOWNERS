@@ -1,0 +1,8 @@
+# .github/CODEOWNERS
+
+# Designates the @Gitdigital-products/team-solana as the default owners for everything
+* @Gitdigital-products/team-solana
+
+# Specific owners for the core SDK files
+src/   @Gitdigital-products/solana-sdk-devs
+tests/ @Gitdigital-products/solana-qa
