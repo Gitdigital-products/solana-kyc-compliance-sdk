@@ -1,0 +1,83 @@
+// src/zk-kyc.ts
+import { groth16 } from 'snarkjs';
+import { buildBabyjub, buildPoseidon } from 'circomlibjs';
+
+export class ZKKYCVerifier {
+  private poseidon: any;
+  
+  constructor() {
+    this.initPoseidon();
+  }
+  
+  private async initPoseidon() {
+    this.poseidon = await buildPoseidon();
+  }
+  
+  // Generate ZK proof for KYC without revealing details
+  async generateKYCProof(
+    kycData: {
+      isAdult: boolean;
+      countryCode: number; // encoded as number
+      isSanctioned: boolean;
+      kycLevel: number;
+    },
+    secretSalt: string
+  ): Promise<{
+    proof: any;
+    publicSignals: string[];
+  }> {
+    // Hash the sensitive data with salt
+    const privateInputs = {
+      isAdult: kycData.isAdult ? 1 : 0,
+      countryCode: kycData.countryCode,
+      isSanctioned: kycData.isSanctioned ? 1 : 0,
+      kycLevel: kycData.kycLevel,
+      salt: this.hashString(secretSalt)
+    };
+    
+    // Generate ZK proof (using pre-compiled circuits)
+    const { proof, publicSignals } = await groth16.fullProve(
+      privateInputs,
+      '/circuits/kyc_verifier.wasm',
+      '/circuits/kyc_final.zkey'
+    );
+    
+    return { proof, publicSignals };
+  }
+  
+  // Verify ZK proof
+  async verifyKYCProof(
+    proof: any,
+    publicSignals: string[],
+    requiredCountry?: number,
+    minKycLevel?: number
+  ): Promise<boolean> {
+    const vKey = await fetch('/circuits/kyc_verification_key.json');
+    
+    const isValid = await groth16.verify(
+      await vKey.json(),
+      publicSignals,
+      proof
+    );
+    
+    if (!isValid) return false;
+    
+    // Additional checks on public signals if needed
+    if (requiredCountry) {
+      const countryCode = parseInt(publicSignals[1]);
+      if (countryCode !== requiredCountry) return false;
+    }
+    
+    if (minKycLevel) {
+      const kycLevel = parseInt(publicSignals[3]);
+      if (kycLevel < minKycLevel) return false;
+    }
+    
+    return true;
+  }
+  
+  private hashString(str: string): string {
+    const hash = this.poseidon([Buffer.from(str)]);
+    return this.poseidon.F.toString(hash);
+  }
+}
