@@ -1,0 +1,60 @@
+# Security Policy
+
+## 🔒 Supported Versions
+
+| Version | Supported          |
+| ------- | ------------------ |
+| 1.x.x   | ✅ Active support  |
+| 0.x.x   | ⚠️ Security fixes only |
+
+## 🚨 Reporting a Vulnerability
+
+**DO NOT** create a public GitHub issue for security vulnerabilities.
+
+### Reporting Process:
+1. **Email**: security@gitdigital.com
+2. **Encrypt**: Use our PGP key (available on website)
+3. **Include**: Detailed description and steps to reproduce
+4. **Response**: We acknowledge within 24 hours, provide timeline within 72 hours
+
+### What to Expect:
+- We investigate and confirm the vulnerability
+- We develop a fix in a private repository
+- We release a security advisory and patch
+- We credit you (unless you prefer anonymity)
+
+## 🛡️ Security Best Practices
+
+### For Users:
+1. **API Keys**: Rotate keys every 90 days
+2. **Environment Variables**: Never commit to repositories
+3. **Dependencies**: Keep all packages updated
+4. **Monitoring**: Set up alerts for suspicious activity
+
+### For Developers:
+1. **Code Review**: All changes require security review
+2. **Dependencies**: Audit with `npm audit` weekly
+3. **Secrets**: Use secret management tools
+4. **Access Control**: Principle of least privilege
+
+## 📅 Security Updates
+- **Monthly**: Dependency updates and security patches
+- **Quarterly**: Full security review
+- **Annually**: Third-party security audit
+
+## 🏆 Bug Bounty Program
+We offer bounties for responsibly disclosed vulnerabilities:
+
+| Severity | Bounty Range |
+|----------|--------------|
+| Critical | $5,000 - $10,000 |
+| High     | $1,000 - $5,000  |
+| Medium   | $500 - $1,000    |
+| Low      | $100 - $500      |
+
+**Scope**: All code in this repository and associated infrastructure.
+
+## 🔗 Additional Resources
+- [Security Documentation](./docs/SECURITY_GUIDE.md)
+- [Audit Reports](./audits/)
+- [Dependency Dashboard](https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/security/dependabot)
