@@ -1,0 +1,30 @@
+# .github/CODEOWNERS
+
+# Core maintainers
+*                       @gitdigital/core-team
+
+# Documentation
+/docs/**/*.md           @gitdigital/docs-team
+README.md               @gitdigital/docs-team
+
+# Security
+SECURITY.md             @gitdigital/security-team
+.github/SECURITY.md     @gitdigital/security-team
+**/*security*           @gitdigital/security-team
+
+# Tests
+/test/**/*              @gitdigital/qa-team
+**/*.test.ts            @gitdigital/qa-team
+**/*.spec.ts            @gitdigital/qa-team
+
+# Examples
+/examples/**/*          @gitdigital/examples-team
+
+# Checklists
+/CHECKLIST.md           @gitdigital/pm-team
+/templates/**/*         @gitdigital/pm-team
+
+# Configuration files
+package.json            @gitdigital/core-team
+tsconfig.json           @gitdigital/core-team
+*.config.*              @gitdigital/core-team
