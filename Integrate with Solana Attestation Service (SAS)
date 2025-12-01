@@ -1,0 +1,92 @@
+// src/sas-integration.ts
+import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+import { createAttestation, verifyAttestation } from '@solana/attestation-service';
+
+export class SolanaKYCClient {
+  private connection: Connection;
+  private sasProgramId: PublicKey;
+  
+  constructor(connection: Connection, network: 'mainnet-beta' | 'devnet' = 'devnet') {
+    this.connection = connection;
+    this.sasProgramId = new PublicKey(
+      network === 'mainnet-beta' 
+        ? 'SAS11111111111111111111111111111111111111' // Mainnet program ID
+        : 'SAS11111111111111111111111111111111111112' // Devnet program ID
+    );
+  }
+  
+  // Create KYC attestation
+  async createKycAttestation(
+    userWallet: PublicKey,
+    kycData: {
+      level: 'basic' | 'enhanced' | 'verified';
+      countryCode: string;
+      expiryDate: number;
+      provider: string;
+    },
+    providerSignature: Uint8Array
+  ): Promise<Transaction> {
+    // Create attestation instruction
+    const attestationData = {
+      schema: 'kyc/v1',
+      data: {
+        level: kycData.level,
+        country: kycData.countryCode,
+        expires: kycData.expiryDate,
+        verified_by: kycData.provider
+      }
+    };
+    
+    const createIx = await createAttestation(
+      this.sasProgramId,
+      userWallet,
+      JSON.stringify(attestationData),
+      providerSignature
+    );
+    
+    const tx = new Transaction().add(createIx);
+    tx.feePayer = userWallet;
+    
+    return tx;
+  }
+  
+  // Verify KYC attestation
+  async verifyKycAttestation(
+    userWallet: PublicKey,
+    requiredLevel: 'basic' | 'enhanced' | 'verified'
+  ): Promise<boolean> {
+    const attestationKey = await this.getAttestationKey(userWallet, 'kyc/v1');
+    
+    try {
+      const attestation = await verifyAttestation(
+        this.connection,
+        this.sasProgramId,
+        attestationKey
+      );
+      
+      const kycData = JSON.parse(attestation.data);
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      return (
+        kycData.data.level === requiredLevel &&
+        kycData.data.expires > currentTime
+      );
+    } catch {
+      return false;
+    }
+  }
+  
+  // Private helper
+  private async getAttestationKey(wallet: PublicKey, schema: string): Promise<PublicKey> {
+    const [attestationKey] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('attestation'),
+        wallet.toBuffer(),
+        Buffer.from(schema)
+      ],
+      this.sasProgramId
+    );
+    
+    return attestationKey;
+  }
+}
