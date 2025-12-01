@@ -1,0 +1,936 @@
+class KYCCache {
+  private cache = new Map<string, CachedVerification>();
+  
+  async getWithCache(wallet: PublicKey): Promise<VerificationResult> {
+    const key = wallet.toBase58();
+    
+    // Check cache
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expires) {
+      return cached.result;
+    }
+    
+    // Fetch fresh
+    const result = await this.fetchFromChain(wallet);
+    
+    // Cache with TTL based on KYC level
+    const ttl = this.getTTL(result.level);
+    this.cache.set(key, {
+      result,
+      expires: Date.now() + ttl,
+    });
+    
+    return result;
+  }
+  
+  private getTTL(level: string): number {
+    return {
+      'basic': 5 * 60 * 1000,    // 5 minutes
+      'enhanced': 30 * 60 * 1000, // 30 minutes
+      'verified': 24 * 60 * 60 * 1000, // 24 hours
+    }[level];
+  }
+}
+
+
+2. Batch Operations
+
+```typescript
+class BatchKYCHandler {
+  async verifyMultiple(wallets: PublicKey[]): Promise<Map<string, VerificationResult>> {
+    // Group by likely attestation location
+    const batches = this.createBatches(wallets);
+    
+    const results = new Map();
+    
+    for (const batch of batches) {
+      const batchResults = await this.verifyBatch(batch);
+      batchResults.forEach((result, wallet) => {
+        results.set(wallet.toBase58(), result);
+      });
+    }
+    
+    return results;
+  }
+}
+
+
+---
+
+🎯 Best Practices
+
+1. Security Best Practices
+
+· Never store private keys in code or environment variables
+· Use hardware security modules (HSM) for production
+· Implement rate limiting on verification endpoints
+· Regular security audits every 6 months
+· Bug bounty program for white-hat hackers
+
+2. Compliance Best Practices
+
+· Maintain audit trails for all KYC verifications
+· Regular regulatory updates check
+· Data minimization - only collect necessary information
+· User consent for data processing
+· Right to be forgotten implementation
+
+3. Performance Best Practices
+
+· Cache frequently accessed data
+· Use connection pooling for RPC calls
+· Implement circuit breakers for external services
+· Monitor and alert on performance degradation
+· Load test before major releases
+
+---
+
+📞 Getting Help
+
+Support Channels
+
+1. Documentation: https://docs.gitdigital.com/solana-kyc
+2. GitHub Issues: For bugs and feature requests
+3. Discord Community: Real-time help from community
+4. Enterprise Support: SLA-backed support for businesses
+
+When Asking for Help
+
+Please provide:
+
+1. SDK version
+2. Error message and stack trace
+3. Code snippet showing the issue
+4. Environment details
+5. Steps to reproduce
+
+---
+
+Implementation Guide Version: 1.0.0
+Last Updated: $(date +%Y-%m-%d)
+Maintainer: GitDigital KYC Team
+
+---
+
+Happy Building! 🚀
+
+Your compliance solution is now ready to help build the future of regulated DeFi on Solana.
+
+
+
+### **3. `/templates/README.md` - Template Checklists Directory**
+
+```markdown
+# Solana KYC SDK Implementation Templates
+
+This directory contains specialized checklists for different KYC compliance scenarios on Solana.
+
+## 📁 Available Checklists
+
+### Core Integration Templates
+- [`SAS_INTEGRATION_CHECKLIST.md`](./SAS_INTEGRATION_CHECKLIST.md) - Solana Attestation Service setup
+- [`ZK_PROOFS_CHECKLIST.md`](./ZK_PROOFS_CHECKLIST.md) - Zero-knowledge proof implementation
+- [`CIRCLE_INTEGRATION_CHECKLIST.md`](./CIRCLE_INTEGRATION_CHECKLIST.md) - Circle API payments with KYC
+
+### Use Case Specific Checklists
+- [`DEFI_KYC_CHECKLIST.md`](./DEFI_KYC_CHECKLIST.md) - DeFi protocol compliance
+- [`NFT_MARKETPLACE_CHECKLIST.md`](./NFT_MARKETPLACE_CHECKLIST.md) - NFT marketplace verification
+- [`GAMING_PLATFORM_CHECKLIST.md`](./GAMING_PLATFORM_CHECKLIST.md) - Gaming age/region restrictions
+- [`CROSS_BORDER_CHECKLIST.md`](./CROSS_BORDER_CHECKLIST.md) - International payments compliance
+
+### Security & Compliance Templates
+- [`SECURITY_AUDIT_CHECKLIST.md`](./SECURITY_AUDIT_CHECKLIST.md) - Pre-audit preparation
+- [`COMPLIANCE_FRAMEWORK_CHECKLIST.md`](./COMPLIANCE_FRAMEWORK_CHECKLIST.md) - Regulatory compliance
+- [`DATA_PRIVACY_CHECKLIST.md`](./DATA_PRIVACY_CHECKLIST.md) - GDPR/CCPA compliance
+- [`INCIDENT_RESPONSE_CHECKLIST.md`](./INCIDENT_RESPONSE_CHECKLIST.md) - Emergency procedures
+
+### Deployment Templates
+- [`PRODUCTION_DEPLOYMENT_CHECKLIST.md`](./PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Live deployment
+- [`SCALING_CHECKLIST.md`](./SCALING_CHECKLIST.md) - Scaling for high volume
+- [`MONITORING_CHECKLIST.md`](./MONITORING_CHECKLIST.md) - Production monitoring setup
+
+## 🚀 How to Use These Templates
+
+### Quick Start:
+1. **Choose your primary use case** from above
+2. **Copy relevant checklists** to your project
+3. **Customize parameters** for your specific needs
+4. **Track completion** with your team
+
+### Example Workflow:
+```bash
+# 1. Starting a DeFi protocol integration
+cp templates/DEFI_KYC_CHECKLIST.md ./checklists/
+
+# 2. Add SAS integration
+cp templates/SAS_INTEGRATION_CHECKLIST.md ./checklists/
+
+# 3. Track progress
+node scripts/checklist-tracker.js checklists/
+
+
+Customization Guide:
+
+Each checklist includes placeholders for:
+
+· Your project name and team
+· Specific compliance requirements
+· Integration timelines
+· Team member assignments
+
+📊 Progress Tracking System
+
+Automatic Tracking:
+
+```typescript
+// scripts/checklist-tracker.ts
+import { ChecklistTracker } from '@gitdigital/checklist-utils';
+
+const tracker = new ChecklistTracker({
+  project: 'Your DeFi Protocol',
+  team: ['alice@example.com', 'bob@example.com'],
+  checklists: [
+    './checklists/DEFI_KYC_CHECKLIST.md',
+    './checklists/SAS_INTEGRATION_CHECKLIST.md',
+  ]
+});
+
+// Generate weekly report
+await tracker.generateReport('weekly');
+
+
+Manual Tracking Template:
+
+```markdown
+# Weekly Progress Report - Week $(date)
+
+## Completed This Week
+- [x] SAS schema registration
+- [x] Basic KYC verification flow
+- [ ] Circle API integration (in progress)
+
+## Next Week's Priorities
+1. [ ] Complete Circle API integration
+2. [ ] Implement ZK proof system
+3. [ ] Begin security audit preparation
+
+## Blockers
+- Need legal review for compliance requirements
+- Waiting on Circle API approval
+
+## Checklist Status
+| Checklist | Completion | Owner | ETA |
+|-----------|------------|-------|-----|
+| DeFi KYC | 60% | Alice | 2 weeks |
+| SAS Integration | 80% | Bob | 1 week |
+| Security Audit | 10% | Carol | 3 weeks |
+
+
+🔧 Integration with Development Tools
+
+GitHub Actions:
+
+```yaml
+# .github/workflows/checklist-validation.yml
+name: Checklist Validation
+on:
+  schedule:
+    - cron: '0 9 * * 1' # Every Monday at 9 AM
+  pull_request:
+    paths:
+      - 'checklists/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Validate Checklist Progress
+        run: |
+          npm run checklist:validate
+          npm run checklist:report
+
+
+Jira/Linear Integration:
+
+```javascript
+// scripts/sync-to-project-management.js
+async function syncChecklistsToJira() {
+  const checklists = await parseChecklists();
+  
+  for (const checklist of checklists) {
+    await createJiraEpic({
+      title: `Implement ${checklist.name}`,
+      description: checklist.description,
+      tasks: checklist.items.map(item => ({
+        title: item.description,
+        assignee: item.owner,
+        dueDate: item.dueDate,
+      }))
+    });
+  }
+}
+
+
+🎯 Template Best Practices
+
+1. Start Small
+
+Begin with core checklists and expand as needed:
+
+1. SAS Integration
+2. Basic KYC Verification
+3. Security Audit
+4. Production Deployment
+
+5. Customize Thoroughly
+
+· Replace placeholder values
+· Add project-specific requirements
+· Adjust timelines based on team size
+· Include regulatory specifics for your jurisdiction
+
+3. Regular Updates
+
+· Review checklists weekly
+· Update based on lessons learned
+· Archive completed checklists
+· Create new templates for recurring tasks
+
+4. Team Collaboration
+
+· Assign clear owners for each item
+· Set realistic deadlines
+· Regular progress syncs
+· Celebrate milestones
+
+📚 Additional Resources
+
+Training Materials:
+
+· SAS Documentation
+· Circle API Guide
+· ZK Proof Tutorial
+· Compliance Training
+
+Reference Implementations:
+
+· DeFi Protocol Example
+· NFT Marketplace Example
+· Gaming Platform Example
+· Enterprise Integration
+
+Community Templates:
+
+· Open Source Checklists
+· Regulatory Templates
+· Security Checklists
+
+📝 Contributing New Templates
+
+We welcome community contributions! To add a new template:
+
+1. Fork the repository
+2. Create new checklist in /templates/
+3. Follow the standard format
+4. Submit a pull request
+
+Template Format Requirements:
+
+```markdown
+# Checklist Name
+
+## Phase 1: Planning
+- [ ] Item 1
+- [ ] Item 2
+
+## Phase 2: Implementation
+- [ ] Item 1
+- [ ] Item 2
+
+## Resources
+- [Related Documentation](https://...)
+- [Example Code](https://...)
+
+
+---
+
+🏆 Success Stories
+
+Case Study 1: DeFi Protocol
+
+Project: LiquidStake Protocol
+Challenge: Needed KYC for institutional investors
+Solution: Used SAS + ZK proofs
+Result: 95% compliance rate, $50M+ institutional deposits
+
+Case Study 2: NFT Marketplace
+
+Project: ArtVerse Marketplace
+Challenge: Age verification for adult content
+Solution: ZK age proofs
+Result: 100% compliance, 30% user growth
+
+Case Study 3: Cross-border Payments
+
+Project: SendGlobal
+Challenge: Travel rule compliance
+Solution: Circle API + KYC metadata
+Result: Expanded to 15 new countries
+
+---
+
+📞 Support & Questions
+
+Getting Help:
+
+· Template Questions: GitHub Discussions
+· Implementation Help: Discord Community
+· Enterprise Support: contact@gitdigital.com
+· Security Issues: security@gitdigital.com
+
+FAQ:
+
+Q: How many checklists do I need?
+A: Start with 2-3 core checklists, expand as needed.
+
+Q: Can I modify the templates?
+A: Yes! Templates are meant to be customized.
+
+Q: How do I track progress across multiple checklists?
+A: Use the checklist tracker script or integrate with your project management tool.
+
+Q: What if I need a template that doesn't exist?
+A: Request it via GitHub Issues or contribute your own!
+
+---
+
+Last Updated: $(date)
+Template Version: 1.0.0
+Maintainer: GitDigital Compliance Team
+License: MIT - Free to use and modify
+
+
+
+### **4. `/scripts/checklist-tracker.js` - Progress Tracking Utility**
+
+```javascript
+#!/usr/bin/env node
+
+/**
+ * Solana KYC SDK Checklist Tracker
+ * 
+ * Tracks progress across multiple checklists and generates reports
+ * Usage: node scripts/checklist-tracker.js [checklist-files...]
+ */
+
+const fs = require('fs');
+const path = require('path');
+const chalk = require('chalk');
+
+class ChecklistTracker {
+  constructor(options = {}) {
+    this.project = options.project || 'Solana KYC SDK';
+    this.team = options.team || [];
+    this.checklists = [];
+    this.report = {
+      generated: new Date().toISOString(),
+      summary: {},
+      details: [],
+      recommendations: []
+    };
+  }
+
+  /**
+   * Load and parse checklist files
+   */
+  async loadChecklists(filepaths) {
+    for (const filepath of filepaths) {
+      try {
+        const content = fs.readFileSync(filepath, 'utf8');
+        const checklist = this.parseChecklist(content, filepath);
+        this.checklists.push(checklist);
+        console.log(chalk.green(`✓ Loaded: ${checklist.name}`));
+      } catch (error) {
+        console.log(chalk.red(`✗ Failed to load: ${filepath}`));
+        console.log(chalk.gray(`  Error: ${error.message}`));
+      }
+    }
+  }
+
+  /**
+   * Parse checklist content
+   */
+  parseChecklist(content, filepath) {
+    const lines = content.split('\n');
+    const checklist = {
+      name: path.basename(filepath, '.md'),
+      filepath,
+      phases: [],
+      items: [],
+      stats: {
+        total: 0,
+        completed: 0,
+        inProgress: 0,
+        notStarted: 0
+      }
+    };
+
+    let currentPhase = null;
+
+    for (const line of lines) {
+      // Extract checklist name from first heading
+      if (line.startsWith('# ') && !checklist.title) {
+        checklist.title = line.replace('# ', '').trim();
+        continue;
+      }
+
+      // Detect phases
+      const phaseMatch = line.match(/^## 📋 PHASE (\d+): (.+)$/);
+      if (phaseMatch) {
+        currentPhase = {
+          number: parseInt(phaseMatch[1]),
+          title: phaseMatch[2],
+          items: []
+        };
+        checklist.phases.push(currentPhase);
+        continue;
+      }
+
+      // Detect checklist items
+      const itemMatch = line.match(/^- \[( |x)\]\s*(.+)$/);
+      if (itemMatch && currentPhase) {
+        const item = {
+          completed: itemMatch[1] === 'x',
+          text: itemMatch[2].trim(),
+          phase: currentPhase.number
+        };
+
+        // Extract owner if specified
+        const ownerMatch = item.text.match(/Owner:\s*(\w+)/i);
+        if (ownerMatch) {
+          item.owner = ownerMatch[1];
+          item.text = item.text.replace(/Owner:\s*\w+/i, '').trim();
+        }
+
+        // Extract due date if specified
+        const dateMatch = item.text.match(/Due:\s*(\d{4}-\d{2}-\d{2})/i);
+        if (dateMatch) {
+          item.dueDate = dateMatch[1];
+          item.text = item.text.replace(/Due:\s*\d{4}-\d{2}-\d{2}/i, '').trim();
+        }
+
+        checklist.items.push(item);
+        currentPhase.items.push(item);
+
+        // Update stats
+        checklist.stats.total++;
+        if (item.completed) checklist.stats.completed++;
+        else if (item.text.includes('(in progress)')) checklist.stats.inProgress++;
+        else checklist.stats.notStarted++;
+      }
+    }
+
+    // Calculate percentages
+    checklist.stats.percentage = checklist.stats.total > 0 
+      ? Math.round((checklist.stats.completed / checklist.stats.total) * 100)
+      : 0;
+
+    return checklist;
+  }
+
+  /**
+   * Generate comprehensive analysis
+   */
+  analyze() {
+    this.report.summary = {
+      totalChecklists: this.checklists.length,
+      totalItems: 0,
+      completedItems: 0,
+      overallPercentage: 0,
+      byPhase: {},
+      byOwner: {}
+    };
+
+    // Aggregate stats
+    for (const checklist of this.checklists) {
+      this.report.summary.totalItems += checklist.stats.total;
+      this.report.summary.completedItems += checklist.stats.completed;
+
+      // Track by phase
+      for (const phase of checklist.phases) {
+        if (!this.report.summary.byPhase[phase.number]) {
+          this.report.summary.byPhase[phase.number] = {
+            title: phase.title,
+            total: 0,
+            completed: 0
+          };
+        }
+        this.report.summary.byPhase[phase.number].total += phase.items.length;
+        this.report.summary.byPhase[phase.number].completed += 
+          phase.items.filter(item => item.completed).length;
+      }
+
+      // Track by owner
+      for (const item of checklist.items) {
+        if (item.owner) {
+          if (!this.report.summary.byOwner[item.owner]) {
+            this.report.summary.byOwner[item.owner] = {
+              total: 0,
+              completed: 0,
+              overdue: 0
+            };
+          }
+          this.report.summary.byOwner[item.owner].total++;
+          if (item.completed) {
+            this.report.summary.byOwner[item.owner].completed++;
+          }
+          if (item.dueDate && new Date(item.dueDate) < new Date() && !item.completed) {
+            this.report.summary.byOwner[item.owner].overdue++;
+          }
+        }
+      }
+    }
+
+    // Calculate overall percentage
+    this.report.summary.overallPercentage = this.report.summary.totalItems > 0
+      ? Math.round((this.report.summary.completedItems / this.report.summary.totalItems) * 100)
+      : 0;
+
+    // Generate recommendations
+    this.generateRecommendations();
+
+    return this.report;
+  }
+
+  /**
+   * Generate actionable recommendations
+   */
+  generateRecommendations() {
+    const recommendations = [];
+
+    // Check for blocked phases
+    for (const [phaseNum, phase] of Object.entries(this.report.summary.byPhase)) {
+      const completion = phase.total > 0 
+        ? Math.round((phase.completed / phase.total) * 100)
+        : 0;
+      
+      if (completion < 30 && parseInt(phaseNum) <= 3) {
+        recommendations.push({
+          type: 'blocker',
+          message: `Phase ${phaseNum} (${phase.title}) is only ${completion}% complete`,
+          action: `Focus on completing Phase ${phaseNum} before moving forward`
+        });
+      }
+    }
+
+    // Check for overdue items
+    for (const [owner, stats] of Object.entries(this.report.summary.byOwner)) {
+      if (stats.overdue > 0) {
+        recommendations.push({
+          type: 'overdue',
+          message: `${owner} has ${stats.overdue} overdue item(s)`,
+          action: `Follow up with ${owner} about overdue tasks`
+        });
+      }
+    }
+
+    // Check for unbalanced workload
+    const owners = Object.keys(this.report.summary.byOwner);
+    if (owners.length > 1) {
+      const avgItems = this.report.summary.totalItems / owners.length;
+      for (const [owner, stats] of Object.entries(this.report.summary.byOwner)) {
+        if (stats.total > avgItems * 1.5) {
+          recommendations.push({
+            type: 'workload',
+            message: `${owner} has ${stats.total} items (above average)`,
+            action: `Consider redistributing tasks from ${owner}`
+          });
+        }
+      }
+    }
+
+    // Overall progress check
+    if (this.report.summary.overallPercentage < 50) {
+      recommendations.push({
+        type: 'progress',
+        message: `Overall progress is ${this.report.summary.overallPercentage}%`,
+        action: 'Accelerate development or adjust timeline'
+      });
+    }
+
+    this.report.recommendations = recommendations;
+  }
+
+  /**
+   * Generate formatted report
+   */
+  generateReport(format = 'text') {
+    const analysis = this.analyze();
+    
+    if (format === 'json') {
+      return JSON.stringify(analysis, null, 2);
+    }
+
+    // Text format (default)
+    let report = '='.repeat(60) + '\n';
+    report += `SOLANA KYC SDK - CHECKLIST PROGRESS REPORT\n`;
+    report += `Generated: ${new Date(analysis.generated).toLocaleString()}\n`;
+    report += '='.repeat(60) + '\n\n';
+
+    // Summary section
+    report += '📊 SUMMARY\n';
+    report += '-' .repeat(40) + '\n';
+    report += `Total Checklists: ${analysis.summary.totalChecklists}\n`;
+    report += `Total Items: ${analysis.summary.totalItems}\n`;
+    report += `Completed: ${analysis.summary.completedItems}\n`;
+    report += `Overall Progress: ${analysis.summary.overallPercentage}%\n\n`;
+
+    // Phase breakdown
+    report += '📋 PHASE BREAKDOWN\n';
+    report += '-' .repeat(40) + '\n';
+    for (const [phaseNum, phase] of Object.entries(analysis.summary.byPhase)) {
+      const percentage = phase.total > 0 
+        ? Math.round((phase.completed / phase.total) * 100)
+        : 0;
+      const progressBar = this.createProgressBar(percentage, 20);
+      
+      report += `Phase ${phaseNum}: ${phase.title}\n`;
+      report += `  ${progressBar} ${percentage}% (${phase.completed}/${phase.total})\n`;
+    }
+    report += '\n';
+
+    // Owner breakdown
+    if (Object.keys(analysis.summary.byOwner).length > 0) {
+      report += '👥 OWNER BREAKDOWN\n';
+      report += '-' .repeat(40) + '\n';
+      for (const [owner, stats] of Object.entries(analysis.summary.byOwner)) {
+        const percentage = stats.total > 0 
+          ? Math.round((stats.completed / stats.total) * 100)
+          : 0;
+        
+        report += `${owner}:\n`;
+        report += `  Completed: ${stats.completed}/${stats.total} (${percentage}%)\n`;
+        if (stats.overdue > 0) {
+          report += `  ⚠️  Overdue: ${stats.overdue} item(s)\n`;
+        }
+      }
+      report += '\n';
+    }
+
+    // Checklist details
+    report += '📝 CHECKLIST DETAILS\n';
+    report += '-' .repeat(40) + '\n';
+    for (const checklist of this.checklists) {
+      const progressBar = this.createProgressBar(checklist.stats.percentage, 20);
+      
+      report += `${checklist.title}\n`;
+      report += `  ${progressBar} ${checklist.stats.percentage}%\n`;
+      report += `  📍 ${checklist.stats.completed} done, ${checklist.stats.inProgress} in progress, ${checklist.stats.notStarted} pending\n`;
+      
+      // Show next 3 pending items
+      const pendingItems = checklist.items
+        
+        .filter(item => !item.completed)
+        .slice(0, 3);
+      
+      if (pendingItems.length > 0) {
+        report += `  Next items:\n`;
+        for (const item of pendingItems) {
+          report += `    • ${item.text}\n`;
+        }
+      }
+      report += '\n';
+    }
+
+    // Recommendations
+    if (analysis.recommendations.length > 0) {
+      report += '🎯 RECOMMENDATIONS\n';
+      report += '-' .repeat(40) + '\n';
+      for (const rec of analysis.recommendations) {
+        const icon = {
+          blocker: '🔴',
+          overdue: '🟡',
+          workload: '🟠',
+          progress: '🔵'
+        }[rec.type] || '⚪';
+        
+        report += `${icon} ${rec.message}\n`;
+        report += `   → ${rec.action}\n`;
+      }
+      report += '\n';
+    }
+
+    // Next steps
+    report += '🚀 NEXT STEPS\n';
+    report += '-' .repeat(40) + '\n';
+    
+    // Find lowest completion phase
+    let lowestPhase = null;
+    let lowestPercentage = 100;
+    
+    for (const [phaseNum, phase] of Object.entries(analysis.summary.byPhase)) {
+      const percentage = phase.total > 0 
+        ? Math.round((phase.completed / phase.total) * 100)
+        : 0;
+      
+      if (percentage < lowestPercentage) {
+        lowestPercentage = percentage;
+        lowestPhase = { number: phaseNum, ...phase };
+      }
+    }
+    
+    if (lowestPhase && lowestPercentage < 100) {
+      report += `1. Focus on Phase ${lowestPhase.number}: ${lowestPhase.title}\n`;
+      report += `   ${lowestPhase.completed}/${lowestPhase.total} items complete (${lowestPercentage}%)\n`;
+    }
+    
+    // Find overdue items
+    const overdueOwners = Object.entries(analysis.summary.byOwner)
+      .filter(([_, stats]) => stats.overdue > 0)
+      .map(([owner, _]) => owner);
+    
+    if (overdueOwners.length > 0) {
+      report += `2. Follow up with: ${overdueOwners.join(', ')}\n`;
+    }
+    
+    // General next steps
+    if (analysis.summary.overallPercentage < 80) {
+      report += `3. Overall progress: ${analysis.summary.overallPercentage}% - accelerate if needed\n`;
+    }
+    
+    if (analysis.summary.overallPercentage >= 80) {
+      report += `3. Prepare for security review\n`;
+    }
+    
+    if (analysis.summary.overallPercentage >= 95) {
+      report += `4. Schedule production deployment\n`;
+    }
+    
+    report += '\n' + '='.repeat(60) + '\n';
+    report += 'Report complete. Use this to guide your development process.\n';
+    report += '='.repeat(60);
+
+    return report;
+  }
+
+  /**
+   * Create ASCII progress bar
+   */
+  createProgressBar(percentage, width) {
+    const filled = Math.round((percentage / 100) * width);
+    const empty = width - filled;
+    return '█'.repeat(filled) + '░'.repeat(empty);
+  }
+
+  /**
+   * Save report to file
+   */
+  saveReport(filepath, format = 'text') {
+    const report = this.generateReport(format);
+    fs.writeFileSync(filepath, report);
+    console.log(chalk.green(`✓ Report saved to: ${filepath}`));
+  }
+
+  /**
+   * Display report in console
+   */
+  displayReport() {
+    const report = this.generateReport();
+    console.log(report);
+  }
+}
+
+// CLI Interface
+async function main() {
+  const args = process.argv.slice(2);
+  
+  if (args.length === 0) {
+    console.log(chalk.blue('Solana KYC SDK Checklist Tracker'));
+    console.log(chalk.gray('Usage: node checklist-tracker.js <checklist-files...> [options]'));
+    console.log('\nOptions:');
+    console.log('  --output <file>    Save report to file');
+    console.log('  --format <format>  Output format (text|json)');
+    console.log('  --display          Display report in console');
+    console.log('\nExamples:');
+    console.log('  node checklist-tracker.js CHECKLIST.md');
+    console.log('  node checklist-tracker.js checklists/*.md --output report.txt');
+    console.log('  node checklist-tracker.js checklists/*.md --format json');
+    process.exit(0);
+  }
+
+  // Parse options
+  const options = {
+    output: null,
+    format: 'text',
+    display: false
+  };
+
+  const checklists = [];
+  
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--output') {
+      options.output = args[++i];
+    } else if (args[i] === '--format') {
+      options.format = args[++i];
+    } else if (args[i] === '--display') {
+      options.display = true;
+    } else if (!args[i].startsWith('--')) {
+      checklists.push(args[i]);
+    }
+  }
+
+  if (checklists.length === 0) {
+    console.log(chalk.red('Error: No checklist files specified'));
+    process.exit(1);
+  }
+
+  // Check if files exist
+  for (const checklist of checklists) {
+    if (!fs.existsSync(checklist)) {
+      console.log(chalk.red(`Error: File not found - ${checklist}`));
+      process.exit(1);
+    }
+  }
+
+  try {
+    // Load and analyze checklists
+    const tracker = new ChecklistTracker({
+      project: 'Solana KYC SDK',
+      team: ['alice@example.com', 'bob@example.com'] // Update with actual team
+    });
+
+    await tracker.loadChecklists(checklists);
+    
+    // Display report
+    if (options.display) {
+      tracker.displayReport();
+    }
+    
+    // Save to file if requested
+    if (options.output) {
+      tracker.saveReport(options.output, options.format);
+    }
+    
+    // Exit with code based on progress
+    const analysis = tracker.analyze();
+    if (analysis.summary.overallPercentage < 50) {
+      console.log(chalk.yellow('⚠️  Progress below 50% - consider adjusting timeline'));
+      process.exit(1);
+    }
+    
+  } catch (error) {
+    console.log(chalk.red(`Error: ${error.message}`));
+    process.exit(1);
+  }
+}
+
+// Run if called directly
+if (require.main === module) {
+  main().catch(error => {
+    console.error(chalk.red('Fatal error:'), error);
+    process.exit(1);
+  });
+}
+
+module.exports = ChecklistTracker;
