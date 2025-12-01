@@ -1,0 +1,29 @@
+/hive/
+  /agents/
+    /teacher/
+      README.md
+      config.yaml
+    /students/
+      example-agent/
+        README.md
+        config.yaml
+  /memory/
+    /patterns/
+      README.md
+    /schemas/
+      README.md
+    /rules/
+      hive-rules.md
+  /lifecycle/
+    init.md
+    evolve.md
+    maintain.md
+/templates/
+  agent-template.md
+  hive-doc-template.md
+.github/
+  ISSUE_TEMPLATE/
+    hive-conversion.md
+  pull_request_template.md
+README.md
+HIVE_OVERVIEW.md
