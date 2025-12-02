@@ -1,0 +1,47 @@
+# .github/workflows/smart-properties.yml
+name: Smart Property Suggestions
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  suggest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Analyze issue content
+        id: analyze
+        run: |
+          # Use AI/ML or simple heuristics to suggest properties
+          TITLE="${{ github.event.issue.title }}"
+          BODY="${{ github.event.issue.body }}"
+          
+          # Example heuristics
+          if [[ "$TITLE" =~ [Bb]ug || "$BODY" =~ [Bb]ug ]]; then
+            echo "suggested_type=Bug Fix" >> $GITHUB_OUTPUT
+            echo "suggested_priority=High" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "$BODY" =~ [Uu][Rr][Gg][Ee][Nn][Tt] ]]; then
+            echo "suggested_priority=Critical" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Add property suggestions as comment
+        if: steps.analyze.outputs.suggested_priority || steps.analyze.outputs.suggested_type
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const suggestions = [];
+            if ('${{ steps.analyze.outputs.suggested_priority }}') {
+              suggestions.push(`**Priority**: ${{ steps.analyze.outputs.suggested_priority }}`);
+            }
+            if ('${{ steps.analyze.outputs.suggested_type }}') {
+              suggestions.push(`**Type**: ${{ steps.analyze.outputs.suggested_type }}`);
+            }
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🤖 **Property Suggestions**:\n${suggestions.join('\n')}\n\n*Automated analysis based on issue content*`
+            });
