@@ -1,0 +1,6 @@
+{
+  "applicantId": "...",
+  "status": "clear" | "review" | "reject",
+  "providerReference": "...",
+  "breakdown": [...]
+}
