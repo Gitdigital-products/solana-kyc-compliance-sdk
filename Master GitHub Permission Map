@@ -1,0 +1,24 @@
+
+**Level 5 — Owner**
+
+* Access: all repos, billing, secrets, environments
+* Roles: CEO, CTO
+
+**Level 4 — Admin**
+
+* Access: admin on infra, write everywhere
+* Roles: DevOps Lead, Security Engineer
+
+**Level 3 — Contributor**
+
+* Access: write on their repos, read on most
+* Roles: Backend, Frontend, ML, Data, QA, Tech Writer
+
+**Level 2 — Business**
+
+* Access: marketing repos read/write, docs read, nothing else
+* Roles: Marketing, Sales, Support, Finance, Design
+
+**Level 1 — Contractors**
+
+* Access: repo-specific only
