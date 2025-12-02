@@ -1,0 +1,22 @@
+/
+├── backend/
+│   ├── api/
+│   ├── github-apps/
+│   └── services/
+├── frontend/
+│   ├── dashboard/
+│   └── landing-pages/
+├── infra/
+│   ├── github_actions/
+│   ├── terraform/
+│   ├── docker/
+│   └── gpu_runner/
+├── ml/
+│   ├── model_runner/
+│   ├── gpu_containers/
+│   └── r_and_d/
+├── docs/
+├── marketing/
+├── design_assets/
+├── internal_tools/
+└── onboarding/
