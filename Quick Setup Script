@@ -1,0 +1,21 @@
+# Save as .github/workflows/setup-properties.yml
+name: Setup Project Properties
+on:
+  project_created:
+    types: [created]
+
+jobs:
+  setup-properties:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log property setup
+        run: |
+          echo "Properties to configure manually:"
+          echo "1. status - Progress tracking"
+          echo "2. priority - Urgency level" 
+          echo "3. team - Team assignment"
+          echo "4. milestone - Timeline alignment"
+          echo "5. effort - Size estimation"
+          echo "6. impact - Business value"
+          echo "7. technical_area - Technical domain"
+          echo "8. contribution_type - Contributor level"
