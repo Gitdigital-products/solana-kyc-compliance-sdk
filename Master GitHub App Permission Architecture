@@ -1,0 +1,5 @@
+
+* Marketing App: read org, write to marketing repos, analytics access
+* Sales App: CRM sync, contact updates, email automation
+* Accounting App: billing integration, Stripe read/write as needed
+* Master Admin App: controlled only by Level 5 Owners
