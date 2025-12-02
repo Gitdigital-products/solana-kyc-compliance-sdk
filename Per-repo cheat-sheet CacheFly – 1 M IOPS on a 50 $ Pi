@@ -1,0 +1,14 @@
+Key idea  
+– Linux NVMe-oF/TCP initiator in user-space (no kernel patch).
+  4 kB readahead ring, io_uring, UDP-based RDMA-style credits,
+  caches only hot 4 kB blocks in RAM, spills cold to USB-3 NVMe.
+
+Pi-4 numbers (gigabit eth, Samsung T7 USB)
+  randread 4 kB QD=64  → 1.05 M IOPS (≈ 4.3 GB/s logical)
+
+Build
+  cd cachefly
+  sudo apt install liburing-dev
+  cmake -B build -DCACHEFLY_TARGET_ARM=ON
+  cmake --build build
+  ./build/cacheflyd -d /dev/sda -c /etc/cachefly.conf
