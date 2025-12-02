@@ -1,0 +1,8 @@
+Symptom: webhook 403  
+→ Ensure the header `X-Platform-Signature` equals `HMAC_SHA256(webhookSecret, body)`  
+
+Symptom: pod crashes with “provider name not found”  
+→ The string in `sdk.Register("acme-kyc", …)` must exactly match the name in the UI  
+
+Symptom: applicant stuck in “pending”  
+→ Check that your async callback reaches `https://api.Gidigital-products.com/webhooks/kyc/acme-kyc` and contains the mandatory fields `applicantId`, `status`, `providerReference`  
