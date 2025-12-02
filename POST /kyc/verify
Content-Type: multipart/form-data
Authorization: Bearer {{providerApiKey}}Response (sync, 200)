@@ -1,0 +1,9 @@
+{
+  "status": "clear" | "review" | "reject",
+  "providerReference": "string",   // your internal id
+  "breakdown": [                 // human readable
+    {"check": "mrz", "result": "passed"},
+    {"check": "pep", "result": "false-positive"}
+  ],
+  "expiresAt": "2025-12-11T00:00:00Z"
+}
