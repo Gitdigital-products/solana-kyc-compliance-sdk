@@ -1,0 +1,13 @@
+Key idea  
+– Drop-in kernels for grouped-query attention, fused RoPE+softmax,
+  paged-KV-cache, 4-bit KV compression, tensor-parallel reduction
+  in shared memory.  One header: #include <flashinfer.cuh>
+
+Speed-up (LLaMA-70B, batch=64, seq=2 k, A100)
+  HuggingFace baseline  52 tok/s
+  FlashInfer            158 tok/s  (3.0×)
+
+Build
+  cd flashinfer
+  pip install -e .
+  python bench/bench_llama.py --model 70b --batch 64 --seq 2048
