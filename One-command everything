@@ -1,0 +1,6 @@
+# full clone + build + test (needs 16-core, 32 GB RAM, CUDA 12)
+git clone --recursive https://github.com/RickCreator87/Brotli-X
+cd Brotli-X
+./scripts/dev_setup.sh        # installs conda, cmake, ninja, cuda, rdma
+./scripts/build_all.sh          # 5-10 min
+./scripts/run_headlines.sh      # prints all 9 claims with numbers
