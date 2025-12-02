@@ -1,0 +1,20 @@
+Brotli-X/
+├── .github/workflows/ci.yml          # matrix: {ubuntu-22, macos-13, win-2022} × {clang, gcc, msvc}
+├── cmake/                             # shared CMake helpers
+├── scripts/                           # dev-env setup, docker, conda
+├── vendor/                            # git-submodules or FetchContent
+├── brotli-x/                          # entropy codec
+├── kvshard/                           # lock-free KV
+├── cachefly/                          # NVMe-oF read cache
+├── qgan/                              # 4-bit GAN stack
+├── topoopt/                           # AI planner
+├── memspill/                          # CUDA ↔ CXL spiller
+├── socketx/                           # user-space TCP over RDMA
+├── flashinfer/                        # drop-in LLM kernels
+└── nanolr/                            # 8-bit LR scheduler
+
+Every sub-project has an identical interface:
+  mkdir build && cd build
+  cmake .. -DCMAKE_BUILD_TYPE=Release
+  ctest --output-on-failure            # unit + micro-bench
+  ./bench/bench_headline               # prints the claim
