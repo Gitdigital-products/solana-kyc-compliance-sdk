@@ -1,0 +1,7 @@
+ Civic & Identity.com adapter  
+- Write a tiny service that listens to Civic’s webhook, then calls your `update_kyc_level` instruction.  
+- Publish the adapter as a separate repo under the same GitHub org → shows enterprise alignment.
+
+ Bridge to Ethereum (Wormhole)  
+- Add a `KycBridge` program that locks a Solana KYC-NFT and mints an ERC-721 (or Soulbound token) on Polygon.  
+- This unlocks “cross-chain compliance” narrative for VCs.
