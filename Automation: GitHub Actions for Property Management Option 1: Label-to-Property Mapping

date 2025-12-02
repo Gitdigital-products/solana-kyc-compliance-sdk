@@ -1,0 +1,66 @@
+# .github/workflows/auto-set-properties.yml
+name: Auto-set Properties from Labels
+
+on:
+  issues:
+    types: [labeled, unlabeled]
+
+jobs:
+  sync-properties:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for property-related labels
+        id: check_labels
+        run: |
+          LABEL="${{ github.event.label.name }}"
+          
+          # Priority mapping
+          if [[ "$LABEL" =~ ^(priority:critical|p0)$ ]]; then
+            echo "priority=Critical" >> $GITHUB_OUTPUT
+          elif [[ "$LABEL" =~ ^(priority:high|p1)$ ]]; then
+            echo "priority=High" >> $GITHUB_OUTPUT
+          elif [[ "$LABEL" =~ ^(priority:medium|p2)$ ]]; then
+            echo "priority=Medium" >> $GITHUB_OUTPUT
+          elif [[ "$LABEL" =~ ^(priority:low|p3)$ ]]; then
+            echo "priority=Low" >> $GITHUB_OUTPUT
+          fi
+          
+          # Team mapping
+          if [[ "$LABEL" == "team:frontend" ]]; then
+            echo "team=Frontend" >> $GITHUB_OUTPUT
+          elif [[ "$LABEL" == "team:backend" ]]; then
+            echo "team=Backend" >> $GITHUB_OUTPUT
+          fi
+          
+          # Type mapping
+          if [[ "$LABEL" == "type:bug" ]]; then
+            echo "contribution_type=Bug Fix" >> $GITHUB_OUTPUT
+          elif [[ "$LABEL" == "type:feature" ]]; then
+            echo "contribution_type=Feature Development" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update issue properties
+        if: steps.check_labels.outputs.priority || steps.check_labels.outputs.team || steps.check_labels.outputs.contribution_type
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const updates = {};
+            if ('${{ steps.check_labels.outputs.priority }}') {
+              updates['Priority Level'] = '${{ steps.check_labels.outputs.priority }}';
+            }
+            if ('${{ steps.check_labels.outputs.team }}') {
+              updates['Assigned Team'] = '${{ steps.check_labels.outputs.team }}';
+            }
+            if ('${{ steps.check_labels.outputs.contribution_type }}') {
+              updates['Contribution Type'] = '${{ steps.check_labels.outputs.contribution_type }}';
+            }
+            
+            // Use your project's API to update properties
+            // This is a placeholder - replace with your actual API calls
+            console.log('Would update:', updates);
