@@ -1,0 +1,23 @@
+One-command sandbox  
+- `pnpm create solana-kyc-app` → scaffolds:  
+  – localvalidator with the two programs deployed,  
+  – 3 pre-funded keypairs (super-admin, provider, user),  
+  – a NextJS mini-dapp that lets you drag-and-drop a passport image and see the KYC level update in real time.
+
+SDK monorepo layout  
+
+├── programs/          (Anchor)
+├── sdk/
+│   ├── solana-kyc-js  (TypeScript, auto-gen IDL)
+│   ├── solana-kyc-py  (Python, for backend batch jobs)
+│   └── solana-kyc-cli (Rust, for CI)
+
+- Add a GitHub workflow that publishes `@solana-kyc/sdk` to npm & PyPI on every semver tag.
+
+Docs portal  
+- Use VitePress or Docusaurus.  
+- Auto-generate an API page from the IDL (anchor-cli has a `--docs` flag).  
+- Add three “recipes”:  
+  – “Gate a Metaplex NFT mint with KYC level ≥ 2.”  
+  – “Allow SPL transfers only between KYC-verified wallets.”  
+  – “Run a permissioned AMM pool.”
