@@ -1,0 +1,259 @@
+# CUSTOM PROPERTIES SCHEMA
+# Save this as .github/project-properties.yml
+
+version: "1.0"
+organization: "Gitdigital-products"
+last_updated: "${new Date().toISOString().split('T')[0]}"
+
+properties:
+  
+  # 🎯 PRIORITY & URGENCY
+  priority:
+    type: "single-select"
+    description: "How urgently this needs to be addressed"
+    options:
+      - name: "🔴 Critical"
+        description: "Blocking work or critical bugs"
+        color: "red"
+      - name: "🟡 High"
+        description: "Important for current milestone"
+        color: "yellow"
+      - name: "🔵 Medium"
+        description: "Should be done soon"
+        color: "blue"
+      - name: "⚪ Low"
+        description: "Nice to have, not urgent"
+        color: "gray"
+      - name: "💡 Enhancement"
+        description: "Improvement, not required"
+        color: "green"
+
+  # 📊 PROGRESS TRACKING
+  status:
+    type: "single-select"
+    description: "Current state of the work"
+    options:
+      - name: "🆕 Not Started"
+        description: "Ready to be picked up"
+        color: "gray"
+      - name: "📋 Ready for Work"
+        description: "All prerequisites complete"
+        color: "blue"
+      - name: "🚧 In Progress"
+        description: "Actively being worked on"
+        color: "yellow"
+      - name: "🔍 In Review"
+        description: "Code review or testing phase"
+        color: "orange"
+      - name: "⏳ Blocked"
+        description: "Waiting on dependencies"
+        color: "red"
+      - name: "✅ Completed"
+        description: "Work finished and verified"
+        color: "green"
+      - name: "🗑️ Cancelled"
+        description: "Won't be implemented"
+        color: "gray"
+
+
+
+  # 👥 TEAM ASSIGNMENT
+  team:
+    type: "single-select"
+    description: "Primary team responsible"
+    options:
+      - name: "🎨 Frontend Team"
+        description: "UI/UX, React components"
+        color: "blue"
+      - name: "⚙️ Backend Team"
+        description: "APIs, services, database"
+        color: "green"
+      - name: "🔧 DevOps Team"
+        description: "Infrastructure, CI/CD"
+        color: "orange"
+      - name: "📊 Data Team"
+        description: "Analytics, data processing"
+        color: "purple"
+      - name: "🎯 Product Team"
+        description: "Product management, planning"
+        color: "pink"
+      - name: "🐛 QA Team"
+        description: "Testing, quality assurance"
+        color: "red"
+      - name: "🤝 Multiple Teams"
+        description: "Cross-team collaboration"
+        color: "cyan"
+      - name: "👥 Community"
+        description: "External contributor opportunity"
+        color: "gray"
+
+
+
+  # ⏱️ EFFORT ESTIMATION
+  effort:
+    type: "single-select"
+    description: "Estimated level of effort required"
+    options:
+      - name: "⏱️ Quick (1-2 days)"
+        description: "Small task, quick win"
+        color: "green"
+      - name: "📦 Small (3-5 days)"
+        description: "Straightforward implementation"
+        color: "blue"
+      - name: "📦 Medium (1-2 weeks)"
+        description: "Moderate complexity"
+        color: "yellow"
+      - name: "🗃️ Large (2-4 weeks)"
+        description: "Significant feature work"
+        color: "orange"
+      - name: "🏗️ Epic (1+ month)"
+        description: "Major initiative, multiple parts"
+        color: "red"
+      - name: "❓ TBD"
+        description: "Needs estimation"
+        color: "gray"
+
+
+
+  # 🎯 MILESTONE ALIGNMENT
+  milestone:
+    type: "single-select"
+    description: "Target milestone for completion"
+    options:
+      - name: "🎯 M1: Foundation (Dec 2024)"
+        description: "Organization setup and first project"
+        color: "blue"
+      - name: "🚀 M2: First Release (Feb 2025)"
+        description: "v1.0 launch and community building"
+        color: "green"
+      - name: "🌟 M3: Scaling (May 2025)"
+        description: "Multi-project expansion"
+        color: "purple"
+      - name: "🔮 Future"
+        description: "Beyond current roadmap"
+        color: "gray"
+      - name: "📅 TBD"
+        description: "Not yet scheduled"
+        color: "gray"
+
+
+
+  # 💡 CONTRIBUTION TYPE
+  contribution_type:
+    type: "single-select"
+    description: "Type of work and who can contribute"
+    options:
+      - name: "🆕 Good First Issue"
+        description: "Perfect for new contributors"
+        color: "green"
+      - name: "🤝 Help Wanted"
+        description: "Could use extra hands"
+        color: "blue"
+      - name: "🐛 Bug Fix"
+        description: "Addressing defects or issues"
+        color: "red"
+      - name: "✨ Feature"
+        description: "New functionality"
+        color: "purple"
+      - name: "📚 Documentation"
+        description: "Improving docs or guides"
+        color: "gray"
+      - name: "🔧 Maintenance"
+        description: "Refactoring, tech debt"
+        color: "orange"
+      - name: "🧪 Testing"
+        description: "Test coverage or QA work"
+        color: "yellow"
+
+
+
+  # 📈 IMPACT ASSESSMENT
+  impact:
+    type: "single-select"
+    description: "Expected impact on users/product"
+    options:
+      - name: "🚀 High Impact"
+        description: "Significant user value or revenue"
+        color: "purple"
+      - name: "📈 Medium Impact"
+        description: "Noticeable improvement"
+        color: "blue"
+      - name: "🔧 Low Impact"
+        description: "Minor improvement or internal"
+        color: "green"
+      - name: "🎯 Foundational"
+        description: "Enables future work"
+        color: "orange"
+      - name: "💫 Strategic"
+        description: "Long-term strategic value"
+        color: "pink"
+
+
+
+  # 🔧 TECHNICAL CATEGORY
+  technical_area:
+    type: "single-select"
+    description: "Primary technical domain"
+    options:
+      - name: "🏗️ Architecture"
+        description: "System design, patterns"
+        color: "blue"
+      - name: "🎨 UI/UX"
+        description: "User interface and experience"
+        color: "pink"
+      - name: "📚 Documentation"
+        description: "Guides, API docs, tutorials"
+        color: "gray"
+      - name: "🧪 Testing"
+        description: "Unit, integration, e2e tests"
+        color: "green"
+      - name: "🔧 Refactoring"
+        description: "Code improvement, cleanup"
+        color: "yellow"
+      - name: "🚀 Performance"
+        description: "Speed, optimization"
+        color: "orange"
+      - name: "🔒 Security"
+        description: "Security, authentication"
+        color: "red"
+      - name: "📦 Dependencies"
+        description: "Package updates, upgrades"
+        color: "purple"
+      - name: "🛠️ Tooling"
+        description: "Dev tools, CI/CD, automation"
+        color: "cyan"
+
+
+
+
+# 🎯 DEFAULT PROPERTY VALUES FOR NEW ISSUES
+defaults:
+  status: "🆕 Not Started"
+  priority: "🔵 Medium"
+  effort: "❓ TBD"
+  milestone: "📅 TBD"
+
+
+
+# 🔄 AUTOMATION RULES
+automation:
+  - trigger: "issue.labeled"
+    conditions:
+      - label: "good first issue"
+    actions:
+      - set_property: "contribution_type: 🆕 Good First Issue"
+      - set_property: "effort: ⏱️ Quick (1-2 days)"
+
+  - trigger: "issue.labeled" 
+    conditions:
+      - label: "bug"
+    actions:
+      - set_property: "contribution_type: 🐛 Bug Fix"
+
+  - trigger: "issue.assigned"
+    actions:
+      - set_property: "status: 🚧 In Progress"
+
+  - trigger: "pull_request.opened"
+    actions:
+      - set_property: "status: 🔍 In Review"
