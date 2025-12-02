@@ -1,0 +1,14 @@
+Key idea  
+– Micro-scheduler that stores momentum in 8-bit (dynamic tree
+  quantisation) and uses a cosine+restart policy with online
+  estimation of smoothness constant L.  Needs no master FP32
+  copy; dequant happens in registers.
+
+Result (ResNet-50 on ImageNet, 8×A100)
+  AdamW FP32  90 k steps  → 76.2 % top-1
+  NanoLR 8-bit 63 k steps  → 76.3 % top-1  (-30 % steps)
+
+Build
+  cd nanolr
+  pip install -e .
+  torchrun --nproc_per_node=8 train.py --optimizer nanolr --model res50
