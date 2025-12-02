@@ -1,0 +1,124 @@
+
+        NAME         |  PRICE   | COGS* COVERED | VALUE LEAP
+━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━╋━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━
+            FREE     |     $0   | shipping only | ✕
+            FOUNDER  | $15/mo   | ¡HIGH!        | 15 % lifetime orders + early drops
+            PRO      | $35/mo   | $45           | $85/yr merchandise credit + upsell triggers
+            ELITE    | $79/mo   | TWO orders    | subscription box ($200 retail), priority new releases
+            VIP      | $149/mo  | yearly SKU    | invite-only Slack, 20 % profit-share on creators deck, co-invest fund
+
+*COGS = product + pick/pack credit. The leap from ELITE→VIP should cost you < 25 % of the tier price to fund extra perks.
+
+Retention levers baked in:
+- **Founder tier** triggers name-in-credits on new products (gamified ‘founder badge’).  
+- **Elite** includes a “design-our-next-mug” voting right, triggering the IKEA effect.  
+- **VIP** members become your angel list for new SKUs → LTV > 4× churn competitor average (industry benchmark 6-month).
+
+────────────────────────────────
+Cash-in-advance SKUs & LTV Math
+────────────────────────────────
+Use Kickstarter-style “bulk-crowd” to negate inventory risk.
+
+LTV formula we implement:
+LTV = ARPU × (Gross margin – Direct churn) − (Acquisition cost / Σ cohort)
+
+We oscillate GM between 55 % and 75 % by tier:
+- Elite tier drives 50 % more cross-sells → their LTV $213.
+- Free tier LTV $18 after 6 warm-ups with bundled shipping.
+
+────────────────────────────────
+  Supply-chain Deep Stack
+────────────────────────────────
+A. 3PL vs FBA vs hybrid       
+   80 % razor SKUs → FBA (Prime badge drives 22 % lift).  
+   15 % boutique -> 3PL (custom poly, tissue, sticker bomb).  
+   Remainder keeps core margin via dropship and virtual stock.
+
+B. Dynamic purchasing calculator (Google-Sheets, live via API-IMPORTJSON)
+   =IF(Inventory<MIN(MAX(lead-time × sales_velocity, safety-stock), reorder-slow), "ORDER", "SKIP")
+
+C. Containers & incoterms TL;DR
+   - 20 GP: 28 m³ = 10 000 small boxes → landed cost drops 38 % vs parcel.  
+   - Run DTP (Delivered-to-Port) for >PO³ (Protective order size = monthly SKU sales × 2.6 month cash cycle).
+
+────────────────────────────────
+  Traffic Engineering Recipes
+────────────────────────────────
+SCENARIO: New store, < $1k/day revenue, ROAS adj. CAC ≤ 12 % LTV.
+
+Channel split week 1 (budget = $500):
+- Google Shopping 40 % (exact + phrase non-branded)
+- Meta LLA 2 % 20 % (DPAs, ATF hook “Ships in 48 h”)  
+- TikTok Creative Swarm 20 % (whitelisted creators 6 seconds)  
+- Amazon Sponsored Brands 10 % (exploit low ACOS niche phrases)  
+- Micro-Influ affiliates 10 % (Net-15, per shift)
+
+Hard KPI gates:
+> 2.8 % CTR creatives → kill / recycle  
+> 4 ROAS → scale 1.2× daily until CAC flattens  
+< $0.25 email CPR → build automated flows (Cart recovery, Welcome 4-day).
+
+────────────────────────────────
+
+Subscription Box Logistics (from Elites tier)
+────────────────────────────────
+Plan buildout like press sample runs:  
+6. Pre-assemble in 3PL kitting pods (square-foot cost $0.42/m).  
+7. Include a “tear-off” coupon for next shipment → back-to-store driving ±14 % re-ups.  
+8. Shrink-wrap vs eco-paper. A/B: eco paper won 7 % higher repeat purchase in Tier Pro+, marginally higher labor.
+
+────────────────────────────────
+ Retention & Churn Mechanics
+────────────────────────────────
+Stacked triggers:
+
+Trigger 1: 3 days after elapse predicted churn window → thin-slice “hold-up” email w/ saving coupon 15 %.  
+Trigger 2: If scrolled product page 15 s but no ATC → exit-intent 10 % free ship pop-up.  
+Trigger 3: Lapsed Elite 45 day → personalized postcard w/ handwritten thank-you, resale retrieval 9 % revenue.
+
+NPS segmentation:
+9-10 x Average spend → auto-enroll into referral loop (Gigel — Gorgias + Friendbuy → 8 % rev via referral).
+
+────────────────────────────────
+Compliance + Digital Tax Q’s
+────────────────────────────────
+- EU VAT IOSS imports ≤ €150 single unit: require carrier with IOSS ID in label.  
+- US marketplace facilitator Value > $500/year triggers 1099-K.  
+- GCC (UAE) VAT on services not supplied to KSA triggers reverse charge → store VAT # in email footer.
+
+────────────────────────────────
+ KPI Sheet (live spreadsheet excerpt)
+────────────────────────────────
+Row label                | Formula in Col C
+Weekly Revenue           | =SUMPRODUCT(orders!Qty,orders!Price)-returns
+Gross Margin %           | =(Revenue-Total COGS)/Revenue
+Contribution Margin %    | =(Revenue-COGS-Marketing)/Revenue
+Inventory Turn           | =SUM(annual COGS)/AVG(inventory value)
+💡 Tune: aim 6.0× on staple SKUs.
+Email Revenue % of Total | =email!GMV/Revenue
+App Churn 30-day         | =1-(active_last_30/total_users)
+Blended CAC              | =total_marketing/total_first_orders
+Scaled Break-Even        | MONTH-23 where CF turns positive.
+
+Type two lines anywhere to drop slack webhook if BreakEven < forecast via zapier into owner dashboard.
+
+─────────────────
+ Procedural Loop (next sprints)
+─────────────────
+Monday = ASIN kickoff meeting (Amazon new SKUs).  
+Tuesday = Google Shopping feed health (no errors > 5 %).  
+Thursday = Facebook creative Sprint on templates (learn from slack-flux).  
+ End-of-Month = Rev threshold review via Contribution margin waterfall charts.
+
+─────────────────
+
+
+
+
+  Plug-and-Play Templates (Google Drive link)
+─────────────────
+- Subscription app install sheet (Appstle vs. Bold vs. Loop)  
+- Kitting BOM (Box #, SKU, qty, expiry, UPC scan list)  
+- TikTok creative brief (word doc, 6 call-outs, 2 CTAs)  
+- 3PL SLA checklist (for your next RFP → response variance penalty clause)  
+- Churn cohort SQL snippets (PostgreSQL with dbt model).
