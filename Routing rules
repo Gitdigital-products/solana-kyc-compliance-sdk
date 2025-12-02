@@ -1,0 +1,7 @@
+decide *when* your provider runs:
+
+* Country-based: route German users to `acme-kyc`, others to Jumio  
+* Risk-based: enhanced level only  
+* A/B: 10 % traffic to evaluate precision  
+
+Rules are expressed in a tiny DSL in the same UI; no code change needed.
