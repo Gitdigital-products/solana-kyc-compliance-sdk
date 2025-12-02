@@ -1,0 +1,4 @@
+
+* Dev deploys: engineering
+* Staging deploys: engineering + DevOps
+* Production deploys: DevOps + CTO only
