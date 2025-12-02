@@ -1,0 +1,5 @@
+Restrict who can push to matching branches: 
+- Add your team (Gitdigital-products/maintainers)
+ 
+Allow specified actors to bypass required pull requests:
+- Add release managers only
