@@ -1,0 +1,17 @@
+Key idea  
+– Hook cudaMallocAsync / cudaFreeAsync with a pool that tracks
+  live tensors.  When GPU RAM > 90 %, async copy oldest tensor
+  to CXL memory via copy-engine, keep a 64 MB prefetch cache.
+  Re-page-in on first touch (driver ioctl) with 4 kB granularity.
+
+Micro-bench (A100 40 GB → 256 GB CXL)
+  training Megatron-LM 13 B, batch=32
+  without spill  OOM
+  with spill     99.4 % of baseline throughput  (0.6 % hit)
+
+Build
+  cd memspill
+  cmake -B build -DCMAKE_CUDA_ARCHITECTURES=80
+  cmake --build build
+  sudo insmod module/memspill.ko
+  LD_PRELOAD=build/lib/libmemspill.so python train.py
