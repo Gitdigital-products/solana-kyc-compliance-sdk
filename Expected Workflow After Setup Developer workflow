@@ -1,0 +1,5 @@
+git checkout -b feature/new-compliance-tier
+# Make changes
+git add . && git commit -m "Add new compliance tier"
+git push origin feature/new-compliance-tier
+# Create PR on GitHub
