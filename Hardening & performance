@@ -1,0 +1,7 @@
+
+Account-compression (ConcurrentMerkleTree)  
+- If you expect >10 k KYC records, move the document-hash store into a compressed leaf → 1 k lamports per user instead of  rent-exempt 2 kB.
+
+ Benchmarks  
+- `cargo bench-sbf` to measure CU usage of each instruction.  
+- Publish a table in README: “CreateKycAccount = 4 837 CUs, UpdateLevel = 2 145 CUs” — devs love hard numbers.
