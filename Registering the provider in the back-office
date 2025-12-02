@@ -1,0 +1,11 @@
+
+1. Open Settings → Compliance → KYC Providers  
+2. Click “Add Custom Provider”  
+3. Fill in:
+   * Name: `acme-kyc` (must match the string you used in `sdk.Register`)  
+   * Webhook endpoint: `https://adapter.acme.com/webhooks/kyc/acme-kyc`  
+   * Secret: auto-generated, copy into your adapter’s env `PLATFORM_WEBHOOK_SECRET`  
+   * Container image: `acme/kyc-adapter:1.0.0`  
+   * Resource limits: 200 mCPU, 256 MiB (default)  
+4. Toggle “Enabled for Sandbox” → Save  
+5. Run a test verification from the dashboard; you should see the adapter pod spin up in Kubernetes and the verdict arrive within seconds.
