@@ -1,0 +1,5 @@
+✓ Adapter must run in the **restricted** k8s namespace (network policies already block outbound except to your core API)  
+✓ All traffic is mTLS; the platform presents a client cert with CN=`compliance.ourplatform`  
+✓ PII is encrypted at rest (AES-256) and automatically deleted after 90 days or on account deletion—no action needed  
+✓ Log only `applicantId` and `providerReference`; never log full names or images  
+✓ Pen-test report & SOC-2 letter must be uploaded before “Enabled for Production” toggle is available  
