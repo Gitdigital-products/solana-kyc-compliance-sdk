@@ -1,0 +1,4 @@
+git checkout -b feature/your-feature-name
+git add .
+git commit -m "Your commit message" 
+git push origin feature/your-feature-name
