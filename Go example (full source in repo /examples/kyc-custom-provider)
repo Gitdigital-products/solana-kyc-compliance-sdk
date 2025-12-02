@@ -1,0 +1,33 @@
+package main
+ 
+import (
+    sdk "github.com/Gitdigital-products.com/kyc-sdk"
+)
+ 
+type MyKYC struct{}
+ 
+func (m MyKYC) Verify(ctx context.Context, req sdk.VerifyRequest) sdk.VerifyResponse {
+    // 1. call your internal engine
+    score := myEngine.Analyze(req.FrontImage, req.SelfieImage, req.PII)
+
+    // 2. map to canonical status
+    status := sdk.StatusClear
+    if score.Liveness < 0.7 {
+        status = sdk.StatusReview
+    }
+    if score.SanctionHit {
+        status = sdk.StatusReject
+    }
+
+    // 3. respond
+    return sdk.VerifyResponse{
+        Status:            status,
+        ProviderReference: score.TransactionID,
+        Breakdown:         score.Details,
+        ExpiresAt:         time.Now().AddDate(0, 3, 0),
+    }
+}
+ 
+func main() {
+    sdk.Register("acme-kyc", &MyKYC{})
+    sdk.Start(":8080")
