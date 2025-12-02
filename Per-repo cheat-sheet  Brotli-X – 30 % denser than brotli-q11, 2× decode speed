@@ -1,0 +1,21 @@
+Key idea  
+– Replace brotli’s static Huffman + context modelling with a
+  tANS+rANS hybrid that uses 64-bit interleaved streams and
+  a 1 kB lookup-free symbol decoder (SSE4/NEON).
+
+Headline benchmark (clang-17, i9-13900K, 1 GB silesia.tar)
+  brotli   -q11  21.3 s  → 194 MB,  310 MB/s decode
+  brotli-x -11   14.8 s  → 136 MB  (-30 %),  620 MB/s decode (+2×)
+
+Build
+  cd brotli-x
+  cmake -B build -DCMAKE_BUILD_TYPE=Release
+  cmake --build build -j
+  ./build/tools/brotli-x -11 -d -f silesia.tar.br | md5sum
+
+CI gate (GitHub Actions)
+  - name: headline
+    run: |
+      ./build/tools/brotli-x -11 silesia.tar
+      ./build/tools/brotli-x -d silesia.tar.bx
+      python scripts/verify.py --size 30 --speed 2.0
