@@ -1,0 +1,28 @@
+CEO (Boss)
+│
+├── CTO
+│   ├── DevOps Lead
+│   │    ├── Security Engineer
+│   │    └── DevOps Engineer(s)
+│   ├── Backend Team
+│   ├── Frontend Team
+│   ├── ML / AI Team
+│   └── QA Engineer
+│
+├── CPO
+│   ├── Product Managers
+│   └── Technical Writer
+│
+├── CMO
+│   ├── Content Team
+│   ├── Social Media
+│   └── SEO / Blog Team
+│
+├── COO
+│   ├── Support Team
+│   ├── Sales Team
+│   └── Partnerships
+│
+└── CFO / Finance Lead
+    ├── Accountant
+    └── Finance Analyst
