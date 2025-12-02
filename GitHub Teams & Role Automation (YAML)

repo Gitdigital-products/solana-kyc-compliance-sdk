@@ -1,0 +1,78 @@
+version: 1
+organization: gitdigital-products
+
+github_teams:
+  owners:
+    members:
+      - boss
+      - cto
+    permissions:
+      org_role: owner
+
+  admin_infra:
+    members: []
+    permissions:
+      org_role: maintainer
+      repos:
+        infra: admin
+        devops: admin
+        backend: write
+        frontend: write
+
+  engineering_backend:
+    members: []
+    permissions:
+      repos:
+        backend: write
+        api: write
+        github_apps: write
+        infra: read
+
+  engineering_frontend:
+    members: []
+    permissions:
+      repos:
+        frontend: write
+        landing_pages: write
+        backend: read
+
+  engineering_ml:
+    members: []
+    permissions:
+      repos:
+        ml_engine: write
+        gpu_containers: write
+        backend: read
+
+  product:
+    members: []
+    permissions:
+      repos:
+        docs: write
+        designs: read
+        backend: read
+
+  design:
+    members: []
+    permissions:
+      repos:
+        design_assets: write
+        marketing: write
+
+  marketing:
+    members: []
+    permissions:
+      repos:
+        marketing: write
+        docs: read
+
+  sales_support:
+    members: []
+    permissions:
+      repos:
+        docs: read
+
+  finance:
+    members: []
+    permissions:
+      org_billing: read
