@@ -1,0 +1,5 @@
+# Create directory structure
+mkdir -p .github
+
+# Save the schema as
+touch .github/project-properties.yml
