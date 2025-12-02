@@ -1,0 +1,14 @@
+Key idea  
+– Graph neural net (GNN) trained with RL to predict latency of
+  every op on target edge SoC (NPU, DSP, big.LITTLE).  Rewires
+  topology (insert chop, merge, prune) while keeping accuracy
+  within ε.  Outputs TFLite delegate.
+
+Result (MobileNetV3 on Snapdragon 8-gen-2)
+  original  P99 = 4.7 ms
+  topoopt   P99 = 0.9 ms  (-81 %)  top-1 drop 0.3 %
+
+Build
+  cd topoopt
+  pip install -e .
+  python -m topoopt.cli --model mn3 --latency 1ms --dataset imagenet
