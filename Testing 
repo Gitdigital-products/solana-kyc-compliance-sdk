@@ -1,0 +1,9 @@
+# 1. Run unit tests
+npm run test:unit
+
+# 2. Run integration tests
+npm run test:integration
+
+# 3. Run E2E tests (requires devnet connection)
+export RUN_E2E_TESTS=true
+npm run test:e2e
