@@ -1,0 +1,8 @@
+# 1. Deploy to devnet
+npm run deploy:devnet
+
+# 2. Verify deployment
+npm run health
+
+# 3. Run complete validation
+npm run validate
