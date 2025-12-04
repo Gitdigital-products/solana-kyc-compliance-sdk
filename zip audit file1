@@ -1,0 +1,19 @@
+# from inside your repo root
+# 1) copy the zip into the repo root (if you downloaded it locally, adjust the path)
+# If you're running on the server that has the sandbox path, just copy/unzip there:
+unzip /path/to/solana-kyc-compliance-sdk-audit-files.zip -d .
+
+# OR, if you downloaded to your machine, move and unzip:
+mv ~/Downloads/solana-kyc-compliance-sdk-audit-files.zip .
+unzip solana-kyc-compliance-sdk-audit-files.zip -d .
+
+# 2) inspect the added files
+git status
+git add SECURITY.md VERIFIABLE_BUILD.md AUDIT_PLAN.md PRIVACY_POLICY.md DATA_RETENTION.md \
+  THIRD_PARTY_DEPENDENCIES.csv scripts ci ci/Dockerfile ci/verifiable-build.yml \
+  DEPLOYMENT.md THREAT_MODEL.md UPGRADE_POLICY.md OPERATIONAL/INCIDENT_RESPONSE.md \
+  CODEOWNERS .gitignore
+
+# 3) commit & push
+git commit -m "chore(audit): add audit readiness files, verifiable-build scripts, CI"
+git push origin HEAD
