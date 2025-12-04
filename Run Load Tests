@@ -1,0 +1,39 @@
+# Install Artillery if not already
+npm install -g artillery
+
+# Create a load test scenario
+cat > load-test.yml << 'EOF'
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+      name: "Warm up"
+    - duration: 120
+      arrivalRate: 50
+      name: "Sustained load"
+    - duration: 30
+      arrivalRate: 100
+      name: "Peak load"
+  
+scenarios:
+  - name: "KYC Verification Flow"
+    flow:
+      - post:
+          url: "/api/verify"
+          json:
+            walletAddress: "{{ $randomString(32, '0123456789abcdef') }}"
+            requiredTier: 1
+          capture:
+            json: "$.success"
+            as: "verification_success"
+          
+      - think: 1
+      
+      - get:
+          url: "/health"
+EOF
+
+# Run load test
+artillery run load-test.yml --output report.json
+artillery report report.json
