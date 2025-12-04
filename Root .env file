@@ -1,0 +1,36 @@
+# Root .env file (for SDK and programs)
+SOLANA_NETWORK=devnet
+SOLANA_RPC_URL=https://api.devnet.solana.com
+SOLANA_WS_URL=wss://api.devnet.solana.com
+
+# For mainnet, use:
+# SOLANA_NETWORK=mainnet-beta
+# SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+# SOLANA_WS_URL=wss://api.mainnet-beta.solana.com
+
+# Issuer Configuration (for KYC providers)
+# NEVER commit private keys to version control!
+# Use environment variables in production
+ISSUER_PUBLIC_KEY=YOUR_ISSUER_PUBLIC_KEY_HERE
+# ISSUER_PRIVATE_KEY= Load from secure storage only
+
+# Program IDs (will be populated after deployment)
+KYC_VERIFIER_PROGRAM_ID=
+KYC_ISSUER_PROGRAM_ID=
+
+# SAS Program ID (Solana Attestation Service)
+SAS_PROGRAM_ID=SAS11111111111111111111111111111111111111
+
+# Cache Configuration
+REDIS_URL=redis://localhost:6379
+CACHE_TTL=300000  # 5 minutes in milliseconds
+
+# Monitoring
+ENABLE_METRICS=true
+METRICS_PORT=9091
+
+# Feature Flags
+ENABLE_REAL_TIME_UPDATES=true
+ENABLE_BATCH_PROCESSING=true
+ENABLE_WEBHOOKS=false
+ENABLE_ANALYTICS=false
