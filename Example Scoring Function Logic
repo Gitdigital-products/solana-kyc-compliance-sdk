@@ -1,0 +1,10 @@
+// Simplified logic in scoring/model.rs
+fn compute_score(indicators: Vec<RiskIndicator>) -> f64 {
+    let mut total_score = 0.0;
+    for indicator in indicators {
+        let weighted_score = indicator.base_score * indicator.category.weight();
+        // Apply decay for older incidents
+        let decayed_score = weighted_score * time_decay_factor(indicator.timestamp);
+        total_score = total_score.max(decayed_score); // Use worst-offender model
+    }
+    total_score.min(100.0) // Cap at 100
