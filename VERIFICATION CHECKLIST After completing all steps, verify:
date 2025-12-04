@@ -1,0 +1,33 @@
+# Run the complete verification script
+cat > verify-deployment.sh << 'EOF'
+#!/bin/bash
+echo "🔍 Verifying Deployment Status"
+echo "==============================="
+
+echo "1. Solana Configuration:"
+solana config get
+
+echo "\n2. Wallet Balance:"
+solana balance
+
+echo "\n3. Deployed Programs:"
+solana program show --programs | grep -A5 "Program"
+
+echo "\n4. Health Check:"
+npm run health 2>/dev/null || echo "   Health check not available"
+
+echo "\n5. Environment Variables:"
+grep -E "(SOLANA_|KYC_|PROGRAM)" .env 2>/dev/null || echo "   .env not found"
+
+echo "\n6. Test Connection:"
+node -e "
+const { Connection } = require('@solana/web3.js');
+const conn = new Connection('https://api.devnet.solana.com');
+conn.getVersion().then(v => console.log('   RPC Connected ✅', v['solana-core'])).catch(e => console.log('   RPC Failed ❌', e.message));
+"
+
+echo "\n✅ Verification Complete"
+EOF
+
+chmod +x verify-deployment.sh
+./verify-deployment.sh
