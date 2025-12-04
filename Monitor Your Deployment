@@ -1,0 +1,9 @@
+# 1. Run health check
+npm run health
+
+# 2. Start continuous monitoring
+npm run health:continuous -- --interval=30000
+
+# 3. Check deployment status
+solana program show --programs
+solana account YOUR_PROGRAM_ID_HERE
