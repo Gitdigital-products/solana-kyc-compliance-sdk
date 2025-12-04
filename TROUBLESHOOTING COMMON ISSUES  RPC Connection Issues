@@ -1,0 +1,7 @@
+# Test RPC connection
+curl -X POST https://api.devnet.solana.com \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"getVersion"}'
+
+# Try alternative RPC
+export SOLANA_RPC_URL=https://devnet.helius-rpc.com/?api-key=YOUR_KEY
