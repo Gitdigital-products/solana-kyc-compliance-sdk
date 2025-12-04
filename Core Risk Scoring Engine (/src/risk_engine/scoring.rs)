@@ -1,0 +1,54 @@
+// src/risk_engine/scoring.rs
+pub struct RiskScoringEngine {
+    providers: Vec<Box<dyn RiskProvider>>,
+    config: Arc<RiskEngineConfig>,
+}
+ 
+impl RiskScoringEngine {
+    pub async fn calculate_wallet_risk(&self, wallet_address: &str) -> Result<WalletRiskProfile, RiskError> {
+        let mut all_indicators = Vec::new();
+        let mut data_sources = Vec::new();
+
+        // 1. Query all configured providers in parallel
+        for provider in &self.providers {
+            match provider.fetch_risk_data(wallet_address).await {
+                Ok(provider_data) => {
+                    data_sources.push(provider.get_source());
+                    all_indicators.extend(self.normalize_indicators(provider_data));
+                }
+                Err(e) => log::warn!("Failed to fetch data from {}: {}", provider.get_source(), e),
+            }
+        }
+
+        // 2. Apply scoring logic (customizable rules)
+        let overall_score = self.compute_overall_score(&all_indicators);
+        let risk_level = self.score_to_risk_level(overall_score);
+
+        // 3. Compile and return the profile
+        Ok(WalletRiskProfile {
+            wallet_address: wallet_address.to_string(),
+            overall_risk_score: overall_score,
+            risk_level,
+            risk_indicators: all_indicators,
+            last_updated: Utc::now().timestamp(),
+            data_sources,
+        })
+    }
+
+    fn compute_overall_score(&self, indicators: &[RiskIndicator]) -> f64 {
+        // Implement your logic here. Examples:
+        // - Weighted average based on category severity
+        // - Maximum score from any single critical category
+        // - Machine learning model inference in the future
+        let mut max_score = 0.0;
+        for indicator in indicators {
+            // Example: Direct illicit activity weighs heaviest [citation:4]
+            let weight = match indicator.category {
+                RiskCategory::DirectIllicitActivity => 1.5,
+                RiskCategory::Sanctions => 1.3,
+                _ => 1.0,
+            };
+            max_score = max_score.max(indicator.score * weight);
+        }
+        max_score.min(100.0) // Cap at 100
+    }
