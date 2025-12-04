@@ -1,0 +1,6 @@
+# from repo root
+anchor localnet
+# then in another shell
+cd programs/compliance_registry
+anchor build
+anchor deploy
