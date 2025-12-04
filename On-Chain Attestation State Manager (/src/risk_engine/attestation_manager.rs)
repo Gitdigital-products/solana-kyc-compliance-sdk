@@ -1,0 +1,51 @@
+// src/risk_engine/attestation_manager.rs
+pub struct AttestationManager {
+    risk_engine: Arc<RiskScoringEngine>,
+    sas_program_id: Pubkey,
+    rpc_client: Arc<RpcClient>,
+}
+ 
+impl AttestationManager {
+    pub async fn evaluate_and_update(
+        &self,
+        wallet_address: &Pubkey,
+        attestation_key: &Pubkey,
+    ) -> Result<Option<Signature>, RiskError> {
+        // 1. Get the current risk profile
+        let risk_profile = self.risk_engine
+            .calculate_wallet_risk(&wallet_address.to_string())
+            .await?;
+
+        // 2. Fetch the current attestation state
+        let mut attestation_account = self.get_attestation_account(attestation_key).await?;
+
+        // 3. Apply policy: Determine if risk warrants an on-chain change
+        let action = self.get_policy_action(&risk_profile, &attestation_account);
+
+        // 4. Execute on-chain transaction if required
+        match action {
+            PolicyAction::Flag(metadata) => {
+                self.flag_attestation(attestation_key, metadata, &mut attestation_account).await
+            }
+            PolicyAction::Revoke(reason) => {
+                self.revoke_attestation(attestation_key, reason, &mut attestation_account).await
+            }
+            PolicyAction::NoAction => Ok(None),
+        }
+    }
+
+    fn get_policy_action(&self, profile: &WalletRiskProfile, attestation: &Attestation) -> PolicyAction {
+        // Example Policy Logic:
+        match profile.risk_level {
+            RiskLevel::Low => PolicyAction::NoAction,
+            RiskLevel::Medium => {
+                // Append a risk metadata flag to the attestation
+                let metadata = format!("risk_monitored:score_{}", profile.overall_risk_score as u32);
+                PolicyAction::Flag(metadata)
+            }
+            RiskLevel::High | RiskLevel::Critical => {
+                // Automatically revoke the attestation for critical risk
+                PolicyAction::Revoke("Automated revocation due to high wallet risk score".to_string())
+            }
+        }
+    }
