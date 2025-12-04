@@ -1,0 +1,41 @@
+// src/risk_engine/providers/trm_client.rs
+pub struct TrmClient {
+    client: reqwest::Client,
+    api_key: String,
+    base_url: String,
+}
+ 
+impl TrmClient {
+    pub async fn get_wallet_risk(&self, wallet_address: &str) -> Result<TrmRiskResponse, RiskError> {
+        let url = format!("{}/v1/addresses/{}/risk", self.base_url, wallet_address);
+        let response = self.client
+            .get(&url)
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .send()
+            .await?;
+
+        let risk_data: TrmRiskResponse = response.json().await?;
+        Ok(risk_data)
+    }
+}
+ 
+// src/risk_engine/providers/chainalysis_client.rs
+pub struct ChainalysisClient {
+    client: reqwest::Client,
+    api_key: String,
+    base_url: String,
+}
+ 
+impl ChainalysisClient {
+    // Chainalysis KYT focuses on transaction risk [citation:9]
+    pub async fn screen_transaction(&self, tx_hash: &str) -> Result<ChainalysisScreeningResult, RiskError> {
+        let url = format!("{}/v1/screen/transaction", self.base_url);
+        let payload = serde_json::json!({ "transaction_hash": tx_hash });
+        let response = self.client
+            .post(&url)
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .json(&payload)
+            .send()
+            .await?;
+        response.json().await.map_err(|e| e.into())
+    }
