@@ -1,0 +1,11 @@
+# Check Solana CLI
+solana config get
+solana balance
+
+# Check Anchor version
+anchor --version
+
+# Clean and rebuild
+cd programs/kyc-verifier
+anchor clean
+anchor build
