@@ -1,0 +1,8 @@
+# Run comprehensive tests
+npm run test:integration
+
+# For more detailed output:
+npm run test:integration -- --verbose
+
+# If you want to run a specific test:
+npm run test:integration -- --testNamePattern="KYC Flow Integration"
