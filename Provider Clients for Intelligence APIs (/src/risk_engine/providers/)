@@ -1,41 +1,267 @@
-// src/risk_engine/providers/trm_client.rs
-pub struct TrmClient {
-    client: reqwest::Client,
-    api_key: String,
-    base_url: String,
+use crate::risk_engine::types::*;
+use crate::risk_engine::config::TrmConfig;
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use thiserror::Error;
+use tokio::time::{timeout, Duration};
+
+#[derive(Error, Debug)]
+pub enum TrmError {
+    #[error("API request failed: {0}")]
+    ApiError(String),
+    #[error("Network error: {0}")]
+    NetworkError(#[from] reqwest::Error),
+    #[error("Timeout error")]
+    TimeoutError,
+    #[error("Invalid response format: {0}")]
+    ParseError(String),
 }
- 
+
+#[derive(Debug, Clone)]
+pub struct TrmClient {
+    client: Client,
+    config: Arc<TrmConfig>,
+}
+
 impl TrmClient {
-    pub async fn get_wallet_risk(&self, wallet_address: &str) -> Result<TrmRiskResponse, RiskError> {
-        let url = format!("{}/v1/addresses/{}/risk", self.base_url, wallet_address);
+    pub fn new(config: Arc<TrmConfig>) -> Self {
+        let client = Client::builder()
+            .timeout(Duration::from_secs(config.timeout_secs))
+            .build()
+            .expect("Failed to create HTTP client");
+        
+        Self { client, config }
+    }
+    
+    pub async fn get_address_risk(&self, address: &str) -> Result<TrmRiskResponse, TrmError> {
+        if !self.config.enabled {
+            return Err(TrmError::ApiError("TRM provider is disabled".to_string()));
+        }
+        
+        let url = format!("{}/addresses/risk", self.config.api_url);
+        
+        let request = self.client
+            .post(&url)
+            .header("Authorization", format!("Bearer {}", self.config.api_key))
+            .header("Content-Type", "application/json")
+            .json(&TrmAddressRequest {
+                address: address.to_string(),
+                chain: "solana".to_string(),
+            });
+        
+        let response = timeout(
+            Duration::from_secs(self.config.timeout_secs),
+            request.send()
+        ).await
+        .map_err(|_| TrmError::TimeoutError)?
+        .map_err(|e| TrmError::NetworkError(e))?;
+        
+        match response.status() {
+            reqwest::StatusCode::OK => {
+                let risk_response: TrmRiskResponse = response.json().await
+                    .map_err(|e| TrmError::ParseError(e.to_string()))?;
+                Ok(risk_response)
+            }
+            status => {
+                let error_text = response.text().await.unwrap_or_default();
+                Err(TrmError::ApiError(format!("Status: {}, Error: {}", status, error_text)))
+            }
+        }
+    }
+    
+    pub async fn screen_transaction(&self, tx_hash: &str) -> Result<TrmTransactionScreening, TrmError> {
+        let url = format!("{}/transactions/screen", self.config.api_url);
+        
+        let request = self.client
+            .post(&url)
+            .header("Authorization", format!("Bearer {}", self.config.api_key))
+            .json(&TrmTransactionRequest {
+                transaction_hash: tx_hash.to_string(),
+                chain: "solana".to_string(),
+            });
+        
+        let response = timeout(
+            Duration::from_secs(self.config.timeout_secs),
+            request.send()
+        ).await
+        .map_err(|_| TrmError::TimeoutError)?
+        .map_err(|e| TrmError::NetworkError(e))?;
+        
+        if response.status().is_success() {
+            let screening: TrmTransactionScreening = response.json().await
+                .map_err(|e| TrmError::ParseError(e.to_string()))?;
+            Ok(screening)
+        } else {
+            let error_text = response.text().await.unwrap_or_default();
+            Err(TrmError::ApiError(format!("Transaction screening failed: {}", error_text)))
+        }
+    }
+    
+    pub async fn get_entity_info(&self, address: &str) -> Result<Option<TrmEntity>, TrmError> {
+        let url = format!("{}/entities/{}", self.config.api_url, address);
+        
         let response = self.client
             .get(&url)
-            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Authorization", format!("Bearer {}", self.config.api_key))
             .send()
-            .await?;
+            .await
+            .map_err(TrmError::NetworkError)?;
+        
+        if response.status() == reqwest::StatusCode::OK {
+            let entity: TrmEntity = response.json().await
+                .map_err(|e| TrmError::ParseError(e.to_string()))?;
+            Ok(Some(entity))
+        } else if response.status() == reqwest::StatusCode::NOT_FOUND {
+            Ok(None)
+        } else {
+            let error_text = response.text().await.unwrap_or_default();
+            Err(TrmError::ApiError(error_text))
+        }
+    }
+}
 
-        let risk_data: TrmRiskResponse = response.json().await?;
-        Ok(risk_data)
+// TRM Labs API Types
+#[derive(Debug, Serialize)]
+struct TrmAddressRequest {
+    address: String,
+    chain: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TrmRiskResponse {
+    pub address: String,
+    pub risk_score: f64,
+    pub risk_level: String,
+    pub category_breakdown: Vec<TrmCategoryBreakdown>,
+    pub entity_cluster: Option<TrmEntityCluster>,
+    pub indicators: Vec<TrmIndicator>,
+    pub timestamp: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TrmCategoryBreakdown {
+    pub category: String,
+    pub risk_score: f64,
+    pub indicators_count: u32,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TrmEntityCluster {
+    pub cluster_id: String,
+    pub cluster_type: String,
+    pub name: Option<String>,
+    pub category: String,
+    pub risk_score: f64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TrmIndicator {
+    pub id: String,
+    pub category: String,
+    pub subcategory: String,
+    pub description: String,
+    pub severity: String,
+    pub first_seen: String,
+    pub last_seen: String,
+    pub evidence: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Serialize)]
+struct TrmTransactionRequest {
+    transaction_hash: String,
+    chain: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TrmTransactionScreening {
+    pub transaction_hash: String,
+    pub risk_score: f64,
+    pub risk_level: String,
+    pub sender_risk: Option<TrmAddressRisk>,
+    pub receiver_risk: Option<TrmAddressRisk>,
+    pub indicators: Vec<TrmIndicator>,
+    pub recommended_action: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TrmAddressRisk {
+    pub address: String,
+    pub risk_score: f64,
+    pub risk_level: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TrmEntity {
+    pub entity_id: String,
+    pub entity_type: String,
+    pub name: Option<String>,
+    pub category: String,
+    pub risk_score: f64,
+    pub addresses: Vec<TrmEntityAddress>,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TrmEntityAddress {
+    pub address: String,
+    pub chain: String,
+    pub first_seen: String,
+    pub last_seen: String,
+}
+
+// Conversion from TRM types to our internal types
+impl From<TrmRiskResponse> for Vec<RiskIndicator> {
+    fn from(trm_response: TrmRiskResponse) -> Self {
+        let mut indicators = Vec::new();
+        
+        for trm_indicator in trm_response.indicators {
+            let category = match trm_indicator.category.as_str() {
+                "sanctions" => RiskCategory::Sanctions,
+                "illicit_activity" => RiskCategory::IllicitActivity,
+                "high_risk_service" => RiskCategory::HighRiskService,
+                "behavioral" => RiskCategory::BehavioralAnomaly,
+                "counterparty" => RiskCategory::CounterpartyRisk,
+                "reputation" => RiskCategory::ReputationRisk,
+                _ => RiskCategory::TechnicalRisk,
+            };
+            
+            let score = match trm_indicator.severity.as_str() {
+                "critical" => 90.0,
+                "high" => 70.0,
+                "medium" => 50.0,
+                "low" => 30.0,
+                _ => 10.0,
+            };
+            
+            let indicator = RiskIndicator {
+                id: format!("trm_{}", trm_indicator.id),
+                category,
+                subcategory: trm_indicator.subcategory.clone(),
+                score,
+                confidence: 0.85, // TRM's confidence level
+                description: trm_indicator.description.clone(),
+                evidence: vec![Evidence {
+                    source: DataSource::TrmLabs,
+                    raw_data: serde_json::to_value(&trm_indicator).unwrap(),
+                    extracted_info: HashMap::from([
+                        ("severity".to_string(), trm_indicator.severity),
+                        ("category".to_string(), trm_indicator.category),
+                    ]),
+                    timestamp: chrono::Utc::now(),
+                }],
+                first_seen: trm_indicator.first_seen.parse()
+                    .unwrap_or_else(|_| chrono::Utc::now()),
+                last_seen: trm_indicator.last_seen.parse()
+                    .unwrap_or_else(|_| chrono::Utc::now()),
+                transaction_hashes: Vec::new(),
+                addresses_involved: Vec::new(),
+                metadata: HashMap::new(),
+            };
+            
+            indicators.push(indicator);
+        }
+        
+        indicators
     }
 }
- 
-// src/risk_engine/providers/chainalysis_client.rs
-pub struct ChainalysisClient {
-    client: reqwest::Client,
-    api_key: String,
-    base_url: String,
-}
- 
-impl ChainalysisClient {
-    // Chainalysis KYT focuses on transaction risk [citation:9]
-    pub async fn screen_transaction(&self, tx_hash: &str) -> Result<ChainalysisScreeningResult, RiskError> {
-        let url = format!("{}/v1/screen/transaction", self.base_url);
-        let payload = serde_json::json!({ "transaction_hash": tx_hash });
-        let response = self.client
-            .post(&url)
-            .header("Authorization", format!("Bearer {}", self.api_key))
-            .json(&payload)
-            .send()
-            .await?;
-        response.json().await.map_err(|e| e.into())
-    }
