@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "health": "ts-node scripts/deploy-tools/health-check.ts",
+    "health:continuous": "ts-node scripts/deploy-tools/health-check.ts --continuous",
+    "deploy:all": "npm run build && npm test && npm run deploy:devnet",
+    "ci:deploy": "npm run build:programs && npm run test:unit && npm run deploy:devnet -- --skip-tests",
+    "postdeploy": "npm run health",
+    "validate": "npm run type-check && npm run lint && npm test",
+    "precommit": "npm run validate",
+    "prepare:prod": "npm ci --only=production && npm run build",
+    "monitor:start": "cd monitoring && docker-compose up -d",
+    "monitor:stop": "cd monitoring && docker-compose down",
+    "db:migrate": "ts-node scripts/db/migrate.ts",
+    "db:seed": "ts-node scripts/db/seed.ts",
+    "load-test": "artillery run tests/load/kyc-load-test.yml",
+    "security:scan": "npm audit && npx snyk test"
+  }
+}
