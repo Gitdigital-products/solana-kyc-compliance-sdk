@@ -1,0 +1,112 @@
+{
+  "name": "@gitdigital/solana-kyc-compliance-sdk",
+  "version": "0.1.0",
+  "description": "Production-ready Solana KYC Compliance SDK with SAS integration",
+  "main": "dist/src/client/index.js",
+  "types": "dist/src/client/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build:sdk": "tsc",
+    "build:programs": "npm run build:verifier && npm run build:issuer",
+    "build:verifier": "cd programs/kyc-verifier && anchor build",
+    "build:issuer": "cd programs/kyc-issuer && anchor build",
+    "build": "npm run clean && npm run build:sdk && npm run build:programs",
+    
+    "test": "jest --passWithNoTests",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration --runInBand",
+    "test:e2e": "jest tests/e2e --runInBand",
+    "test:coverage": "jest --coverage",
+    
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "lint:fix": "eslint src/ --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
+    "type-check": "tsc --noEmit",
+    
+    "deploy:devnet": "ts-node scripts/deploy-programs.ts --network devnet",
+    "deploy:testnet": "ts-node scripts/deploy-programs.ts --network testnet",
+    "deploy:mainnet": "ts-node scripts/deploy-programs.ts --network mainnet-beta",
+    
+    "dev": "ts-node-dev --respawn --transpile-only src/client/index.ts",
+    "start": "node dist/src/client/index.js",
+    
+    "docs": "typedoc --out docs/api src/client",
+    "security:scan": "npm audit && npx snyk test",
+    "security:audit": "npm run security:scan && npm run lint && npm run type-check",
+    
+    "prepublishOnly": "npm run build && npm test",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/web3.js": "^1.87.0",
+    "@solana/spl-token": "^0.3.8",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-wallets": "^0.19.24",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
+    "bs58": "^5.0.0",
+    "bn.js": "^5.2.1",
+    "dotenv": "^16.0.3",
+    "crypto": "^1.0.1",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "express-rate-limit": "^6.10.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "redis": "^4.6.8",
+    "pg": "^8.11.0",
+    "typeorm": "^0.3.17",
+    "winston": "^3.10.0",
+    "axios": "^1.5.0",
+    "ws": "^8.14.2",
+    "mixpanel-browser": "^2.47.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "@types/node": "^20.5.0",
+    "@types/jest": "^29.5.4",
+    "@types/express": "^4.17.17",
+    "@types/cors": "^2.8.13",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/bcryptjs": "^2.4.2",
+    "jest": "^29.6.4",
+    "ts-jest": "^29.1.1",
+    "eslint": "^8.48.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "prettier": "^3.0.2",
+    "typedoc": "^0.25.2",
+    "typedoc-plugin-markdown": "^3.16.0",
+    "snyk": "^1.1208.0",
+    "husky": "^8.0.3",
+    "commitlint": "^17.7.1",
+    "@commitlint/config-conventional": "^17.7.0"
+  },
+  "keywords": [
+    "solana",
+    "kyc",
+    "compliance",
+    "sas",
+    "attestation",
+    "identity",
+    "verification"
+  ],
+  "author": "Gitdigital",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gitdigital-products/solana-kyc-compliance-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/issues"
+  },
+  "homepage": "https://github.com/Gitdigital-products/solana-kyc-compliance-sdk#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
