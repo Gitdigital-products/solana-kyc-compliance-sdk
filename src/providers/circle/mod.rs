@@ -3,7 +3,7 @@ pub struct CircleProvider {
     client: reqwest::Client,
     crypto: CircleCrypto,  // For Verite credential signing
 }
- 
+
 impl CircleProvider {
     pub fn new(config: CircleConfig) -> Result<Self, CircleError> {
         let client = reqwest::Client::builder()
@@ -163,10 +163,67 @@ impl CircleProvider {
         self.parse_compliance_response(response).await
     }
 }
- 
+
 impl ComplianceProvider for CircleProvider {
     async fn verify_identity(&self, user_data: UserData) -> Result<VerificationResult, ProviderError> {
         // Convert to Circle format
         let circle_user_data = self.convert_to_circle_format(user_data.clone())?;
         
         // Submit compliance check
+        let compliance_result = self.submit_compliance_check(circle_user_data).await
+            .map_err(|e| ProviderError::NetworkError(e.into()))?;
+        
+        // Issue Verite credential if approved
+        if compliance_result.status == ComplianceStatus::Approved {
+            let credential = self.issue_verifiable_credential(
+                &user_data.into(),
+                VeriteCredentialType::KycCredential,
+            ).await
+            .map_err(|e| ProviderError::ProviderUnavailable)?;
+            
+            Ok(VerificationResult {
+                user_id: user_data.id,
+                status: VerificationStatus::Approved,
+                details: ProviderDetails::Circle(CircleDetails {
+                    credential_id: credential.id,
+                    credential_jwt: self.crypto.credential_to_jwt(&credential).await?,
+                    issuer: credential.issuer,
+                    issuance_date: credential.issuance_date,
+                    credential_types: credential.type_,
+                }),
+                timestamp: Utc::now().timestamp(),
+                risk_score: compliance_result.risk_score,
+            })
+        } else {
+            Ok(VerificationResult {
+                user_id: user_data.id,
+                status: VerificationStatus::Denied,
+                details: ProviderDetails::Circle(CircleDetails::default()),
+                timestamp: Utc::now().timestamp(),
+                risk_score: compliance_result.risk_score,
+            })
+        }
+    }
+    
+    async fn handle_webhook(&self, payload: WebhookPayload) -> Result<WebhookResponse, ProviderError> {
+        // Circle uses different webhook formats for different events
+        let circle_event: CircleWebhookEvent = serde_json::from_str(&payload.body)
+            .map_err(|e| ProviderError::ValidationError(e.to_string()))?;
+        
+        match circle_event.event_type.as_str() {
+            "compliance.check.completed" => {
+                self.handle_completion_webhook(circle_event).await
+            }
+            "credential.issued" => {
+                self.handle_credential_webhook(circle_event).await
+            }
+            _ => Err(ProviderError::ValidationError(
+                format!("Unknown event type: {}", circle_event.event_type)
+            )),
+        }
+    }
+    
+    fn get_config(&self) -> &ProviderConfig {
+        &self.config.base_config
+    }
+}
