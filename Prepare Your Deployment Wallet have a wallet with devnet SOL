@@ -1,0 +1,15 @@
+# 1. Check your current Solana configuration
+solana config get
+
+# 2. Switch to devnet (if not already)
+solana config set --url https://api.devnet.solana.com
+
+# 3. Create a new deployer wallet (or use existing)
+solana-keygen new --outfile ~/.config/solana/devnet-deployer.json
+
+# 4. Set as default keypair for this session
+solana config set --keypair ~/.config/solana/devnet-deployer.json
+
+# 5. Get devnet SOL airdrop
+solana airdrop 5  # Get 5 SOL (request more if needed)
+solana balance   # Verify balance
