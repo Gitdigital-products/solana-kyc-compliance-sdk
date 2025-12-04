@@ -1,0 +1,12 @@
+# Build Anchor programs first
+cd programs/kyc-verifier
+anchor build
+cd ../kyc-issuer
+anchor build
+cd ../..
+
+# Run the deployment script
+npm run deploy:devnet
+
+# Or with more control:
+ts-node scripts/deploy-programs.ts --network=devnet --skip-tests
