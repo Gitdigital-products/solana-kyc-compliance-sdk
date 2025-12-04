@@ -1,0 +1,20 @@
+# .env
+SOLANA_NETWORK=devnet
+SOLANA_RPC_URL=https://api.devnet.solana.com
+SOLANA_WS_URL=wss://api.devnet.solana.com
+SOLANA_COMMITMENT=confirmed
+
+# Set your deployer public key (get from: solana address)
+ISSUER_PUBLIC_KEY=YOUR_DEPLOYER_PUBKEY_HERE
+
+# Programs will be auto-populated after deployment
+KYC_VERIFIER_PROGRAM_ID=
+KYC_ISSUER_PROGRAM_ID=
+
+# Leave issuer private key EMPTY - use Solana CLI keypair
+# ISSUER_PRIVATE_KEY=
+
+# Enable features for testing
+ENABLE_REAL_TIME_UPDATES=true
+ENABLE_BATCH_PROCESSING=true
+ENABLE_ANALYTICS=false
