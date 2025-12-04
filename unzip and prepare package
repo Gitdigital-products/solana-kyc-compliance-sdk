@@ -1,0 +1,8 @@
+unzip /path/to/solana-kyc-compliance-sdk-v0.1.0.zip -d /tmp/kyc_new
+# preview differences, then copy
+cp -r /tmp/kyc_new/server ./server
+cp -r /tmp/kyc_new/sdk ./sdk
+cp /tmp/kyc_new/README.md .
+git add server sdk README.md
+git commit -m "chore: add demo server + sdk + README"
+git push origin main
