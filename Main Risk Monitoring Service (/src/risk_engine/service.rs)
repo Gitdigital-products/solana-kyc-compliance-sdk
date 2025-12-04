@@ -1,0 +1,21 @@
+// src/risk_engine/service.rs
+pub struct RiskMonitoringService {
+    scheduler: Scheduler,
+    attestation_manager: Arc<AttestationManager>,
+    wallet_store: Arc<dyn ActiveWalletStore>, // Tracks wallets with active KYC
+}
+ 
+impl RiskMonitoringService {
+    pub async fn start(&self) {
+        // Run the monitoring loop periodically
+        self.scheduler.run(|| {
+            let mgr = self.attestation_manager.clone();
+            let store = self.wallet_store.clone();
+            async move {
+                let active_wallets = store.get_active_wallets().await;
+                for (wallet, attestation_key) in active_wallets {
+                    let _ = mgr.evaluate_and_update(&wallet, &attestation_key).await;
+                }
+            }
+        });
+    }
