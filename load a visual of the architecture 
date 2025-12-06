@@ -1,0 +1,16 @@
+# Move the image to your repo (adjust filename if needed)
+mv ~/Downloads/blockchain-compliance-architecture.png ~/projects/solana-kyc-compliance-sdk/assets/
+
+# Navigate to the repo
+cd ~/projects/solana-kyc-compliance-sdk
+
+# Stage and commit the diagram
+git add assets/blockchain-compliance-architecture.png
+git commit -m "Add system architecture diagram for compliance SDK"
+
+# Open the image (macOS/Linux)
+xdg-open assets/blockchain-compliance-architecture.png  # Linux
+open assets/blockchain-compliance-architecture.png       # macOS
+
+# Push to GitHub
+git push origin main
