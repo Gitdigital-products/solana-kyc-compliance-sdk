@@ -1,0 +1,5 @@
+## System Architecture
+
+This diagram illustrates the high-level system architecture of the Solana-based compliance SDK, including both on-chain and off-chain components.
+
+![Blockchain Compliance SDK Architecture](assets/blockchain-compliance-architecture.png)
