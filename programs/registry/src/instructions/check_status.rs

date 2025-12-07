@@ -1,0 +1,28 @@
+use anchor_lang::prelude::*;
+use crate::{state::Attestation, errors::RegistryError};
+
+#[derive(Accounts)]
+pub struct CheckStatus<'info> {
+    pub wallet: SystemAccount<'info>,
+
+    #[account(
+        seeds = [b"attestation", wallet.key().as_ref()],
+        bump = attestation.bump
+    )]
+    pub attestation: Account<'info, Attestation>,
+}
+
+pub fn check_status(ctx: Context<CheckStatus>) -> Result<()> {
+    let att = &ctx.accounts.attestation;
+
+    if att.revoked {
+        return Err(RegistryError::Revoked.into());
+    }
+
+    let now = Clock::get()?.unix_timestamp;
+    if att.expires_at < now {
+        return Err(RegistryError::Expired.into());
+    }
+
+    Ok(())
+}
