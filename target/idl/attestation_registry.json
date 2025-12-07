@@ -1,0 +1,53 @@
+{
+  "version": "0.0.0",
+  "name": "attestation_registry",
+  "instructions": [
+    {
+      "name": "issueAttestation",
+      "accounts": [
+        { "name": "issuer", "isMut": true, "isSigner": true },
+        { "name": "wallet", "isMut": false, "isSigner": false },
+        { "name": "attestation", "isMut": true, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "expiresAt", "type": "i64" },
+        { "name": "jurisdiction", "type": "string" },
+        { "name": "dataHash", "type": { "array": ["u8", 32] } }
+      ]
+    },
+    {
+      "name": "revokeAttestation",
+      "accounts": [
+        { "name": "issuer", "isMut": true, "isSigner": true },
+        { "name": "attestation", "isMut": true, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "checkStatus",
+      "accounts": [
+        { "name": "attestation", "isMut": false, "isSigner": false },
+        { "name": "wallet", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "attestation",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "issuer", "type": "publicKey" },
+          { "name": "wallet", "type": "publicKey" },
+          { "name": "issuedAt", "type": "i64" },
+          { "name": "expiresAt", "type": "i64" },
+          { "name": "jurisdiction", "type": "string" },
+          { "name": "dataHash", "type": { "array": ["u8", 32] } },
+          { "name": "revoked", "type": "bool" }
+        ]
+      }
+    }
+  ]
+}
