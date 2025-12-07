@@ -31,3 +31,17 @@ graph LR
     SDK -->|getRiskScore()| RiskEngine
     SDK -->|transfer()| SolanaProgram
 ```
+
+sequenceDiagram
+    participant UserWallet
+    participant SDK
+    participant KYCRegistry
+    participant RiskEngine
+    participant SolanaProgram
+```mermaid
+    UserWallet->>SDK: transferRequest
+    SDK->>KYCRegistry: checkKYC
+    SDK->>RiskEngine: getRiskScore
+    SDK->>SolanaProgram: invokeTransferHook
+    SolanaProgram-->>UserWallet: mint/transferToken
+```
