@@ -1,0 +1,71 @@
+name: '🛡️ KYC Compliance Issue'
+description: 'Report issues related to KYC compliance, regulations, or security'
+title: '[COMPLIANCE] '
+labels: ['compliance', 'security', 'urgent']
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Compliance issues are treated with highest priority**
+        
+        Please provide detailed information about compliance-related concerns.
+
+  - type: dropdown
+    id: regulation
+    attributes:
+      label: 'Regulation/Standard Affected'
+      options:
+        - 'FATF Travel Rule'
+        - 'AML/CFT'
+        - 'GDPR'
+        - 'CCPA'
+        - 'MiCA'
+        - 'OFAC Sanctions'
+        - 'Other'
+      multiple: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 'Compliance Issue Description'
+      description: 'Detailed description of the compliance issue or concern'
+      placeholder: 'Describe the compliance violation or concern...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 'Evidence/References'
+      description: 'Provide links to regulations, documentation, or evidence supporting the issue'
+      placeholder: 'Regulation links, documentation, screenshots...'
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: 'Potential Impact'
+      description: 'Describe the potential impact of this compliance issue'
+      placeholder: 'Legal risks, fines, reputational damage...'
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: 'Affected Components'
+      description: 'Which parts of the SDK are affected?'
+      placeholder: 'e.g., Identity verification, transaction monitoring, reporting module'
+
+  - type: checkboxes
+    id: disclosure
+    attributes:
+      label: 'Disclosure'
+      options:
+        - label: 'This issue contains sensitive information that should not be made public'
+          required: false
+
+  - type: input
+    id: reporter
+    attributes:
+      label: 'Reporter Contact (Optional)'
+      description: 'Contact information for follow-up questions'
+      placeholder: 'email@example.com'
