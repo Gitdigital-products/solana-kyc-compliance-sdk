@@ -1,0 +1,48 @@
+#!/bin/bash
+ 
+# Solana KYC Compliance SDK Setup Script
+ 
+set -e
+ 
+echo "🚀 Setting up Solana KYC Compliance SDK..."
+ 
+# Check for required tools
+command -v node >/dev/null 2>&1 || { echo "❌ Node.js is required but not installed."; exit 1; }
+command -v npm >/dev/null 2>&1 || { echo "❌ npm is required but not installed."; exit 1; }
+command -v solana >/dev/null 2>&1 || { echo "❌ Solana CLI is required but not installed."; exit 1; }
+ 
+# Create environment files
+if [ ! -f .env ]; then
+    echo "📝 Creating .env file from template..."
+    cp .env.example .env
+    echo "⚠️  Please update your .env file with actual values"
+fi
+ 
+# Install dependencies
+echo "📦 Installing dependencies..."
+npm install
+ 
+# Install turbo globally if not present
+if ! command -v turbo &> /dev/null; then
+    echo "⚡ Installing Turbo globally..."
+    npm install -g turbo
+fi
+ 
+# Setup Husky for git hooks
+echo "🐶 Setting up Husky..."
+npm run prepare
+ 
+# Build packages
+echo "🔨 Building packages..."
+npm run build
+ 
+# Run tests
+echo "🧪 Running tests..."
+npm test
+ 
+echo "✅ Setup complete!"
+echo ""
+echo "Next steps:"
+echo "1. Update your .env file with actual values"
+echo "2. Run 'npm run dev' to start development"
+echo "3. Check the README for additional configuration"
