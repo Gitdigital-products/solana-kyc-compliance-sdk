@@ -1,0 +1,70 @@
+version: 2
+updates:
+  # NPM dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+      development-dependencies:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+    labels:
+      - "dependencies"
+      - "security"
+      - "automerge"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    open-pull-requests-limit: 10
+    versioning-strategy: "auto"
+    rebase-strategy: "auto"
+    pull-request-branch-name:
+      separator: "-"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    labels:
+      - "github-actions"
+      - "dependencies"
+
+  # Docker (if applicable)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "docker"
+      - "dependencies"
+
+# Security updates (auto-merge for patches)
+security-updates:
+  enable: true
+  assignees:
+    - "@security-team"
+  reviewers:
+    - "@security-team"
+  labels:
+    - "security"
+    - "automerge"
+  commit-message:
+    prefix: "security"
+  pull-request-branch-name:
+    separator: "-"
