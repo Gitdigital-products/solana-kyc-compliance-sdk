@@ -1,0 +1,97 @@
+use solana_program::{
+    account_info::{next_account_info, AccountInfo},
+    entrypoint,
+    entrypoint::ProgramResult,
+    msg,
+    program::invoke_signed,
+    program_error::ProgramError,
+    pubkey::Pubkey,
+    sysvar::rent::Rent,
+};
+use spl_token_2022::{
+    extension::confidential_transfer::instruction::{
+        confidential_transfer_instruction, ConfidentialTransferInstruction,
+    },
+    instruction::TokenInstruction,
+};
+
+entrypoint!(process_instruction);
+
+pub fn process_instruction(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    instruction_data: &[u8],
+) -> ProgramResult {
+    // Parse accounts for confidential transfer
+    let account_info_iter = &mut accounts.iter();
+    
+    let token_program_info = next_account_info(account_info_iter)?;
+    let mint_info = next_account_info(account_info_iter)?;
+    let source_info = next_account_info(account_info_iter)?;
+    let destination_info = next_account_info(account_info_iter)?;
+    let authority_info = next_account_info(account_info_iter)?;
+    let compliance_registry_info = next_account_info(account_info_iter)?;
+    let auditor_info = next_account_info(account_info_iter)?; // Optional auditor
+    
+    // Verify compliance before confidential transfer
+    verify_compliance(
+        compliance_registry_info,
+        source_info.key,
+        destination_info.key,
+    )?;
+    
+    // Process confidential transfer with compliance check
+    if instruction_data[0] == 0x12 { // Confidential transfer instruction
+        msg!("Processing confidential transfer with KYC compliance");
+        
+        // Decode confidential transfer instruction
+        let transfer_instruction = ConfidentialTransferInstruction::unpack(&instruction_data)
+            .map_err(|_| ProgramError::InvalidInstructionData)?;
+        
+        // Additional compliance checks can be added here
+        // For example: check if transfer amount exceeds limits
+        
+        // Execute the confidential transfer
+        let cpi_instruction = confidential_transfer_instruction(
+            token_program_info.key,
+            mint_info.key,
+            source_info.key,
+            destination_info.key,
+            authority_info.key,
+            transfer_instruction.amount,
+            transfer_instruction.fee,
+            transfer_instruction.nonce,
+        )?;
+        
+        invoke_signed(
+            &cpi_instruction,
+            &[
+                token_program_info.clone(),
+                mint_info.clone(),
+                source_info.clone(),
+                destination_info.clone(),
+                authority_info.clone(),
+            ],
+            &[],
+        )?;
+        
+        msg!("Confidential transfer completed with compliance check");
+    }
+    
+    Ok(())
+}
+
+fn verify_compliance(
+    compliance_registry: &AccountInfo,
+    sender: &Pubkey,
+    receiver: &Pubkey,
+) -> ProgramResult {
+    // Implementation would check your compliance registry
+    // This is where you integrate with your existing KYC system
+    msg!("Checking compliance for {} -> {}", sender, receiver);
+    
+    // Placeholder: Always approve for this example
+    // In production, query your compliance registry here
+    
+    Ok(())
+}
