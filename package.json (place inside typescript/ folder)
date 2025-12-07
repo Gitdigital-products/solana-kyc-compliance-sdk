@@ -1,0 +1,23 @@
+{
+  "name": "solana-kyc-clients",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha -r ts-node/register tests/**/*.ts"
+  },
+  "dependencies": {
+    "@project-serum/anchor": "^0.33.0",
+    "@solana/web3.js": "^1.83.0",
+    "@solana/spl-token": "^0.4.0",
+    "merkletreejs": "^0.2.31",
+    "keccak256": "^1.0.6",
+    "bn.js": "^5.2.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "typescript": "^5.4.2",
+    "mocha": "^10.2.0",
+    "@types/node": "^20.3.0"
+  }
+}
