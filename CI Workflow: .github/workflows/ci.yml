@@ -1,0 +1,26 @@
+name: CI
+ 
+on:
+  push:
+  pull_request:
+ 
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Solana
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor
+        run: cargo install --git https://github.com/coral-xyz/anchor avm --locked
+
+      - name: Build
+        run: anchor build
+ 
