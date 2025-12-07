@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "next.config.js", "use": "@vercel/next" }
+  ],
+  "env": {
+    "NEXT_PUBLIC_SOLANA_RPC": "@NEXT_PUBLIC_SOLANA_RPC",
+    "NEXT_PUBLIC_COMPLIANCE_PROGRAM_ID": "@NEXT_PUBLIC_COMPLIANCE_PROGRAM_ID",
+    "NEXT_PUBLIC_ATTESTATION_PROGRAM_ID": "@NEXT_PUBLIC_ATTESTATION_PROGRAM_ID",
+    "NEXT_PUBLIC_TOKEN_MINT": "@NEXT_PUBLIC_TOKEN_MINT"
+  }
+}
