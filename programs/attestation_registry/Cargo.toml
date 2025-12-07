@@ -1,0 +1,34 @@
+[package]
+name = "attestation_registry"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "attestation_registry"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+anchor-lang = { version = "0.33.0", features = ["init-if-needed"] }
+solana-program = "1.14.17"
+sha2 = "0.10"
+borsh = "0.10"
+
+
+---
+
+FILE: programs/transfer_hook/Cargo.toml
+```toml
+[package]
+name = "transfer_hook"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "transfer_hook"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+anchor-lang = { version = "0.33.0", features = ["init-if-needed"] }
+solana-program = "1.14.17"
+sha2 = "0.10"
+borsh = "0.10"
