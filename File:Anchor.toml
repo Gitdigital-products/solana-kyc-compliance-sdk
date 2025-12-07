@@ -1,0 +1,10 @@
+[programs.localnet]
+attestation_registry = "Reg1stry1111111111111111111111111111111111111"
+transfer_hook = "TrnsfrHook1111111111111111111111111111111111"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "mocha -t 100000"
