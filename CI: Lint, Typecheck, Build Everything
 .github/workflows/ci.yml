@@ -1,0 +1,41 @@
+name: Universal CI
+
+on:
+  push:
+    branches: ["dev"]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint --if-present
+
+      - name: Typecheck frontend
+        working-directory: frontend
+        run: npm run typecheck --if-present
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Solana SDK
+        working-directory: sdk
+        run: cargo build --all
