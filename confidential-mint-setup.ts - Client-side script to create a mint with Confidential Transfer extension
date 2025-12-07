@@ -1,0 +1,103 @@
+import { 
+  Connection, Keypair, PublicKey, Transaction, sendAndConfirmTransaction 
+} from '@solana/web3.js';
+import { 
+  createInitializeMintInstruction, getMintLen, 
+  ExtensionType, TOKEN_2022_PROGRAM_ID 
+} from '@solana/spl-token';
+import { 
+  createInitializeConfidentialTransferInstruction, 
+  ConfidentialTransferAccount, 
+  ConfidentialTransferInstruction 
+} from '@solana/spl-token-metadata';
+ 
+export async function createConfidentialMint(
+  connection: Connection,
+  payer: Keypair,
+  mintAuthority: PublicKey,
+  freezeAuthority: PublicKey | null,
+  decimals: number,
+  auditorKey?: PublicKey // Optional auditor public key for compliance
+) {
+  // Create mint keypair
+  const mintKeypair = Keypair.generate();
+  const mint = mintKeypair.publicKey;
+ 
+  // Calculate space needed for mint with extensions
+  const extensions = [ExtensionType.ConfidentialTransferMint];
+  const mintLen = getMintLen(extensions);
+  const lamports = await connection.getMinimumBalanceForRentExemption(mintLen);
+ 
+  // Create transaction
+  const transaction = new Transaction();
+ 
+  // Create account for mint
+  transaction.add(
+    SystemProgram.createAccount({
+      fromPubkey: payer.publicKey,
+      newAccountPubkey: mint,
+      space: mintLen,
+      lamports,
+      programId: TOKEN_2022_PROGRAM_ID,
+    })
+  );
+ 
+  // Initialize confidential transfer mint extension
+  transaction.add(
+    createInitializeConfidentialTransferInstruction(
+      mint,
+      auditorKey || null, // Auditor public key (can decrypt balances)
+      true, // Auto-approve new accounts
+      TOKEN_2022_PROGRAM_ID
+    )
+  );
+ 
+  // Initialize the mint
+  transaction.add(
+    createInitializeMintInstruction(
+      mint,
+      decimals,
+      mintAuthority,
+      freezeAuthority,
+      TOKEN_2022_PROGRAM_ID
+    )
+  );
+ 
+  // Send transaction
+  const signature = await sendAndConfirmTransaction(
+    connection,
+    transaction,
+    [payer, mintKeypair]
+  );
+ 
+  console.log(`Confidential mint created: ${mint.toString()}`);
+  console.log(`Transaction: ${signature}`);
+ 
+  return { mint, transactionId: signature };
+}
+ 
+// Enable confidential transfers for an existing token account
+export async function enableConfidentialAccount(
+  connection: Connection,
+  payer: Keypair,
+  tokenAccount: PublicKey,
+  owner: PublicKey
+) {
+  const transaction = new Transaction();
+ 
+  transaction.add(
+    ConfidentialTransferInstruction.enableConfidentialCredits(
+      tokenAccount,
+      owner,
+      [], // No additional signers
+      TOKEN_2022_PROGRAM_ID
+    )
+  );
+ 
+  const signature = await sendAndConfirmTransaction(
+    connection,
+    transaction,
+    [payer]
+  );
+ 
+  return signature;
