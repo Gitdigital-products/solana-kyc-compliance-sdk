@@ -45,3 +45,13 @@ sequenceDiagram
     SDK->>SolanaProgram: invokeTransferHook
     SolanaProgram-->>UserWallet: mint/transferToken
 ```
+
+## ER Diagram compliance SDK scheme 
+```mermaid
+erDiagram
+    Wallet ||--o{ KYCRecord : has
+    KYCRecord ||--|| Attestation : links
+    Wallet ||--o| RiskProfile : may_have
+    TokenAccount ||--|| Wallet : belongs_to
+    ComplianceRule ||--|| TokenAccount : applies_to
+```
