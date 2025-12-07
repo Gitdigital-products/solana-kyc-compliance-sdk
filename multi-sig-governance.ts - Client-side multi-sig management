@@ -1,0 +1,135 @@
+import { 
+  Connection, Keypair, PublicKey, Transaction, 
+  sendAndConfirmTransaction, SystemProgram 
+} from '@solana/web3.js';
+import { SquadsMpl } from '@sqds/mpl';
+import { BN } from 'bn.js';
+ 
+export class GovernanceManager {
+  private squads: SquadsMpl;
+  private connection: Connection;
+ 
+  constructor(connection: Connection, wallet: any) {
+    this.connection = connection;
+    this.squads = new SquadsMpl(connection, wallet);
+  }
+ 
+  async createComplianceMultiSig(
+    name: string,
+    members: PublicKey[],
+    threshold: number
+  ) {
+    // Create a new multi-sig squad for compliance governance
+    const squad = await this.squads.createSquad(
+      members,
+      threshold,
+      name,
+      `Compliance governance for RWA tokenization - ${new Date().toISOString()}`
+    );
+    
+    console.log(`Created multi-sig squad: ${squad.publicKey.toString()}`);
+    console.log(`Members: ${members.map(m => m.toString()).join(', ')}`);
+    console.log(`Threshold: ${threshold}/${members.length}`);
+    
+    return squad;
+  }
+ 
+  async proposeEmergencyFreeze(
+    squadKey: PublicKey,
+    tokenMint: PublicKey,
+    reason: string
+  ) {
+    // Create a transaction proposal for emergency freeze
+    
+    // Get the squad
+    const squad = await this.squads.getSquad(squadKey);
+    
+    // Create transaction with circuit breaker activation
+    const transaction = new Transaction().add(
+      // This would be the actual instruction to your circuit breaker program
+      // or token freeze authority
+      SystemProgram.transfer({
+        fromPubkey: squadKey,
+        toPubkey: tokenMint, // Simplified example
+        lamports: 0,
+      })
+    );
+    
+    // Create proposal
+    const proposal = await this.squads.createProposal(
+      squadKey,
+      transaction,
+      `EMERGENCY FREEZE: ${reason}`,
+      `Proposed at ${new Date().toISOString()}\nReason: ${reason}`
+    );
+    
+    console.log(`Emergency freeze proposal created: ${proposal.publicKey.toString()}`);
+    
+    return proposal;
+  }
+ 
+  async executeGovernanceAction(
+    squadKey: PublicKey,
+    proposalKey: PublicKey,
+    instructionIndex: number = 0
+  ) {
+    // Execute a governance action after sufficient approvals
+    
+    const squad = await this.squads.getSquad(squadKey);
+    
+    // Check if proposal has enough approvals
+    const proposal = await this.squads.getProposal(proposalKey);
+    
+    if (proposal.approvals.length >= squad.threshold) {
+      // Execute the transaction
+      const executed = await this.squads.executeTransaction(
+        squadKey,
+        proposalKey,
+        instructionIndex
+      );
+      
+      console.log(`Governance action executed: ${executed.signature}`);
+      return executed;
+    } else {
+      throw new Error(`Insufficient approvals: ${proposal.approvals.length}/${squad.threshold}`);
+    }
+  }
+}
+ 
+// Example usage for legal documentation integration
+export function generateLegalDocumentation(
+  squadKey: PublicKey,
+  members: {key: PublicKey, role: string}[],
+  tokenMint: PublicKey
+) {
+  const doc = `
+# LEGAL APPENDIX: ON-CHAIN GOVERNANCE STRUCTURE
+
+## Special Purpose Vehicle (SPV) - On-Chain Authority Mapping
+
+### 1. Multi-Signature Governance Wallet
+- **On-Chain Address**: ${squadKey.toString()}
+- **Purpose**: Controls emergency circuit breaker and major compliance decisions
+- **Legal Equivalent**: SPV Board of Directors / Compliance Committee
+
+### 2. Authorized Signers
+${members.map(m => `- **${m.role}**: ${m.key.toString()}`).join('\n')}
+
+### 3. Token Control Mechanisms
+- **Mint Address**: ${tokenMint.toString()}
+- **Permanent Delegate**: [Your Permanent Delegate Address]
+- **Freeze Authority**: Linked to multi-sig governance wallet
+
+### 4. Emergency Procedures
+1. Circuit breaker activation requires ${members.length > 1 ? `${Math.ceil(members.length * 0.6)}/${members.length}` : 'unanimous'} signatures
+2. All freeze actions must be documented in SPV meeting minutes
+3. Regulatory reporting within 24 hours of any emergency action
+
+### 5. Legal Authorization
+This structure is authorized per:
+- Section 4.2 of the SPV Operating Agreement
+- SEC Rule 15c3-3 compliance requirements
+- OFAC sanctions compliance program
+`;
+ 
+  return doc;
