@@ -1,0 +1,134 @@
+use solana_program::{
+    account_info::{next_account_info, AccountInfo},
+    entrypoint,
+    entrypoint::ProgramResult,
+    msg,
+    program_error::ProgramError,
+    pubkey::Pubkey,
+    sysvar::clock::Clock,
+    sysvar::Sysvar,
+};
+use borsh::{BorshDeserialize, BorshSerialize};
+
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct CircuitBreakerState {
+    pub is_active: bool,
+    pub activated_at: i64,
+    pub activated_by: Pubkey,
+    pub multi_sig_threshold: u8,
+    pub signers: [Pubkey; 5], // Up to 5 multi-sig signers
+    pub approvals: u8,
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub enum CircuitBreakerInstruction {
+    Initialize {
+        signers: [Pubkey; 5],
+        threshold: u8,
+    },
+    RequestFreeze,
+    ApproveFreeze,
+    Deactivate,
+}
+
+entrypoint!(process_instruction);
+
+pub fn process_instruction(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    instruction_data: &[u8],
+) -> ProgramResult {
+    let instruction = CircuitBreakerInstruction::try_from_slice(instruction_data)
+        .map_err(|_| ProgramError::InvalidInstructionData)?;
+    
+    let account_info_iter = &mut accounts.iter();
+    let breaker_account = next_account_info(account_info_iter)?;
+    let authority = next_account_info(account_info_iter)?;
+    
+    match instruction {
+        CircuitBreakerInstruction::Initialize { signers, threshold } => {
+            msg!("Initializing circuit breaker with {} signers, threshold: {}", 
+                 signers.len(), threshold);
+            
+            let state = CircuitBreakerState {
+                is_active: false,
+                activated_at: 0,
+                activated_by: Pubkey::default(),
+                multi_sig_threshold: threshold,
+                signers,
+                approvals: 0,
+            };
+            
+            state.serialize(&mut &mut breaker_account.data.borrow_mut()[..])?;
+        }
+        
+        CircuitBreakerInstruction::RequestFreeze => {
+            msg!("Emergency freeze requested");
+            
+            let mut state = CircuitBreakerState::try_from_slice(
+                &breaker_account.data.borrow()
+            )?;
+            
+            // Verify requester is one of the signers
+            if !state.signers.contains(authority.key) {
+                return Err(ProgramError::InvalidArgument);
+            }
+            
+            // Reset approvals and start new freeze request
+            state.approvals = 1;
+            state.serialize(&mut &mut breaker_account.data.borrow_mut()[..])?;
+            
+            msg!("Freeze request registered. Need {} more approvals", 
+                 state.multi_sig_threshold - 1);
+        }
+        
+        CircuitBreakerInstruction::ApproveFreeze => {
+            let mut state = CircuitBreakerState::try_from_slice(
+                &breaker_account.data.borrow()
+            )?;
+            
+            // Verify approver is a signer and hasn't already approved
+            if !state.signers.contains(authority.key) {
+                return Err(ProgramError::InvalidArgument);
+            }
+            
+            state.approvals += 1;
+            
+            // Check if threshold reached
+            if state.approvals >= state.multi_sig_threshold && !state.is_active {
+                let clock = Clock::get()?;
+                
+                state.is_active = true;
+                state.activated_at = clock.unix_timestamp;
+                state.activated_by = *authority.key;
+                
+                msg!("🚨 CIRCUIT BREAKER ACTIVATED at timestamp: {}", 
+                     state.activated_at);
+                
+                // Here you would trigger the actual freeze
+                // This would interact with your token's mint authority
+                // or transfer hook program
+            }
+            
+            state.serialize(&mut &mut breaker_account.data.borrow_mut()[..])?;
+        }
+        
+        CircuitBreakerInstruction::Deactivate => {
+            let mut state = CircuitBreakerState::try_from_slice(
+                &breaker_account.data.borrow()
+            )?;
+            
+            // Require same threshold to deactivate
+            if state.approvals >= state.multi_sig_threshold && state.is_active {
+                state.is_active = false;
+                state.approvals = 0;
+                
+                msg!("Circuit breaker deactivated");
+            }
+            
+            state.serialize(&mut &mut breaker_account.data.borrow_mut()[..])?;
+        }
+    }
+    
+    Ok(())
+}
