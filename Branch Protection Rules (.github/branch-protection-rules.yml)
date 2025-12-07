@@ -1,0 +1,54 @@
+# Branch Protection Rules for main branch
+name: 'Main Branch Protection'
+
+on:
+  create:
+    branches: [main, develop]
+
+rules:
+  main:
+    # Required status checks
+    required_status_checks:
+      strict: true
+      contexts:
+        - 'build'
+        - 'test'
+        - 'lint'
+        - 'security-scan'
+    
+    # Required reviews
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+      require_code_owner_reviews: true
+      dismiss_stale_reviews: true
+      require_last_push_approval: true
+    
+    # Restrictions
+    restrictions:
+      apps: []
+      users: []
+      teams:
+        - 'core-maintainers'
+    
+    # Additional settings
+    enforce_admins: false
+    require_linear_history: true
+    allow_force_pushes: false
+    allow_deletions: false
+    required_conversation_resolution: true
+    lock_branch: false
+    
+  develop:
+    required_status_checks:
+      strict: true
+      contexts:
+        - 'build'
+        - 'test'
+    
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+    
+    restrictions: null
+    enforce_admins: false
+    require_linear_history: true
+    allow_force_pushes: false
