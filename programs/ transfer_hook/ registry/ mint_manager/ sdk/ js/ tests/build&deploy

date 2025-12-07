@@ -1,0 +1,16 @@
+anchor build
+anchor deploy
+ 
+ 
+---
+ 
+JS SDK Usage
+ 
+import { getExtraKycAccounts } from "./sdk/js";
+ 
+ 
+---
+ 
+Example: Check Status
+ 
+anchor test
