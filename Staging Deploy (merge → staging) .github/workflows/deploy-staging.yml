@@ -1,0 +1,29 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches: ["staging"]
+
+jobs:
+  staging:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      - name: Deploy to Staging
+        working-directory: frontend
+        run: npx vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --scope staging
