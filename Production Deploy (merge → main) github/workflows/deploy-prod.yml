@@ -1,0 +1,29 @@
+name: Deploy Production
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  prod:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      - name: Deploy Production
+        working-directory: frontend
+        run: npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
