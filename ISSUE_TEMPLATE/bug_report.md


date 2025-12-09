@@ -1,0 +1,19 @@
+name: Bug Report
+about: Report a bug or issue
+---
+ 
+## Bug Description
+Clear and concise description of the bug.
+ 
+## Steps to Reproduce
+1. Go to…
+2. Click…
+3. Error happens…
+ 
+## Expected Behavior
+What should happen instead?
+ 
+## Environment
+- OS:
+- Branch:
+- Version:
