@@ -1,0 +1,18 @@
+Initialize the project:
+npm install
+Build all outputs:
+npm run build:all
+Test the bundles locally:
+# Create a test HTML file to verify browser bundle
+echo '<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+  <script src="./dist/browser/solana-kyc-compliance.min.js"></script>
+</head>
+<body>
+  <script>
+    console.log("SDK loaded:", window.SolanaKYC);
+  </script>
+</body>
+</html>' > test-browser.html
