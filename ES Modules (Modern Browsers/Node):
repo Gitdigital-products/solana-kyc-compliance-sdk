@@ -1,0 +1,1 @@
+import { AttestationService, SolanaProvider } from 'solana-kyc-compliance-sdk';
