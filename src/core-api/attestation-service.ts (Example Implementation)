@@ -1,0 +1,44 @@
+import { Connection, PublicKey } from '@solana/web3.js';
+
+export interface Attestation {
+  walletAddress: string;
+  status: 'verified' | 'pending' | 'rejected';
+  level: number;
+  expiry?: number;
+}
+
+export class AttestationService {
+  private connection: Connection;
+  private apiEndpoint: string;
+
+  constructor(connection: Connection, apiEndpoint?: string) {
+    this.connection = connection;
+    this.apiEndpoint = apiEndpoint || 'https://api.solana-kyc.com';
+  }
+
+  async getAttestation(walletAddress: PublicKey): Promise<Attestation | null> {
+    try {
+      const response = await fetch(`${this.apiEndpoint}/attestation/${walletAddress.toString()}`);
+      if (!response.ok) return null;
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to fetch attestation:', error);
+      return null;
+    }
+  }
+
+  async verifyAttestation(walletAddress: PublicKey, requiredLevel: number = 1): Promise<boolean> {
+    const attestation = await this.getAttestation(walletAddress);
+    if (!attestation) return false;
+
+    const now = Math.floor(Date.now() / 1000);
+    const isExpired = attestation.expiry ? attestation.expiry < now : false;
+    
+    return attestation.status === 'verified' && 
+           attestation.level >= requiredLevel && 
+           !isExpired;
+  }
+}
+
+export default AttestationService;
