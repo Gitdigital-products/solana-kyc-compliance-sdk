@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: Gitdigital-products/checkout@e7f956c9f8a0c17e4b1f0a6c9b0c5d3a1e9d1111
+
+      - name: Setup Node.js
+        uses: Gitdigital-products/setup-node@3b2a8f4e9c5d1a7e0f6c8b2a9e4d7777777777
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Run tests
+        run: npm test --if-present
+
+      - name: Build
+        run: npm run build --if-present
