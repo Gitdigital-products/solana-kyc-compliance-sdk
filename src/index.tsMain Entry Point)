@@ -1,0 +1,9 @@
+// Re-export all modules
+export * from './core-api';
+export * from './integration-helpers';
+export * from './ui-components';
+
+// Optional: Export specific commonly used items
+export { default as KYCClient } from './core-api/attestation-service';
+export { checkTokenCompliance } from './core-api/token-compliance';
+export { SolanaProvider } from './integration-helpers/solana-provider';
