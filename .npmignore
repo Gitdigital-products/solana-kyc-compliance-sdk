@@ -1,0 +1,19 @@
+# Source files
+src/
+tsconfig*.json
+rollup.config.js
+.eslintrc.json
+
+# Development files
+*.log
+node_modules/
+dist/!(bundles|browser)/*
+
+# IDE files
+.vscode/
+.idea/
+
+# Test files
+__tests__/
+__mocks__/
+coverage/
