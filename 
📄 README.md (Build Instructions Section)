@@ -1,0 +1,51 @@
+## Build Setup
+
+### Installation
+```bash
+npm install
+```
+
+### Development Build
+```bash
+npm run dev  # Watch mode for development
+```
+
+### Production Build
+```bash
+npm run build:all  # Build everything (ESM, CJS, bundled)
+```
+
+### Output Structure
+```
+dist/
+├── esm/           # ES Module output
+├── cjs/           # CommonJS output
+├── types/         # TypeScript declarations
+├── bundles/       # Optimized bundles (.esm.js, .umd.js)
+└── browser/       # Standalone browser bundle
+```
+
+### Usage Examples
+
+**ES Modules (Modern Browsers/Node):**
+```javascript
+import { AttestationService, SolanaProvider } from 'solana-kyc-compliance-sdk';
+```
+
+**CommonJS (Node.js):**
+```javascript
+const { AttestationService } = require('solana-kyc-compliance-sdk');
+```
+
+**Browser (Script Tag):**
+```html
+<script src="https://unpkg.com/solana-kyc-compliance-sdk/dist/browser/solana-kyc-compliance.min.js"></script>
+<script>
+  const { SolanaKYC } = window;
+</script>
+```
+
+**Submodule Import (Tree-shaking):**
+```javascript
+import { checkTokenCompliance } from 'solana-kyc-compliance-sdk/core-api';
+```
