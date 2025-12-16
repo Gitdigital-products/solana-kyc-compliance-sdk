@@ -1,9 +1,9 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: 'Enhance Repository '
-labels: enhancement
-assignees: RickCreator87, tarablygenuine
+title: ''
+labels: ''
+assignees: ''
 
 ---
 
