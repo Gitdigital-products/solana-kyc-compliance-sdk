@@ -10,7 +10,7 @@
   "dependencies": {
     "@project-serum/anchor": "^0.33.0",
     "@solana/web3.js": "^1.83.0",
-    "next": "14.2.35",
+    "next": "14.2.32",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "tailwindcss": "^3.5.0"
