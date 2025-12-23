@@ -55,3 +55,18 @@ erDiagram
     TokenAccount ||--|| Wallet : belongs_to
     ComplianceRule ||--|| TokenAccount : applies_to
 ```
+# Solana KYC Compliance SDK
+
+**Mission:** This is an open-source SDK that enables institutions to enforce KYC/AML compliance directly on-chain for Real-World Asset (RWA) tokens using Solana Token Extensions. It is built for token issuers,合规 teams, and institutional developers. *(Stage: Beta / In Development)*
+
+## 🎯 PHASE 1 - CLARITY & SCOPE
+**Parent Initiative:** Org-wide Clarity & Core Infra
+**Objective:** Formalize the project's mission and establish robust development workflows to support external contributors and enterprise adoption.
+
+### Immediate Actions:
+1.  **Roadmap Alignment:** Confirm if this project is a core revenue driver, a supporting infrastructure piece, or an open-source lead generator.
+2.  **Set Up Tracking:** Create scoped GitHub Issues using templates for bugs, feature requests (from the community), and internal tasks.
+3.  **Secure Pipeline:** Enhance CI/CD (using internal `Checkout` & `Setup-node`) to run Rust/TS tests, security audits (e.g., `cargo-audit`), and linting on every PR.
+
+**Owner:** *[Assign Product/Tech Lead]*
+**Roadmap Link:** See the central organizational roadmap in [gitdigital-products.io](https://github.com/Gitdigital-products/gitdigital-products.io)
