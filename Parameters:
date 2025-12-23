@@ -1,0 +1,9 @@
+paramName (ParamType): [Detailed description]
+
+Returns:
+
+· Promise: [What the promise resolves to]
+
+Errors:
+
+· ErrorType: Thrown when [specific condition].
