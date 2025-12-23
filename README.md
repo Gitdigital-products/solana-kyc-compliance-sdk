@@ -1,24 +1,86 @@
 # Solana KYC Compliance SDK
 
-**Mission:** **Primary Revenue Driver.** An enterprise-grade SDK that allows financial institutions and RWA issuers to program KYC/AML compliance directly into Solana tokens using Token Extensions. We solve regulatory onboarding for institutional blockchain adoption.
+A Solana-native compliance and KYC enforcement SDK that enables token issuers and programs to **enforce regulatory rules on-chain** without storing sensitive personal data.
 
-**Stage:** **Beta – Piloting with Launch Partners**
+This project provides:
+- On-chain programs for compliance enforcement
+- An off-chain SDK for integration with KYC / AML providers
+- Tooling for managing registries, attestations, and compliant transfers
 
-## 🎯 PHASE 1 EXECUTION: CLARITY & CORE INFRA
-**This repository is now a defined business unit.**
--   **Owner:** *[GitDigital-Products]* |
- **Tech Lead:** *[RickCreator87]*
--   **Target MVP Launch:** *[Set Date: e.g., Q2 2025]*
+> This SDK enforces **compliance decisions**, not identities.
 
-### Immediate Actions (This Week):
--   [ ] **Finalize MVP Feature Set:** Lock down v1.0 features (e.g., Transfer Hook, Registry UI, Basic Admin Dashboard).
--   [ ] **Create GitHub Project Board:** Link it here: `(https://github.com/orgs/Gitdigital-products/projects/8/views/1).[KYC SDK - MVP Launch].`. Scope Epics: `SDK Finalization`, `Pilot Deployment`, `Documentation`.
--   [ ] **Harden CI/CD Pipeline:** Mandatory steps: `cargo test` (Rust), `npm test` (TS), `cargo fmt --check`, `cargo clippy`, and security audit on PR to `main`.
+---
 
-### 📁 Repository Structure & Purpose
--   `/program/` – **Core Business Logic:** The on-chain Solana program (Transfer Hook, Permanent Delegate).
--   `/sdk/` – **Primary Product:** The TypeScript client library for developers to integrate compliance.
--   `/registry/` – **Revenue Feature:** Compliance officer dashboard (future subscription model).
--   `/tests/` – **Quality Assurance:** Integration and unit tests for the entire stack.
+## Why This Exists
 
-**Roadmap & Strategy:** The organizational CEO plan and detailed roadmap are maintained in the central hub: [gitdigital-products.io](https://github.com/Gitdigital-products/gitdigital-products.io).
+Most KYC solutions stop at verification. This SDK goes further.
+
+On Solana, tokens and programs can enforce rules at execution time. This project makes it possible to:
+- Block transfers from non-verified wallets
+- Enforce jurisdictional or risk-based rules
+- Freeze or revoke access dynamically
+- Integrate real-world KYC providers without exposing PII on-chain
+
+Think of this as **compliance middleware for Solana programs**.
+
+---
+
+## High-Level Architecture
+
+**On-chain**
+- Compliance registry programs
+- Transfer validation logic
+- Attestation verification
+
+**Off-chain**
+- Risk scoring engines
+- KYC provider adapters
+- Attestation issuance
+
+**SDK**
+- TypeScript client for apps and services
+- Helpers for registry management and enforcement checks
+
+No personal data is stored on-chain.  
+Only cryptographic attestations and enforcement state exist on Solana.
+
+---
+
+## What This Is *Not*
+
+- ❌ A KYC provider
+- ❌ A user identity system
+- ❌ A wallet tracking service
+
+This SDK assumes KYC happens elsewhere and focuses on **enforcing the outcome**.
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Solana CLI
+- Anchor
+- Node.js (18+)
+- Yarn or npm
+
+### Install
+
+```bash
+git clone https://github.com/Gitdigital-products/solana-kyc-compliance-sdk.git
+cd solana-kyc-compliance-sdk
+
+Build Programs
+
+anchor build
+
+Run Tests
+
+anchor test
+
+Deploy to Devnet
+
+anchor deploy --provider.cluster devnet
+
+If a non-compliant transfer fails, congrats — enforcement is working.
