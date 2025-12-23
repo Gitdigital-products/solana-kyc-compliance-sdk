@@ -1,0 +1,132 @@
+
+Phase 1 Task 1
+Create comprehensive documentation for all TypeScript SDK functions, classes, and parameters that will be exposed in v1.0. This serves as the contract for developers.
+
+ACCEPTANCE CRITERIA:
+
+List all public functions in /sdk/src/lib.ts with JSDoc comments
+Define parameter types, return types, and error states for each function
+Include 2-3 code usage examples for key flows (initialize compliance, check transfer status)
+Document required Solana wallet connections and network configurations
+Create API.md file in /docs/ directory with all above information
+TECHNICAL NOTES:
+
+Focus on the Transfer Hook integration flow first
+Use TypeScript interface definitions as source of truth
+Consider generating reference docs automatically with TypeDoc later
+
+To help you create the API documentation, I've analyzed the technical notes for the SDK you're working on. The SDK is part of the solana-kyc-compliance-sdk project, and its core functionality revolves around the Solana Token 2022 Transfer Hook extension for enforcing compliance rules.
+
+Based on the search results, here is a breakdown of the core concepts and a suggested structure for your API documentation, complete with example code blocks.
+
+🔗 Understanding the Transfer Hook Context
+
+The TypeScript SDK you are documenting is a client library for a Solana Transfer Hook program. This means every token transfer will automatically call (CPI) into a custom program you've built to enforce rules. The key concepts you must document are:
+
+· ExtraAccountMetaList: A required PDA account that stores a list of any additional accounts your hook logic needs to function. Its address is derived from the mint address and your program ID.
+
+· Hook Execution: The custom logic (e.g., KYC checks) runs during the transfer. If it fails, the entire token transfer is rolled back.
+
+· Wallet & Network: All SDK functions will require a connection to a Solana network (e.g., devnet, mainnet-beta) and a signer (wallet) to pay fees and sign transactions.
+
+📄 Suggested Structure for /docs/API.md
+
+Here is a practical outline and content you can adapt to create your API.md file.
+
+Introduction and Overview
+Start by explaining the SDK's purpose:to provide a TypeScript/JavaScript interface for initializing and interacting with KYC-compliant tokens using Solana's Transfer Hook extension.
+
+Core SDK Interface (ComplianceSDK)
+Define the main class that will be instantiated with required configuration.Use TypeScript interfaces as the source of truth per your technical notes.
+
+import { Connection, PublicKey, Signer } from '@solana/web3.js';
+
+/**
+ * Configuration required to initialize the Compliance SDK.
+ * @interface ComplianceSdkConfig
+ */
+interface ComplianceSdkConfig {
+  /** Connection to the Solana cluster (e.g., devnet, mainnet-beta) */
+  connection: Connection;
+  /** The program ID (address) of the deployed Transfer Hook program */
+  programId: PublicKey;
+  /** The Token Program ID (should be `TOKEN_2022_PROGRAM_ID`) */
+  tokenProgramId?: PublicKey;
+}
+
+/**
+ * Main SDK class for KYC compliance operations on Solana.
+ * Provides methods to initialize compliant mints and execute verified transfers.
+ * @class ComplianceSDK
+ */
+export class ComplianceSDK {
+  constructor(config: ComplianceSdkConfig);
+  // ... public methods documented below
+}
+Public Function Documentation
+List and document each public function from/sdk/src/lib.ts. The examples below focus on the two key flows mentioned in your acceptance criteria.
+· Function 1: initializeCompliantMint
+
+/**
+ * Creates a new token mint with the Transfer Hook extension enabled for compliance.
+ * This mint will invoke the hook program on every transfer.
+ * @param {InitializeCompliantMintParams} params - Parameters for mint creation.
+ * @returns {Promise<TransactionSignature>} The transaction signature of the mint creation.
+ * @throws {WalletNotConnectedError} If no payer is connected.
+ * @throws {TransactionFailedError} If the blockchain transaction fails.
+ */
+async initializeCompliantMint(
+  params: InitializeCompliantMintParams
+): Promise<TransactionSignature>;
+· Function 2: createExtraAccountMetaList
+
+/**
+ * Initializes the required ExtraAccountMetaList PDA for the Transfer Hook.
+ * This account must be created before transfers can succeed.
+ * @param {PublicKey} mint - The public key of the compliant mint.
+ * @param {Signer} payer - The signer responsible for paying transaction fees.
+ * @returns {Promise<TransactionSignature>} The transaction signature.
+ */
+async createExtraAccountMetaList(
+  mint: PublicKey,
+  payer: Signer
+): Promise<TransactionSignature>;
+· Function 3: transferCheckedWithHook
+
+/**
+ * Executes a token transfer that will be validated by the compliance hook.
+ * This is the primary method for moving compliant tokens between wallets.
+ * @param {TransferCheckedWithHookParams} params - Transfer parameters.
+ * @returns {Promise<TransactionSignature>} The transaction signature of the transfer.
+ * @throws {TransferDeniedByHookError} If the hook program rejects the transfer (e.g., KYC failure).
+ */
+async transferCheckedWithHook(
+  params: TransferCheckedWithHookParams
+): Promise<TransactionSignature>;
+Parameter and Type Definitions
+Document the interfaces used by the functions above.Structure this as a clear list instead of a table for better mobile readability.
+Interface: InitializeCompliantMintParams
+
+· payer (Signer): The wallet that pays for and signs the mint creation transaction.
+
+· mintAuthority (PublicKey): The public key that will have authority over the new mint.
+
+· freezeAuthority (PublicKey | null): The freeze authority for the mint, if any.
+
+· decimals (number): The number of decimal places for the token.
+
+· initialKycData (object): Initial data required for the compliance hook.
+
+Interface: TransferCheckedWithHookParams
+
+· source (PublicKey): The source token account address.
+
+· mint (PublicKey): The mint address of the token.
+
+· destination (PublicKey): The destination token account address.
+
+· owner (Signer): The owner and signer of the source token account.
+
+· amount (number | bigint): The amount of tokens to transfer.
+
+· kycProof (object[]): An array of proofs or signatures required to pass the hook's KYC check.
