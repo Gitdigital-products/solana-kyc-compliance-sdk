@@ -1,0 +1,15 @@
+To get started:
+
+Install dependencies:
+cd sdk
+npm install
+Build the SDK:
+npm run build
+Run tests:
+npm test
+Generate documentation:
+npm run docs
+View documentation:
+npm run docs:serve
+# Open http://localhost:3000
+ 
