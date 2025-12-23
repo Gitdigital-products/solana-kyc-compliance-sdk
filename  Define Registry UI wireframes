@@ -1,0 +1,589 @@
+
+
+📁 Proposed File Structure
+
+```
+/docs/registry-ui-wireframes/
+├── 01-login-auth.png (or diagram)
+├── 02-pending-approvals.png (or diagram)
+├── 03-address-detail.png (or diagram)
+└── wireframe-specifications.md
+
+/docs/registry-requirements.md
+```
+
+Let me create these files for you:
+
+/docs/registry-requirements.md
+
+```markdown
+# Compliance Registry Dashboard - Technical Requirements
+
+## Overview
+MVP dashboard for compliance officers to approve/reject wallet addresses for Solana KYC/AML compliance.
+
+## Core Screens & Requirements
+
+### 1. Login/Auth Screen
+**Purpose:** Secure authentication for compliance officers
+
+**Data Fields:**
+- Email/Username field
+- Password field
+- 2FA token field (optional for MVP)
+- Remember me checkbox
+
+**User Actions:**
+- Login with credentials
+- Forgot password flow
+- Error handling for invalid credentials
+
+**Technical Requirements:**
+- JWT-based authentication
+- Role-based access (compliance_officer role)
+- Session management (24h expiry)
+
+### 2. Pending Approvals Dashboard
+**Purpose:** Main dashboard showing all pending KYC submissions
+
+**Data Fields (per row):**
+- Wallet Address (truncated: 0xAbC...xYz)
+- Submission Date/Time (UTC)
+- User/Entity Name
+- Country/Region
+- Risk Level (High/Medium/Low)
+- Days Pending
+- Assigned Officer (if any)
+
+**User Actions:**
+- Approve/Reject individual records
+- Bulk approve/reject (select multiple)
+- Filter by: Risk Level, Date Range, Country
+- Search by: Wallet Address, Name
+- Sort by: Date, Risk Level
+- Pagination (50 records per page)
+- Refresh data
+
+### 3. Address Detail View
+**Purpose:** Detailed view of a single submission for decision making
+
+**Data Fields:**
+**Basic Information:**
+- Full Wallet Address
+- Submission Timestamp
+- Current Status (Pending/Approved/Rejected/On Hold)
+- User Type (Individual/Entity)
+
+**KYC Details:**
+- Full Name/Entity Name
+- Date of Birth/Incorporation Date
+- Nationality/Country of Registration
+- Identification Number
+- Document Type (Passport/Drivers License/Company Reg)
+- Document Verification Status (Verified/Unverified)
+
+**Risk Assessment:**
+- Automated Risk Score (1-100)
+- Risk Factors (list of detected concerns)
+- PEP (Politically Exposed Person) Flag
+- Sanctions List Match
+- Transaction History Summary
+
+**User Actions:**
+- Approve (with optional notes)
+- Reject (with required reason)
+- Request More Information
+- Place On Hold
+- View Verification Documents
+- See Audit Trail
+- Return to List
+
+## Technical Architecture
+
+### Authentication Method
+- **Backend:** JWT tokens with refresh capability
+- **Storage:** Secure HTTP-only cookies
+- **Roles:** compliance_officer, admin, view_only
+- **Sessions:** 24-hour validity, revocable
+
+### Data Source
+**Primary Source:** On-chain Compliance Registry Program
+- Program ID: `[To be deployed]`
+- Accounts:
+  - `KycAccount`: Stores verified status per wallet
+  - `ProviderAccount`: KYC provider credentials
+  - `RegistryAuthority`: Admin controls
+
+**Secondary Source:** Indexer/Off-chain Database
+- PostgreSQL database for:
+  - Submission metadata
+  - Document storage links
+  - Audit logs
+  - Officer assignments
+  - Comments/notes
+
+**Data Flow:**
+1. User submits KYC via SDK
+2. Data stored in off-chain DB + on-chain placeholder
+3. Officer reviews in dashboard
+4. Decision written to on-chain registry
+5. SDK can query on-chain status instantly
+
+### API Endpoints Required
+
+**Authentication:**
+```
+
+POST /api/auth/login
+POST/api/auth/logout
+POST/api/auth/refresh
+
+```
+
+**Submissions:**
+```
+
+GET    /api/submissions/pending
+GET/api/submissions/:id
+POST/api/submissions/:id/approve
+POST/api/submissions/:id/reject
+POST/api/submissions/bulk-action
+
+```
+
+**Search/Filter:**
+```
+
+GET /api/submissions?status=pending&risk=high&country=US
+GET/api/search?q=0xABC...
+
+```
+
+**Audit:**
+```
+
+GET /api/audit/:address
+POST/api/audit/log
+
+```
+
+### Frontend Stack Recommendations
+- **Framework:** React 18+ with TypeScript
+- **State Management:** TanStack Query + Zustand
+- **UI Library:** Material-UI or Ant Design
+- **Charts:** Recharts for risk visualization
+- **Forms:** React Hook Form with Zod validation
+- **Testing:** Jest + React Testing Library
+
+### Security Considerations
+- API rate limiting per officer
+- IP allowlisting for admin actions
+- Audit logging for all decisions
+- Document encryption at rest
+- No sensitive data in URL params
+- CSP headers for XSS protection
+
+### Performance Targets
+- Page load: < 2 seconds
+- Search response: < 1 second
+- Bulk actions: < 5 seconds for 100 records
+- Concurrent officers: 50+
+
+### Environment Variables Needed
+```env
+# Authentication
+JWT_SECRET=xxx
+SESSION_DURATION=86400
+
+# Database
+DATABASE_URL=postgresql://...
+REDIS_URL=redis://...
+
+# Solana
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+REGISTRY_PROGRAM_ID=xxx
+ADMIN_WALLET_PRIVATE_KEY=xxx
+
+# Storage
+DOCUMENT_BUCKET_URL=...
+ENCRYPTION_KEY=...
+```
+
+Deployment Requirements
+
+· Docker containerization
+· HTTPS mandatory
+· Automated backups (daily)
+· Monitoring: Prometheus + Grafana
+· Alerting for failed transactions
+
+Integration Points with Existing SDK
+
+1. SDK Submission Webhook
+
+When user submits via SDK:
+
+```
+SDK → Registry Program → Webhook → Dashboard DB
+```
+
+2. Status Query Endpoint
+
+SDK needs to query approval status:
+
+```typescript
+// SDK usage
+const status = await complianceSDK.getKycStatus(walletAddress);
+```
+
+3. Event Listening
+
+Dashboard listens to:
+
+· New submissions (webhook)
+· On-chain status changes (WebSocket)
+· Program upgrades (for maintenance mode)
+
+MVP vs Future Enhancements
+
+MVP Scope:
+
+· Basic approve/reject workflow
+· Manual review only
+· Single officer assignment
+· Email notifications
+· Basic audit trail
+
+Future Premium Features:
+
+· Automated risk scoring AI
+· Multi-officer workflows
+· Escalation paths
+· Advanced analytics
+· API for third-party integration
+· Custom rule engine
+· Batch processing
+· Mobile app
+
+Success Metrics
+
+· Average approval time: < 24 hours
+· Officer productivity: > 50 reviews/hour
+· System uptime: 99.9%
+· Error rate: < 0.1%
+· User satisfaction: > 4.5/5
+
+---
+
+Last Updated: 2025-12-23
+Owner: GitDigital-Products Team
+Status: Ready for Implementation
+
+```
+
+## **/docs/registry-ui-wireframes/wireframe-specifications.md**
+
+```markdown
+# Compliance Registry Dashboard - Wireframe Specifications
+
+## Screen 1: Login/Auth
+
+### Layout
+```
+
+┌─────────────────────────────────────────────────────┐
+││
+│[GitDigital Logo]                  │
+│COMPLIANCE REGISTRY                  │
+││
+│┌────────────────────────────────────────────┐    │
+││                                            │    │
+││  Email Address                            │    │
+││  ┌────────────────────────────────────┐   │    │
+││  │                                    │   │    │
+││  └────────────────────────────────────┘   │    │
+││                                            │    │
+││  Password                                 │    │
+││  ┌────────────────────────────────────┐   │    │
+││  │ •••••••••••••••••••••••••••••••••• │   │    │
+││  └────────────────────────────────────┘   │    │
+││                                            │    │
+││  [ ] Remember me                          │    │
+││                                            │    │
+││        [ SIGN IN ]                        │    │
+││                                            │    │
+││  Forgot password?                         │    │
+││                                            │    │
+│└────────────────────────────────────────────┘    │
+││
+│Need access? Contact administrator.              │
+││
+└─────────────────────────────────────────────────────┘
+
+```
+
+### Key Elements
+1. **Header:** Clean, professional with logo
+2. **Form Fields:** Email and password with clear labels
+3. **Remember Me:** Optional checkbox
+4. **Sign In Button:** Primary action button
+5. **Forgot Password:** Secondary action link
+6. **Help Text:** Contact information for access requests
+
+### Mobile Adaptation
+- Stack fields vertically
+- Larger touch targets
+- Responsive logo sizing
+
+## Screen 2: Pending Approvals Dashboard
+
+### Layout
+```
+
+┌─────────────────────────────────────────────────────────────┐
+│[Logo] Compliance Registry  👤 John Doe  🔔  ⚙️            │
+├─────────────────────────────────────────────────────────────┤
+│DASHBOARD > Pending Approvals (142)                         │
+││
+│┌─────────────────────────────────────────────────────────┐ │
+││ Search addresses...                     │ 🔍 Filter ▼ │ │
+│└─────────────────────────────────────────────────────────┘ │
+││
+│┌───┬─────────────────┬────────────┬────────┬────────────┐ │
+││ ✓ │ WALLET ADDRESS  │ SUBMITTED  │ RISK   │ DAYS      │ │
+│├───┼─────────────────┼────────────┼────────┼────────────┤ │
+││ □ │ 0x8a3f...c7d2   │ 2025-12-22 │ 🔴 High│ 2         │ │
+││   │                 │ 14:30 UTC  │        │           │ │
+│├───┼─────────────────┼────────────┼────────┼────────────┤ │
+││ □ │ 0x4b92...e8a1   │ 2025-12-22 │ 🟡 Med │ 1         │ │
+││   │                 │ 09:15 UTC  │        │           │ │
+│├───┼─────────────────┼────────────┼────────┼────────────┤ │
+││ □ │ 0xf7c1...9b34   │ 2025-12-21 │ 🟢 Low │ 3         │ │
+││   │                 │ 16:45 UTC  │        │           │ │
+│├───┼─────────────────┼────────────┼────────┼────────────┤ │
+││ □ │ 0x2d8a...5f67   │ 2025-12-21 │ 🔴 High│ 3         │ │
+││   │                 │ 11:20 UTC  │        │           │ │
+│└───┴─────────────────┴────────────┴────────┴────────────┘ │
+││
+│┌─────────────────────────────────────────────────────────┐ │
+││ Selected: 0                                             │ │
+││ [ APPROVE SELECTED ]  [ REJECT SELECTED ]  [ ASSIGN ]  │ │
+│└─────────────────────────────────────────────────────────┘ │
+││
+│← Previous   Page 1 of 29   Next →                         │
+│Showing 1-50 of 142 pending reviews                        │
+└─────────────────────────────────────────────────────────────┘
+
+```
+
+### Data Table Columns
+1. **Checkbox:** For bulk selection
+2. **Wallet Address:** Truncated with copy button on hover
+3. **Submitted:** Date and time in UTC
+4. **Risk:** Color-coded (Red/High, Yellow/Medium, Green/Low)
+5. **Days Pending:** Number of days awaiting review
+
+### Header Actions
+- User profile dropdown
+- Notifications bell
+- Settings gear icon
+- Breadcrumb navigation
+
+### Bulk Actions Bar
+- Shows count of selected items
+- Primary actions: Approve/Reject
+- Secondary: Assign to officer
+
+### Pagination
+- Standard previous/next
+- Page number display
+- Items per page selector (hidden in mobile)
+
+### Mobile Adaptation
+- Horizontal scrolling table
+- Cards view alternative
+- Swipe actions for approve/reject
+- Collapsible filter panel
+
+## Screen 3: Address Detail View
+
+### Layout
+```
+
+┌─────────────────────────────────────────────────────────────┐
+│[← Back]  Address Details  [APPROVE]  [REJECT]              │
+├─────────────────────────────────────────────────────────────┤
+││
+│┌─────────────────────────────────────────────────────────┐ │
+││ 0x8a3f9c2b5e1d4a7f6c8d3b2a1f4e7c6d5b8a3f9c2b          │ │
+││ Copy                                              📋   │ │
+│└─────────────────────────────────────────────────────────┘ │
+││
+│STATUS: Pending Review  •  Submitted: 2025-12-22 14:30 UTC │
+││
+│┌──────────────┬──────────────────────────────────────────┐ │
+││ Basic Info   │                                          │ │
+│├──────────────┼──────────────────────────────────────────┤ │
+││ Full Name    │ John A. Smith                           │ │
+││ Entity Type  │ Individual                              │ │
+││ Country      │ United States                           │ │
+││ Risk Level   │ 🔴 High                                 │ │
+││ PEP Status   │ No                                      │ │
+││ Sanctions    │ No matches found                        │ │
+│└──────────────┴──────────────────────────────────────────┘ │
+││
+│┌──────────────┬──────────────────────────────────────────┐ │
+││ Documents    │ [ID Front.jpg]   [ID Back.jpg]          │ │
+││              │ [Proof of Address.pdf]                  │ │
+││              │ View All Documents (4) →                │ │
+│└──────────────┴──────────────────────────────────────────┘ │
+││
+│┌─────────────────────────────────────────────────────────┐ │
+││ Risk Factors                                            │ │
+││ • High-risk country jurisdiction                       │ │
+││ • Large initial deposit (> $10,000)                    │ │
+││ • Multiple addresses linked to submission              │ │
+││ • No prior transaction history                         │ │
+│└─────────────────────────────────────────────────────────┘ │
+││
+│┌─────────────────────────────────────────────────────────┐ │
+││ Decision Notes                                         │ │
+││ ┌───────────────────────────────────────────────────┐ │ │
+││ │ Add notes for your decision...                    │ │ │
+││ └───────────────────────────────────────────────────┘ │ │
+││ (Required for rejections)                             │ │ │
+│└─────────────────────────────────────────────────────────┘ │
+││
+│┌─────────────────────────────────────────────────────────┐ │
+││ Audit Trail                                            │ │ │
+││ 2025-12-22 14:30 - Submission received                │ │ │
+││ 2025-12-22 15:45 - Automated risk check completed     │ │ │
+││ 2025-12-23 09:10 - Assigned to Officer John Doe       │ │ │
+│└─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+
+```
+
+### Tab Structure (Alternative Layout)
+For richer detail view, consider tabs:
+1. **Overview:** Basic info + decision tools
+2. **Documents:** All uploaded files
+3. **Risk Analysis:** Detailed risk breakdown
+4. **History:** Complete audit trail
+5. **Notes:** Internal comments thread
+
+### Document Viewer
+- Thumbnail grid for images
+- PDF preview capability
+- Download all option
+- Verification status per document
+
+### Decision Flow
+1. Officer reviews all information
+2. Adds optional notes (mandatory for rejections)
+3. Clicks Approve or Reject
+4. Confirmation modal appears
+5. Status updates in real-time
+
+### Mobile Adaptation
+- Vertical tab navigation
+- Swipeable document gallery
+- Bottom-fixed action buttons
+- Collapsible sections
+
+## Design System Guidelines
+
+### Colors
+- **Primary:** #2563EB (Blue for actions)
+- **Success:** #059669 (Green for approved)
+- **Error:** #DC2626 (Red for rejected/review)
+- **Warning:** #D97706 (Amber for medium risk)
+- **Neutral:** #6B7280 (Gray for text)
+
+### Typography
+- **Headers:** Inter, 16-24px, SemiBold
+- **Body:** Inter, 14-16px, Regular
+- **Code:** JetBrains Mono, 13px, wallet addresses
+
+### Spacing
+- Base unit: 4px
+- Section padding: 24px
+- Card padding: 16px
+- Element margin: 8px
+
+### Interactive States
+- **Hover:** Light gray background (#F3F4F6)
+- **Active:** Slight scale reduction (0.98)
+- **Disabled:** 40% opacity
+- **Focus:** Blue outline (#3B82F6)
+
+### Icons (Feather Icons Set)
+- Search: `search`
+- Filter: `filter`
+- Approve: `check-circle`
+- Reject: `x-circle`
+- Copy: `copy`
+- Download: `download`
+- Alert: `alert-triangle`
+- User: `user`
+
+## User Flow Diagram
+
+```
+
+Login → Dashboard → [Select Record] → Detail View
+↓          ↓                   ↓
+Auth Error  Bulk Action       Make Decision
+↓          ↓
+Approve    Reject
+↓          ↓
+Update Status  Add Reason
+↓          ↓
+Return to Dashboard
+
+```
+
+## Accessibility Requirements
+
+### WCAG 2.1 AA Compliance
+- **Color Contrast:** Minimum 4.5:1
+- **Keyboard Navigation:** Full tab support
+- **Screen Readers:** ARIA labels for all interactive elements
+- **Focus Management:** Logical tab order
+- **Error Identification:** Clear error messages
+
+### Specific Considerations
+1. **Table Accessibility:**
+   - Row headers for screen readers
+   - Sortable column announcements
+   - Pagination announcement on change
+
+2. **Form Accessibility:**
+   - Field labels associated with inputs
+   - Error messages linked to fields
+   - Required field indicators
+
+3. **Color Blindness:**
+   - Risk levels use both color and icons
+   - Status indicators use both color and text
+   - Charts have patterns in addition to colors
+
+## Performance Considerations
+
+### Loading States
+- **Initial load:** Skeleton screens
+- **Data fetching:** Progressive loading
+- **Image documents:** Lazy loading
+- **Large lists:** Virtual scrolling
+
+### Caching Strategy
+- **Session storage:** User preferences
+- **Local storage:** Recent searches
+- **Service worker:** Static assets
+- **CDN:** Document thumbnails
+
+---
+
+*Wireframes prepared for GitDigital Products KYC SDK*
+*Version 1.0 • 2025-12-23*
+```
