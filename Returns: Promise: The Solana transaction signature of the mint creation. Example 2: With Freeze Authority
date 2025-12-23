@@ -1,0 +1,12 @@
+const adminWallet = Keypair.generate();
+const mintTx = await sdk.initializeCompliantMint({
+  payer: wallet.payer,
+  mintAuthority: wallet.publicKey,
+  freezeAuthority: adminWallet.publicKey,
+  decimals: 9,
+  initialKycData: {
+    kycProvider: 'jumio',
+    requiredLevel: 'enhanced',
+    jurisdiction: ['US', 'EU']
+  }
+});
