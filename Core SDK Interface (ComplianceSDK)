@@ -1,0 +1,24 @@
+import { Connection, PublicKey, Signer } from '@solana/web3.js';
+
+/**
+ * Configuration required to initialize the Compliance SDK.
+ * @interface ComplianceSdkConfig
+ */
+interface ComplianceSdkConfig {
+  /** Connection to the Solana cluster (e.g., devnet, mainnet-beta) */
+  connection: Connection;
+  /** The program ID (address) of the deployed Transfer Hook program */
+  programId: PublicKey;
+  /** The Token Program ID (should be `TOKEN_2022_PROGRAM_ID`) */
+  tokenProgramId?: PublicKey;
+}
+
+/**
+ * Main SDK class for KYC compliance operations on Solana.
+ * Provides methods to initialize compliant mints and execute verified transfers.
+ * @class ComplianceSDK
+ */
+export class ComplianceSDK {
+  constructor(config: ComplianceSdkConfig);
+  // ... public methods documented below
+}
