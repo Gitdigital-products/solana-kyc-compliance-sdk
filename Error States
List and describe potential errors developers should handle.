@@ -1,0 +1,7 @@
+WalletNotConnectedError: Thrown when an operation requires a signer but none is provided.
+
+· TransactionFailedError: A generic error for failed blockchain transactions (includes RPC and program errors).
+
+· TransferDeniedByHookError: A specific error thrown when the transfer hook program logic rejects the transfer. This is crucial for compliance flows.
+
+· AccountNotFoundError: Thrown if a required account (like the ExtraAccountMetaList PDA) is missing.
