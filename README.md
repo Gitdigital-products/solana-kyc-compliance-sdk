@@ -84,3 +84,20 @@ Deploy to Devnet
 anchor deploy --provider.cluster devnet
 
 If a non-compliant transfer fails, congrats — enforcement is working.
+Repository Structure
+/programs        → On-chain Solana programs
+/sdk             → TypeScript SDK
+/examples        → Minimal integration examples
+/tests           → Program and SDK tests
+/docs            → Architecture and guides
+/scripts         → Deployment and utilities
+
+Documentation
+
+Getting Started
+
+Architecture Overview
+
+SDK Usage
+
+Examples
