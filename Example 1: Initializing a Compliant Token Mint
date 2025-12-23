@@ -1,0 +1,14 @@
+  // Initialize the SDK
+  const sdk = new ComplianceSDK({
+    connection: new Connection('https://api.devnet.solana.com'),
+    programId: new PublicKey('YOUR_HOOK_PROGRAM_ID'),
+  });
+  
+  // Create a new compliant mint
+  const mintTx = await sdk.initializeCompliantMint({
+    payer: wallet.payer, // Signer
+    mintAuthority: wallet.publicKey,
+    decimals: 6,
+    initialKycData: { /* ... */ },
+  });
+  console.log('Mint created:', mintTx);
