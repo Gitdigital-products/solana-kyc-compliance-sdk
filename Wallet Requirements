@@ -1,0 +1,17 @@
+All transactions require:
+
+A connected Solana wallet (Phantom, Solflare, etc.)
+
+SOL for transaction fees
+
+Proper token account initialization
+
+Best Practices
+
+Always wrap SDK calls in try-catch blocks
+
+Check transfer status after transaction submission
+
+Cache KYC proofs when possible to reduce gas costs
+
+Implement retry logic for transient network failures
