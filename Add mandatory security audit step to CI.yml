@@ -1,0 +1,231 @@
+ADD security audit steps to the CI workflow for the Solana KYC Compliance SDK repository. Here are the necessary files and changes:
+
+1. Updated CI Workflow (.github/workflows/ci.yml)
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Setup Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+        components: clippy, rustfmt
+        cache: true
+    
+    # Security Audit Steps
+    - name: Security audit (Rust dependencies)
+      run: |
+        cargo install cargo-audit
+        cargo audit
+      env:
+        RUST_BACKTRACE: 1
+    
+    - name: Security audit (Node.js dependencies)
+      run: npm audit --audit-level=high
+      continue-on-error: false
+    
+    # Existing build and test steps
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build
+      run: npm run build
+    
+    - name: Test
+      run: npm test
+    
+    - name: Lint
+      run: npm run lint
+    
+    - name: Check formatting
+      run: npm run fmt:check
+    
+    - name: Clippy check
+      run: cargo clippy -- -D warnings
+    
+    - name: Rust tests
+      run: cargo test --verbose
+```
+
+2. Alternative Configuration with Warning Levels
+
+If you want to allow medium/low vulnerabilities with warnings, use this version:
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Setup Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+        components: clippy, rustfmt
+        cache: true
+    
+    # Security Audit Steps with Warning Levels
+    - name: Security audit (Rust dependencies)
+      run: |
+        cargo install cargo-audit
+        # Run audit but continue on error to check exit code
+        cargo audit || (echo "Rust audit found issues" && exit 1)
+      env:
+        RUST_BACKTRACE: 1
+    
+    - name: Security audit (Node.js dependencies - Critical/High)
+      id: npm-audit
+      run: |
+        # Run audit with high threshold
+        if npm audit --audit-level=high 2>/dev/null; then
+          echo "No critical/high vulnerabilities found"
+        else
+          echo "Critical or high vulnerabilities found"
+          echo "::warning::Critical or high vulnerabilities found in npm dependencies"
+          # Check if we should fail based on PR target branch
+          if [[ "${{ github.event.pull_request.base.ref }}" == "main" || "${{ github.event.pull_request.base.ref }}" == "develop" ]]; then
+            exit 1
+          fi
+        fi
+    
+    - name: Security audit (Node.js dependencies - Medium/Low)
+      run: npm audit --audit-level=moderate || echo "Medium or low vulnerabilities found (warning only)"
+      continue-on-error: true
+    
+    # Existing build and test steps
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build
+      run: npm run build
+    
+    - name: Test
+      run: npm test
+    
+    - name: Lint
+      run: npm run lint
+    
+    - name: Check formatting
+      run: npm run fmt:check
+    
+    - name: Clippy check
+      run: cargo clippy -- -D warnings
+    
+    - name: Rust tests
+      run: cargo test --verbose
+```
+
+3. Test Files for Vulnerable Dependencies
+
+To test the security audit, create these test files:
+
+Test PR with vulnerable Rust dependency (Cargo.toml test snippet):
+
+```toml
+[dependencies]
+# Known vulnerable version for testing
+time = "0.1.0"  # Has RUSTSEC-2020-0071
+```
+
+Test PR with vulnerable npm dependency (package.json test snippet):
+
+```json
+{
+  "dependencies": {
+    "lodash": "4.17.15"  # Has known vulnerabilities in older versions
+  }
+}
+```
+
+4. Script to Create Test Branch with Vulnerabilities
+
+Create a script to test the security audits:
+
+```bash
+#!/bin/bash
+# create-test-vulnerabilities.sh
+git checkout -b test/security-audit-ci
+echo "Testing security audit CI integration"
+
+# Add vulnerable dependency to Cargo.toml for Rust audit test
+sed -i '/\[dependencies\]/a\time = "0.1.0" # Test vulnerable dependency' Cargo.toml
+
+# Add vulnerable dependency to package.json for npm audit test
+npm install lodash@4.17.15 --save
+
+# Commit changes
+git add .
+git commit -m "test: Add vulnerable dependencies to test security audit CI"
+
+# Push to origin
+git push origin test/security-audit-ci
+
+echo "Created test branch with vulnerable dependencies"
+echo "Create a PR from test/security-audit-ci to main to test security audits"
+```
+
+5. Instructions for Implementation
+
+1. Update CI Workflow:
+   · Copy the updated .github/workflows/ci.yml to your repository
+   · Choose either the strict version (fails on any vulnerabilities) or the warning version
+2. Test the Implementation:
+   ```bash
+   # Make the test script executable
+   chmod +x create-test-vulnerabilities.sh
+   
+   # Run the test script
+   ./create-test-vulnerabilities.sh
+   
+   # Create a PR from the test branch to main
+   ```
+3. Expected Results:
+   · The CI workflow should fail when critical/high vulnerabilities are found
+   · For medium/low vulnerabilities, you'll see warnings (if using the warning version)
+   · Both Rust and npm audits will run on every PR to main/develop branches
+4. Cleanup After Testing:
+   · Remove the test branch after verification
+   · Revert any test dependency changes
+
+Key Features:
+
+1. Rust Security Audit: Uses cargo-audit to check Rust dependencies for known vulnerabilities
+2. npm Security Audit: Uses npm audit --audit-level=high to check Node.js dependencies
+3. Branch Protection: Runs on PRs to both main and develop branches
+4. Fail Conditions: Fails on critical/high vulnerabilities, warns on medium/low (configurable)
+5. Integration: Seamlessly integrates with existing CI steps
