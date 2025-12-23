@@ -195,3 +195,46 @@ Unstable:
 
 # Security Policy
 If you discover a vulnerability, email ricksonlinebusinesses425@outlook.com. Do not file a public issue before it is patched.
+
+
+# Security Policy
+
+The Solana KYC Compliance SDK is security-sensitive infrastructure.
+
+Please treat it accordingly.
+
+---
+
+## Reporting a Vulnerability
+
+**Do not open public GitHub issues for security concerns.**
+
+If you believe you have found a vulnerability, please report it privately.
+
+**Email:** security@gitdigital.io  
+(Or ricks.online.businesses425@gmail.com )
+
+---
+
+## Scope
+
+In scope:
+- On-chain programs
+- Compliance enforcement logic
+- Registry and attestation validation
+- SDK interactions with on-chain programs
+
+Out of scope:
+- Off-chain KYC providers
+- Risk scoring algorithms
+- Third-party services
+
+---
+
+## Disclosure Policy
+
+- We aim to acknowledge reports within 72 hours
+- Fixes will be prioritized based on severity
+- Public disclosure will occur only after mitigation
+
+Thank you for helping keep this project secure.
