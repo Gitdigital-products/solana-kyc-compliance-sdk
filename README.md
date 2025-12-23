@@ -12,7 +12,7 @@
 
 ### Immediate Actions (This Week):
 -   [ ] **Finalize MVP Feature Set:** Lock down v1.0 features (e.g., Transfer Hook, Registry UI, Basic Admin Dashboard).
--   [ ] **Create GitHub Project Board:** Link it here: `[Link to Project Board]`. Scope Epics: `SDK Finalization`, `Pilot Deployment`, `Documentation`.
+-   [ ] **Create GitHub Project Board:** Link it here: `[KYC SDK - MVP Launch]`. Scope Epics: `SDK Finalization`, `Pilot Deployment`, `Documentation`.
 -   [ ] **Harden CI/CD Pipeline:** Mandatory steps: `cargo test` (Rust), `npm test` (TS), `cargo fmt --check`, `cargo clippy`, and security audit on PR to `main`.
 
 ### 📁 Repository Structure & Purpose
