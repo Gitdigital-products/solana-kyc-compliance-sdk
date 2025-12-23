@@ -6,7 +6,7 @@
 
 ## 🎯 PHASE 1 EXECUTION: CLARITY & CORE INFRA
 **This repository is now a defined business unit.**
--   **Owner:** *[RickCreator87]* |
+-   **Owner:** *[GitDigital-Products]* |
  **Tech Lead:** *[RickCreator87]*
 -   **Target MVP Launch:** *[Set Date: e.g., Q2 2025]*
 
