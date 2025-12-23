@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "docs": "typedoc",
+    "docs:serve": "npx serve docs/api",
+    "docs:watch": "typedoc --watch",
+    "test": "jest",
+    "test:unit": "jest tests/*.test.ts",
+    "test:integration": "jest tests/integration/*.test.ts --runInBand",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --maxWorkers=2"
+  }
+}
