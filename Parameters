@@ -1,0 +1,5 @@
+payer (Signer): The wallet that pays for and signs the mint creation transaction.
+· mintAuthority (PublicKey): The public key that will have authority over the new mint.
+· freezeAuthority (PublicKey | null, optional): The freeze authority for the mint.
+· decimals (number): The number of decimal places for the token (0-9).
+· initialKycData (KycConfig): Initial KYC configuration data.
