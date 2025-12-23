@@ -1,0 +1,21 @@
+import { ComplianceSDK } from '@gitdigital/solana-kyc-compliance-sdk';
+import { Connection, clusterApiUrl } from '@solana/web3.js';
+
+async function main() {
+  const connection = new Connection(clusterApiUrl('devnet'));
+  const sdk = new ComplianceSDK({
+    connection,
+    programId: new PublicKey('YOUR_PROGRAM_ID')
+  });
+
+  // 1. Create compliant mint
+  const mintTx = await sdk.initializeCompliantMint({/* ... */});
+  
+  // 2. Execute compliant transfer
+  const transferTx = await sdk.transferCheckedWithHook({/* ... */});
+  
+  // 3. Check status
+  const status = await sdk.checkTransferStatus(transferTx);
+  
+  console.log('Workflow completed:', { mintTx, transferTx, status });
+}
