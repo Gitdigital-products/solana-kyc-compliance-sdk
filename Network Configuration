@@ -1,0 +1,5 @@
+The SDK supports all Solana networks:
+
+· Devnet: clusterApiUrl('devnet') (recommended for testing)
+· Testnet: clusterApiUrl('testnet')
+· Mainnet: clusterApiUrl('mainnet-beta')
