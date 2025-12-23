@@ -1,4 +1,4 @@
-
+[Home](/) | [Getting Started](/getting-started) | [API](/api) | [Examples](/examples) | [GitHub](…)
 # Solana KYC Compliance SDK
 
 ### Purpose
