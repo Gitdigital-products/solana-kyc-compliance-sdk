@@ -1,0 +1,125 @@
+
+
+Current Status Analysis
+
+✅ What works well:
+
+1. Login screen has clean enterprise aesthetics with proper form elements
+2. Address detail has clear sections for basic info, notes, and audit trail
+3. Dashboard shows essential table structure with filtering and bulk actions
+4. All three cover the core acceptance criteria requirements
+
+🔧 Minor improvements needed:
+
+1. Dashboard table needs more realistic wallet address variety (currently shows duplicates)
+2. Address detail could benefit from a document upload section
+3. Missing navigation elements in the header
+
+Here's how to structure these files:
+
+/docs/registry-ui-wireframes/README.md
+
+```markdown
+# Compliance Registry Dashboard - Wireframes
+
+## Core Screens
+
+### 1. Login/Auth Screen
+![Login Screen](./01-login-auth.jpeg)
+
+**Purpose:** Secure authentication for compliance officers
+- Email/password authentication
+- "Remember me" functionality
+- Forgot password flow
+- Administrator contact information
+
+### 2. Pending Approvals Dashboard  
+![Dashboard](./02-pending-approvals.jpeg)
+
+**Purpose:** Main interface for reviewing KYC submissions
+- Search and filter capabilities
+- Table view with wallet addresses, submission times, risk levels
+- Bulk approve/reject actions
+- Pagination for large datasets
+
+### 3. Address Detail View
+![Detail View](./03-address-detail.jpeg)
+
+**Purpose:** Detailed review of individual submissions
+- Full wallet address with copy functionality
+- Basic KYC information (name, entity type, country)
+- Risk assessment display
+- Decision notes input
+- Audit trail visibility
+
+## File Structure
+```
+
+/docs/registry-ui-wireframes/
+├──01-login-auth.jpeg
+├──02-pending-approvals.jpeg
+├── 03-address-detail.jpeg
+└──README.md (this file)
+
+```
+
+## Usage Notes
+- These wireframes represent the MVP version
+- All screens follow enterprise compliance software patterns
+- Color coding for risk levels: ● High (Red), ● Medium (Yellow), ● Low (Green)
+- Mobile-responsive design considerations are documented in `/docs/registry-requirements.md`
+
+## Next Steps
+1. Review with stakeholders for feedback
+2. Create high-fidelity mockups based on these wireframes
+3. Begin frontend implementation using React/TypeScript
+```
+
+Suggested File Renaming for Consistency
+
+Rename your files to:
+
+· copilot_image_1766503912775.jpeg → 01-login-auth.jpeg
+· image_1766504112776.jpeg → 02-pending-approvals.jpeg
+· image_1766504303723.jpeg → 03-address-detail.jpeg
+
+Quick Enhancements You Could Request
+
+If you want slightly improved versions, here are targeted prompts:
+
+```markdown
+**For Dashboard Table Fix:**
+"Update the pending approvals wireframe table: replace duplicate '0x8a3f....c7d2' addresses with 4 unique wallet addresses like '0x4b92...e8a1', '0xf7c1...9b34', '0x2d8a...5f67', '0x9e3c...a8b2'. Add a user profile icon in top right corner."
+
+**For Address Detail Enhancement:**
+"Add a 'Documents' section to the address detail wireframe showing 3 document thumbnails labeled 'ID Front.jpg', 'ID Back.jpg', 'Proof of Address.pdf' and a 'View All' link. Move 'Audit Trail' to its own card."
+```
+
+Technical Implementation Notes
+
+Based on these wireframes, here are key implementation details to add to your requirements:
+
+1. Color Scheme Implementation:
+   ```css
+   /* Risk level colors */
+   .risk-high { color: #dc2626; }    /* Red */
+   .risk-medium { color: #d97706; }  /* Amber */
+   .risk-low { color: #059669; }     /* Green */
+   ```
+2. Table Column Widths:
+   · Wallet Address: 35%
+   · Submitted: 25%
+   · Risk: 15%
+   · Days Pending: 10%
+   · Checkbox: 5%
+3. Responsive Breakpoints:
+   · Desktop: > 1024px (table view)
+   · Tablet: 768px-1024px (condensed table)
+   · Mobile: < 768px (card view)
+
+Are these wireframes acceptable for your MVP documentation? If so, I recommend:
+
+1. Renaming the files as suggested above
+2. Creating the README.md file
+3. Proceeding with the technical implementation based on the requirements document
+
