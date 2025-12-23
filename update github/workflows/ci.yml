@@ -1,0 +1,255 @@
+name: KYC SDK CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  # JOB 1: SECURITY AUDIT - Runs first and fast
+  security-audit:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Rust for Security Audit
+        uses: ./.github/actions/Setup-node
+        with:
+          node-version: '18'
+          
+      - name: Audit Rust Dependencies
+        run: |
+          cargo install cargo-audit
+          cargo audit
+          
+      - name: Audit Node Dependencies
+        run: |
+          cd sdk
+          npm audit --audit-level=high
+          
+      - name: Check for Secrets in Code
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: .gitleaks.toml
+
+  # JOB 2: RUST BUILD & TEST - Core Smart Contract Verification
+  rust-build:
+    name: ⚙️ Rust Build & Test
+    runs-on: ubuntu-latest
+    needs: security-audit
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Install Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+          components: rustfmt, clippy
+          
+      - name: Cache Cargo Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          
+      - name: Build Release Mode
+        run: |
+          cd program
+          cargo build --release --verbose
+          
+      - name: Run Unit Tests
+        run: |
+          cd program
+          cargo test --verbose
+          
+      - name: Run Integration Tests
+        run: |
+          cd tests
+          cargo test --verbose
+          
+      - name: Check Formatting
+        run: |
+          cd program
+          cargo fmt --all -- --check
+          
+      - name: Lint with Clippy
+        run: |
+          cd program
+          cargo clippy -- -D warnings
+
+  # JOB 3: TYPESCRIPT SDK VALIDATION
+  typescript-validation:
+    name: 📦 TypeScript SDK
+    runs-on: ubuntu-latest
+    needs: security-audit
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: ./.github/actions/Setup-node
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: sdk/package-lock.json
+          
+      - name: Install Dependencies
+        run: |
+          cd sdk
+          npm ci
+          
+      - name: Type Check
+        run: |
+          cd sdk
+          npx tsc --noEmit --project tsconfig.json
+          
+      - name: Run Tests
+        run: |
+          cd sdk
+          npm test -- --coverage
+          
+      - name: Lint Code
+        run: |
+          cd sdk
+          npx eslint . --ext .ts,.tsx
+          
+      - name: Build SDK
+        run: |
+          cd sdk
+          npm run build
+
+  # JOB 4: COMPLIANCE REGISTRY (Frontend/UI)
+  registry-validation:
+    name: 🖥️ Compliance Registry
+    runs-on: ubuntu-latest
+    needs: security-audit
+    timeout-minutes: 8
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js for Registry
+        uses: ./.github/actions/Setup-node
+        with:
+          node-version: '18'
+          
+      - name: Validate Registry (if exists)
+        run: |
+          if [ -d "registry" ]; then
+            cd registry
+            echo "Registry directory found, running validation..."
+            npm ci
+            npm run build
+          else
+            echo "No registry directory found, skipping..."
+          fi
+
+  # JOB 5: DEPLOYMENT GATES - Only runs on main branch
+  deployment-gate:
+    name: 🚀 Deployment Validation
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [rust-build, typescript-validation, registry-validation]
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Validate Deployment Readiness
+        run: |
+          echo "🚀 All checks passed! Ready for deployment."
+          echo "Deployment checklist:"
+          echo "1. ✅ Security audit passed"
+          echo "2. ✅ Rust program built and tested"
+          echo "3. ✅ TypeScript SDK validated"
+          echo "4. ✅ Registry UI built (if applicable)"
+          echo ""
+          echo "Next: Trigger deployment to staging/production"
+          
+      - name: Create Deployment Tag
+        if: success()
+        run: |
+          VERSION="v0.1.0-$(date +%Y%m%d)-${GITHUB_SHA:0:7}"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Creating version tag: ${VERSION}"
+          
+      - name: Generate Release Notes
+        if: success()
+        run: |
+          echo "## KYC SDK Release ${VERSION}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "### Changes since last release:" >> release_notes.md
+          echo "- Security audit: PASSED" >> release_notes.md
+          echo "- Rust program tests: PASSED" >> release_notes.md
+          echo "- TypeScript SDK build: PASSED" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "Deployment approved by CI/CD pipeline."
+          
+      - name: Upload Release Artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: kyc-sdk-release-${{ env.VERSION }}
+          path: |
+            program/target/release/
+            sdk/dist/
+            release_notes.md
+
+  # JOB 6: NOTIFICATIONS - Final status reporting
+  notifications:
+    name: 📢 Pipeline Status
+    runs-on: ubuntu-latest
+    needs: [security-audit, rust-build, typescript-validation, registry-validation, deployment-gate]
+    if: always() # Always run, even if previous jobs fail
+    
+    steps:
+      - name: Determine Pipeline Status
+        id: pipeline-status
+        run: |
+          if [[ "${{ needs.security-audit.result }}" == "success" && 
+                "${{ needs.rust-build.result }}" == "success" && 
+                "${{ needs.typescript-validation.result }}" == "success" ]]; then
+            echo "STATUS=SUCCESS" >> $GITHUB_ENV
+            echo "EMOJI=✅" >> $GITHUB_ENV
+          else
+            echo "STATUS=FAILED" >> $GITHUB_ENV
+            echo "EMOJI=❌" >> $GITHUB_ENV
+          fi
+          
+      - name: Send Status to Slack (Optional)
+        if: env.STATUS == 'FAILED'
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "${{ env.EMOJI }} KYC SDK Pipeline ${{ env.STATUS }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*${{ env.EMOJI }} KYC SDK CI/CD Pipeline ${{ env.STATUS }}*\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref }}\nCommit: ${{ github.sha }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
