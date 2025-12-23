@@ -1,0 +1,10 @@
+  // Assume `compliantMint` is the mint created above
+  const transferTx = await sdk.transferCheckedWithHook({
+    source: sourceTokenAccount,
+    mint: compliantMint,
+    destination: destTokenAccount,
+    owner: wallet, // Signer of the source account
+    amount: 100,
+    kycProof: [ /* Valid KYC proof */ ],
+  });
+  console.log('Transfer succeeded:', transferTx);
