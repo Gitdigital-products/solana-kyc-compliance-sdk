@@ -1,0 +1,11 @@
+  /**
+   * Creates a new token mint with the Transfer Hook extension enabled for compliance.
+   * This mint will invoke the hook program on every transfer.
+   * @param {InitializeCompliantMintParams} params - Parameters for mint creation.
+   * @returns {Promise<TransactionSignature>} The transaction signature of the mint creation.
+   * @throws {WalletNotConnectedError} If no payer is connected.
+   * @throws {TransactionFailedError} If the blockchain transaction fails.
+   */
+  async initializeCompliantMint(
+    params: InitializeCompliantMintParams
+  ): Promise<TransactionSignature>;
