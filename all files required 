@@ -1,0 +1,542 @@
+Step 1: Create All Required Files
+
+First, create the directory structure and files:
+
+```bash
+# Navigate to your repository
+cd solana-kyc-compliance-sdk
+
+# Create the .github directory structure
+mkdir -p .github/workflows
+mkdir -p .github/ISSUE_TEMPLATE
+
+# Create CODEOWNERS file
+cat > .github/CODEOWNERS << 'EOF'
+# Default owners for entire repository
+*       @Gitdigital-products @RickCreator87
+
+# Specific file/directory ownership
+/program/     @RickCreator87             # On-chain program - tech lead
+/sdk/         @RickCreator87             # TypeScript SDK - tech lead
+/registry/    @Gitdigital-products       # Compliance registry - business owner
+/.github/     @Gitdigital-products       # GitHub workflows and settings
+
+# Test files - both review
+/tests/       @RickCreator87 @Gitdigital-products
+
+# Documentation
+/docs/        @Gitdigital-products
+README.md     @Gitdigital-products @RickCreator87
+CONTRIBUTING.md @Gitdigital-products @RickCreator87
+EOF
+
+# Create Pull Request Template
+cat > .github/PULL_REQUEST_TEMPLATE.md << 'EOF'
+# Solana KYC Compliance SDK - Pull Request
+
+## Description
+**Please describe the changes introduced by this PR:**
+
+[Provide a clear and concise description of what this PR does]
+
+## Type of Change
+- [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
+- [ ] ✨ New feature (non-breaking change that adds functionality)
+- [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] 📚 Documentation update
+- [ ] 🔧 Refactoring (no functional changes)
+- [ ] 🧪 Test updates
+- [ ] ⚡ Performance improvement
+
+## Compliance Impact
+**Does this PR affect compliance logic?**
+- [ ] ✅ Yes - requires compliance review
+- [ ] ❌ No
+
+**If yes, describe the impact on KYC/AML functionality:**
+[Describe any changes to compliance rules, KYC checks, or AML logic]
+
+## Testing Performed
+**Please check all that apply:**
+- [ ] Rust unit tests (`cargo test` in /program/)
+- [ ] TypeScript tests (`npm test` in /sdk/)
+- [ ] Integration tests
+- [ ] Manual testing with devnet
+- [ ] Security audit completed
+- [ ] Benchmarks updated (if performance related)
+
+**Test Results:**
+[Attach test results or describe manual testing performed]
+
+## Checklist
+- [ ] My code follows the project's coding standards
+- [ ] I have run `cargo fmt --check` and `cargo clippy`
+- [ ] I have run `npm run lint` and `npm run type-check` (TypeScript)
+- [ ] I have added/updated relevant documentation
+- [ ] I have added/updated relevant tests
+- [ ] I have verified the CI pipeline passes
+- [ ] Changes are backward compatible (if applicable)
+
+## Required Approvals
+**Based on CODEOWNERS:**
+- [ ] @RickCreator87 (Tech Lead - required for all technical changes)
+- [ ] @Gitdigital-products (Code Owner - required for business logic)
+
+**Additional approvals if applicable:**
+- [ ] Compliance review (if affecting compliance logic)
+
+## Screenshots/Logs
+[If applicable, add screenshots or logs to demonstrate the changes]
+
+## Related Issues
+Closes #[issue number]
+References #[issue number]
+
+## Deployment Notes
+[Any special deployment instructions or migration steps needed]
+EOF
+
+# Create Review Guidelines
+cat > .github/REVIEW_GUIDELINES.md << 'EOF'
+# Code Review Guidelines
+
+## Review Priority Levels
+- **P0 (Critical)**: Security issues, compliance bypasses, breaking changes
+- **P1 (High)**: Core functionality, API changes, performance regressions
+- **P2 (Medium)**: Features, improvements, documentation
+- **P3 (Low)**: Minor fixes, refactoring, dependencies
+
+## For Tech Lead (@RickCreator87)
+### Technical Requirements
+- [ ] **Security**: No security vulnerabilities introduced
+- [ ] **Performance**: Efficient use of compute units and storage
+- [ ] **Architecture**: Follows Solana/Anchor best practices
+- [ ] **Testing**: Adequate test coverage for new functionality
+- [ ] **Error Handling**: Proper error messages and edge case handling
+- [ ] **Compatibility**: Backward compatible or migration plan exists
+
+### Compliance-Specific Checks
+- [ ] **No Backdoors**: Verify no unintended compliance bypasses
+- [ ] **Audit Trails**: Audit events properly emitted
+- [ ] **Data Integrity**: KYC data validation and sanitization
+- [ ] **Gas Optimization**: Compliance checks don't exceed compute budget
+
+## For Code Owner (@Gitdigital-products)
+### Business Requirements
+- [ ] **Roadmap Alignment**: Changes align with product strategy
+- [ ] **Compliance**: Meets regulatory requirements
+- [ ] **User Experience**: No negative impact on institutional adoption
+- [ ] **Documentation**: Public API changes properly documented
+- [ ] **Timeline**: Fits within release schedule if time-sensitive
+
+## Review Timeline Expectations
+- **P0**: Review within 24 hours
+- **P1**: Review within 48 hours
+- **P2**: Review within 72 hours
+- **P3**: Review within 1 week
+
+## Common Review Comments Template
+```
+
+Security Concerns
+
+· Potential vulnerability: [describe]
+· Missing validation: [describe]
+
+Code Quality
+
+· Code duplication: [location]
+· Complex logic could be simplified: [location]
+
+Testing
+
+· Missing test case for: [scenario]
+· Mock could be improved: [location]
+
+Documentation
+
+· API documentation needed: [endpoint]
+· Example code needed: [use case]
+
+```
+
+## Approval Criteria
+- ✅ All security concerns addressed
+- ✅ All tests pass
+- ✅ Documentation updated if needed
+- ✅ No breaking changes without migration path
+- ✅ Performance impact acceptable
+EOF
+
+# Create Review Workflow
+cat > .github/workflows/enforce-reviews.yml << 'EOF'
+name: Enforce Review Requirements
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  check-approvals:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Check for required reviewers
+        uses: actions/github-script@v6
+        id: check-reviews
+        with:
+          script: |
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+            
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+            
+            // Get changed files
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+            
+            // Determine required reviewers based on CODEOWNERS logic
+            let requiresTechLead = false;
+            let requiresCodeOwner = false;
+            
+            // Check which directories are modified
+            const modifiedDirs = files.map(file => {
+              if (file.filename.startsWith('program/')) return 'program';
+              if (file.filename.startsWith('sdk/')) return 'sdk';
+              if (file.filename.startsWith('registry/')) return 'registry';
+              if (file.filename.includes('compliance') || file.filename.includes('KYC') || file.filename.includes('AML')) return 'compliance';
+              return 'other';
+            });
+            
+            // Set requirements based on modified directories
+            if (modifiedDirs.includes('program') || modifiedDirs.includes('sdk') || modifiedDirs.includes('compliance')) {
+              requiresTechLead = true;
+            }
+            if (modifiedDirs.includes('registry') || modifiedDirs.includes('compliance')) {
+              requiresCodeOwner = true;
+            }
+            
+            // Check current approvals
+            const approvedUsers = new Set();
+            reviews.forEach(review => {
+              if (review.state === 'APPROVED') {
+                approvedUsers.add(review.user.login);
+              }
+            });
+            
+            const hasTechLead = approvedUsers.has('RickCreator87');
+            const hasCodeOwner = approvedUsers.has('Gitdigital-products');
+            
+            // Determine status
+            const missing = [];
+            if (requiresTechLead && !hasTechLead) missing.push('@RickCreator87 (Tech Lead)');
+            if (requiresCodeOwner && !hasCodeOwner) missing.push('@Gitdigital-products (Code Owner)');
+            
+            if (missing.length > 0) {
+              // Create status check
+              await github.rest.repos.createCommitStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha: pr.head.sha,
+                state: 'failure',
+                context: 'Required Reviews',
+                description: `Missing reviews from: ${missing.join(', ')}`
+              });
+              
+              // Add comment if PR is ready for review
+              if (context.payload.action === 'ready_for_review' || context.payload.action === 'opened') {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: `## ⚠️ Required Reviews\n\nThis PR requires approval from:\n${missing.map(m => `- ${m}`).join('\n')}\n\nPlease request reviews from these team members.`
+                });
+              }
+              
+              return { missing, status: 'failure' };
+            } else {
+              await github.rest.repos.createCommitStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha: pr.head.sha,
+                state: 'success',
+                context: 'Required Reviews',
+                description: 'All required reviews completed'
+              });
+              return { missing: [], status: 'success' };
+            }
+EOF
+
+# Create Issue Templates
+cat > .github/ISSUE_TEMPLATE/bug_report.md << 'EOF'
+---
+name: 🐛 Bug Report
+about: Report a bug or unexpected behavior
+title: '[BUG] '
+labels: ['bug', 'triage']
+assignees: ''
+---
+
+## Bug Description
+A clear and concise description of the bug.
+
+## Steps to Reproduce
+1. Go to '...'
+2. Click on '...'
+3. Scroll down to '...'
+4. See error
+
+## Expected Behavior
+A clear and concise description of what you expected to happen.
+
+## Actual Behavior
+What actually happened.
+
+## Screenshots/Logs
+If applicable, add screenshots or logs to help explain your problem.
+
+## Environment
+- **SDK Version**: [e.g., v1.0.0]
+- **Solana Network**: [e.g., devnet, mainnet-beta]
+- **Node Version**: [e.g., 18.17.0]
+- **Rust Version**: [e.g., 1.72.0]
+- **Browser/OS**: [e.g., Chrome 118, macOS Ventura]
+
+## Additional Context
+Add any other context about the problem here.
+EOF
+
+cat > .github/ISSUE_TEMPLATE/feature_request.md << 'EOF'
+---
+name: ✨ Feature Request
+about: Suggest a new feature or enhancement
+title: '[FEATURE] '
+labels: ['enhancement', 'triage']
+assignees: ''
+---
+
+## Feature Description
+A clear and concise description of the feature you'd like to see.
+
+## Problem Statement
+What problem does this feature solve? Why is it needed?
+
+## Proposed Solution
+Describe how you think this feature should work.
+
+## Alternative Solutions
+Describe any alternative solutions or features you've considered.
+
+## Use Cases
+Who would use this feature and how?
+
+## Compliance Impact
+Does this feature affect KYC/AML compliance? If so, how?
+
+## Additional Context
+Add any other context, mockups, or references here.
+EOF
+
+cat > .github/ISSUE_TEMPLATE/compliance_issue.md << 'EOF'
+---
+name: ⚖️ Compliance Issue
+about: Report a compliance-related issue or concern
+title: '[COMPLIANCE] '
+labels: ['compliance', 'security', 'P0']
+assignees: '@RickCreator87 @Gitdigital-products'
+---
+
+## Compliance Concern
+Describe the compliance issue or concern.
+
+## Severity Level
+- [ ] **Critical**: Security vulnerability or compliance bypass
+- [ ] **High**: Major compliance gap
+- [ ] **Medium**: Minor compliance issue
+- [ ] **Low**: Compliance enhancement
+
+## Affected Areas
+- [ ] On-chain program
+- [ ] TypeScript SDK
+- [ ] Compliance Registry
+- [ ] Documentation
+- [ ] Other: _____
+
+## Steps to Reproduce (if applicable)
+How can the issue be demonstrated?
+
+## Potential Impact
+What could happen if this issue is not addressed?
+
+## Regulatory References
+Reference any specific regulations or standards (e.g., FATF, GDPR, local KYC laws).
+
+## Suggested Fix
+If you have suggestions for how to fix the issue.
+
+## Confidentiality
+[ ] This issue contains sensitive information and should be kept private
+EOF
+```
+
+Step 2: Configure GitHub Branch Protection
+
+Now, let me guide you through the GitHub UI configuration:
+
+A. Enable Branch Protection for main branch:
+
+1. Go to: https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/settings/branches
+2. Click "Add rule"
+3. Enter main in "Branch name pattern"
+4. Enable these settings:
+
+Protections:
+
+· ✅ Require a pull request before merging
+  · ✅ Require approvals: 1
+  · ✅ Dismiss stale pull request approvals when new commits are pushed
+  · ✅ Require review from Code Owners
+· ✅ Require status checks to pass before merging
+  · Add these required status checks:
+    · CI (from your CI.yml workflow)
+    · Required Reviews (from our new workflow)
+    · cargo-test
+    · npm-test
+    · cargo-fmt
+    · cargo-clippy
+    · security-audit
+· ✅ Require branches to be up to date before merging
+· ✅ Include administrators (so even admins follow these rules)
+
+Rules:
+
+· ✅ Require conversation resolution before merging
+· ✅ Require linear history
+
+B. Set Up Repository Settings:
+
+1. Go to: https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/settings
+2. Scroll to "Features" section:
+   · ✅ Issues (enabled)
+   · ✅ Projects (already enabled from your board)
+   · ✅ Wiki (optional)
+   · ✅ Sponsorships (optional)
+3. Scroll to "Merge button":
+   · Select: Allow squash merging (recommended for clean history)
+   · Uncheck: Allow merge commits
+   · Uncheck: Allow rebase merging
+
+Step 3: Commit and Push Changes
+
+```bash
+# Add all new files
+git add .github/
+
+# Commit with descriptive message
+git commit -m "feat: Implement comprehensive PR review system
+
+- Add CODEOWNERS with Gitdigital-products and RickCreator87 ownership
+- Create PR template with compliance impact assessment
+- Add review guidelines and enforcement workflow
+- Set up issue templates for bugs, features, and compliance issues
+- Configure branch protection rules (to be enabled in GitHub UI)"
+
+# Push to main branch
+git push origin main
+```
+
+Step 4: Test the System
+
+1. Create a test PR:
+
+```bash
+# Create a test branch
+git checkout -b test/pr-review-system
+
+# Make a small change
+echo "# Test PR" >> TEST_PR.md
+
+# Commit and push
+git add TEST_PR.md
+git commit -m "test: Test PR review system"
+git push origin test/pr-review-system
+```
+
+1. Go to GitHub and create a PR:
+   · The PR template should auto-populate
+   · CODEOWNERS should auto-request reviews
+   · The "Required Reviews" check should run
+
+Step 5: Review Process in Action
+
+When someone creates a PR:
+
+1. Automatic actions:
+   · PR template appears
+   · Required reviewers auto-assigned based on CODEOWNERS
+   · Status checks start running
+   · If compliance files changed, @RickCreator87 and @Gitdigital-products both required
+2. Review flow:
+   · @RickCreator87 reviews technical aspects
+   · @Gitdigital-products reviews business/compliance aspects
+   · Both must approve before merging
+   · All status checks must pass
+3. Merging:
+   · Only possible after all approvals
+   · Only possible after all status checks pass
+   · Only via squash merge
+   · Linear history maintained
+
+Troubleshooting:
+
+If you encounter issues:
+
+1. CODEOWNERS not working:
+   · Check file is in .github/CODEOWNERS
+   · Check usernames are correct (case-sensitive)
+   · GitHub may take a few minutes to recognize changes
+2. Status checks not appearing:
+   · Ensure workflows have correct permissions in repository settings
+   · Check Actions tab to see if workflow runs
+3. Can't enable branch protection:
+   · You must have admin access to the repository
+   · Check if there are existing protection rules conflicting
+
+Quick Reference Card:
+
+```yaml
+# For Developers:
+1. Branch naming: feature/description, fix/issue-name
+2. PR requirements:
+   - Fill out PR template completely
+   - Request reviews from CODEOWNERS
+   - Wait for all checks to pass
+   - Address all review comments
+
+# For Reviewers (@RickCreator87):
+1. Review within 48 hours for P0/P1 issues
+2. Focus on: security, compliance logic, architecture
+3. Use review guidelines checklist
+
+# For Product Owners (@Gitdigital-products):
+1. Review business impact and compliance
+2. Ensure alignment with roadmap
+3. Approve registry and business logic changes
+```
+
