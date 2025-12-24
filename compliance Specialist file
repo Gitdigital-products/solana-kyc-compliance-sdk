@@ -1,0 +1,366 @@
+Compliance checklist matrix for Solana KYC compliance SDK
+
+Below is a copy‑paste ready matrix that lives well in COMPLIANCE.md or AUDIT.md. It maps SDK features to typical KYC/AML obligations and the concrete audit tests you can run.
+
+| SDK feature | Regulatory obligation | Control details | Audit test | Evidence produced |
+|---|---|---|---|---|
+| On-chain compliance registry | Customer identification and verification (KYC) | Verified addresses are added with attestation hash and timestamp; immutable log via program events | Create, update, and revoke a sample address; verify event logs and account state diffs | Program logs, transaction IDs, registry account state snapshot |
+| Transfer hook enforcement | Ongoing compliance and restricted transfers | Token transfers call hook; deny if sender/receiver absent from registry | Attempt transfer between unverified accounts; assert revert and reason | Test report with failed transfer tx IDs and on-chain error code |
+| Permanent delegate | Accountability and separation of duties | Delegate keys for compliance officers; rotation logged and time-bounded | Rotate delegate; confirm old key denied, new key allowed | Key rotation log, tx IDs, before/after registry authority keys |
+| Attestation hash storage | Recordkeeping and audit trail | Hash of off-chain KYC file stored; prevents PII leakage | Validate hash against off-chain KYC bundle; ensure non-reversibility | Hash verification report, KYC bundle checksum, link to evidence vault |
+| Revocation and sanctions gating | Sanctions screening and ongoing monitoring | Registry supports revoke with reason; transfers post‑revoke fail | Add address, revoke with reason, retest transfer denial | Revocation event log, reason code, denied transfer tx IDs |
+| Versioned program + SDK | Change management and traceability | Semantic versions for program and SDK; changelog with migration steps | Update minor version; run migration script and compatibility tests | CHANGELOG, migration report, passing CI matrix across versions |
+| Admin/RBAC separation | Least privilege and governance | Distinct roles: Admin, Compliance Officer, Auditor, Maintainer | Attempt privileged actions with non‑privileged role; assert failure | RBAC test outputs, role mapping doc, access logs |
+| Coverage and CI gates | Continuous verification | Required tests for registry, hooks, rotations; coverage thresholds | Run CI with coverage gates; verify branch protection prevents merge | CI report, coverage summary, protected branch status |
+| Incident response and DR | Resilience and continuity | Backup/restore workflows for registry accounts and keys | Simulate registry corruption; restore from latest backup; reconcile | DR runbook log, restored state diff, dual‑control approvals |
+
+> Tip: If your jurisdiction has specific record retention (e.g., 5–7 years), add retention duration and purge/archival steps to the “Control details”.
+
+---
+
+Governance scaffolding
+
+Repository files to add
+
+- SECURITY.md: Threat model, coordinated disclosure, key management, and secure development lifecycle.
+- COMPLIANCE.md: The matrix above, jurisdiction notes, retention and privacy posture.
+- AUDIT.md: Auditor checklist, evidence capture steps, expected artifacts.
+- GOVERNANCE.md: Roles, decision process, release management, change control, and voting (if applicable).
+- CONTRIBUTING.md: Onboarding, coding standards, commit conventions, PR workflow, testing expectations.
+- CODEOWNERS: Enforce review from compliance/security owners.
+- CHANGELOG.md: Semantic versioning with migration notes.
+
+SECURITY.md (drop-in)
+
+`markdown
+
+Security
+
+Threat model
+- Assets: Compliance registry accounts, delegate keys, attestation hashes, CI secrets.
+- Adversaries: Key compromise, unauthorized registry updates, program tampering, CI supply-chain risk.
+- Controls: RBAC, key rotation, mandatory code review, reproducible builds, CI secret scoping.
+
+Key management
+- Delegate keys: Hardware-backed (HSM/YubiKey) with rotation every 90 days or upon incident.
+- Storage: Encrypted at rest; no raw PII on-chain—use attestation hashes.
+- Dual control: Rotations and revocations require two maintainers’ approval.
+
+Coordinated disclosure
+- Report: security@gitdigital-products.example
+- Process: Acknowledge within 72 hours; triage, fix, release advisory and patched version.
+
+Secure development lifecycle
+- Reviews: CODEOWNERS gating; mandatory security review for on-chain changes.
+- Testing: Unit, integration, property tests; coverage gates.
+- Builds: Reproducible program artifacts with checksums; release signing.
+`
+
+COMPLIANCE.md (drop-in core)
+
+`markdown
+
+Compliance
+
+Scope
+This SDK enforces KYC/AML at the token level via a compliance registry, transfer hooks, and delegate controls.
+
+Matrix
+[Place the table from the top of this document here.]
+
+Jurisdiction notes
+- PII handling: Only attestation hashes on-chain; raw documents stored off-chain in a secure evidence vault.
+- Retention: Maintain audit logs and evidence for the statutory period (configure per deployment).
+- Sanctions: Integrate periodic screening; record revocation reasons and time stamps.
+
+Evidence vault
+- Interface: Store KYC bundles, checksums, timestamps, and reviewer signatures.
+- Access: RBAC with audit logs; immutable append-only records.
+`
+
+AUDIT.md (drop-in)
+
+`markdown
+
+Audit checklist
+
+Pre-audit
+- Label: Freeze a release candidate (RC) tag and generate a signed build.
+- Docs: Provide SECURITY.md, COMPLIANCE.md, GOVERNANCE.md, CHANGELOG.md.
+- Access: Read-only auditor role for registry accounts and CI logs.
+
+Tests to run
+- Registry lifecycle: Add → update → revoke, verify events and state snapshots.
+- Transfer enforcement: Denial for unverified/revoked addresses; success for verified.
+- Delegate rotation: Old key denied; new key accepted.
+- PII posture: Confirm only hashes stored on-chain; validate against evidence vault.
+- Coverage gates: CI must enforce thresholds and block merges under target.
+
+Evidence capture
+- Artifacts: Program checksum, tx IDs, logs, test reports, coverage summaries.
+- Sign-off: Auditor signs evidence bundle with timestamp and hash.
+`
+
+GOVERNANCE.md (drop-in)
+
+`markdown
+
+Governance
+
+Roles
+- Admin: Owns release and repository settings; cannot bypass compliance controls.
+- Compliance Officer: Manages registry entries and delegate keys; dual approval required.
+- Auditor: Read-only access to evidence and logs; initiates audit runs.
+- Maintainer: Reviews code and runs CI; cannot alter registry without officer approval.
+
+Decision process
+- Proposals: RFCs via pull requests with design, risk, and migration notes.
+- Approvals: Two maintainers + one compliance officer for on-chain changes.
+- Versioning: Semantic versioning; breaking changes require migration guide.
+
+Change control
+- Branch protection: Required status checks, signed commits, and code owner reviews.
+- Release: Tag, build, checksum, sign; publish CHANGELOG and AUDIT notes.
+`
+
+CONTRIBUTING.md (drop-in)
+
+`markdown
+
+Contributing
+
+Setup
+- Rust: Stable toolchain; nightly for coverage if needed.
+- Node: LTS; package manager (npm or pnpm).
+- Solana: CLI and test validator.
+
+Standards
+- Commits: Conventional commits (feat:, fix:, chore:, docs:, refactor:, test:).
+- Testing: Write unit + integration tests for registry and transfer hooks.
+- Coverage: Maintain ≥80% for on-chain program; ≥70% for SDK.
+
+PR workflow
+- Checklist: Tests pass, coverage met, docs updated, changelog entry added.
+- Reviews: CODEOWNERS + security reviewer for program changes.
+- Labels: compliance-impact, security-impact, migration-required.
+`
+
+---
+
+CI/CD scaffolding
+
+Files to add
+
+- .github/workflows/ci.yml: Build, test, coverage, matrix across OS/toolchains, release artifacts.
+- CODEOWNERS: Enforce review gates.
+- .github/labels.yml: Standard labels for governance and risk classification.
+- .github/pullrequesttemplate.md: Evidence and checklist prompts.
+
+.github/workflows/ci.yml (drop-in)
+
+`yaml
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  rust-program:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            programs/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('/Cargo.lock') }}
+      - name: Build
+        working-directory: programs/compliance_registry
+        run: cargo build --locked
+      - name: Test
+        working-directory: programs/compliance_registry
+        run: cargo test --locked --all-features
+      - name: Coverage (tarpaulin)
+        working-directory: programs/compliance_registry
+        run: |
+          cargo install cargo-tarpaulin --locked || true
+          cargo tarpaulin --out Xml
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-coverage
+          path: programs/compliance_registry/tarpaulin-report.xml
+
+  typescript-sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+      - name: Install
+        working-directory: sdk/typescript
+        run: npm ci
+      - name: Build
+        working-directory: sdk/typescript
+        run: npm run build
+      - name: Test with coverage
+        working-directory: sdk/typescript
+        run: npm test -- --coverage
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: ts-coverage
+          path: sdk/typescript/coverage
+
+  policy-gates:
+    runs-on: ubuntu-latest
+    needs: [rust-program, typescript-sdk]
+    steps:
+      - name: Enforce coverage thresholds
+        run: |
+          echo "Fail if coverage below thresholds."
+          # Implement parsing of uploaded artifacts and compare to thresholds.
+          # For quick start, gate via scripts in scripts/coverage_gate.sh
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build artifacts
+        run: |
+          # Produce reproducible artifacts with checksums
+          ./scripts/build_release.sh
+      - name: Upload release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/SHA256SUMS
+`
+
+CODEOWNERS (drop-in)
+
+`text
+
+Require compliance/security review for sensitive areas
+/programs/compliance_registry/ @gitdigital-products/compliance @gitdigital-products/security
+/sdk/typescript/ @gitdigital-products/maintainers
+/docs/ @gitdigital-products/maintainers
+`
+
+.github/pullrequesttemplate.md (drop-in)
+
+`markdown
+
+Summary
+- Change type: feat / fix / refactor / docs / chore
+- Risk: low / medium / high
+- Compliance impact: yes / no (explain)
+
+Tests
+- Rust program: results and coverage %
+- TypeScript SDK: results and coverage %
+
+Evidence
+- Tx IDs / logs: (if on-chain behavior changed)
+- Migration notes: (if applicable)
+
+Approvals required
+- CODEOWNERS: ✅
+- Security review: ✅ (for on-chain or key-related changes)
+`
+
+---
+
+Resilience scaffolding
+
+Incident response playbook
+
+- Detection: Failed compliance checks spike, registry mismatch alerts, unusual delegate activity.
+- Containment: Freeze delegate actions, restrict registry updates, enable enhanced logging.
+- Eradication: Rotate keys, revert malicious entries using last good snapshot.
+- Recovery: Restore registry from backup, reconcile diffs, re-enable hooks.
+- Post-incident: Root cause analysis, advisory, policy updates, retro.
+
+Disaster recovery scripts
+
+- scripts/backup_registry.sh: Export registry account state, program IDs, checksums, and timestamps.
+- scripts/restore_registry.sh: Import from snapshot, verify checksums, and reconcile with on-chain state.
+- scripts/rotate_delegate.sh: Dual-controlled key rotation with confirmation prompts and audit logs.
+
+`bash
+
+!/usr/bin/env bash
+
+scripts/backup_registry.sh
+set -euo pipefail
+OUT=backups/registry_$(date -Iseconds).json
+solana account <REGISTRY_PUBKEY> --output json > "$OUT"
+sha256sum "$OUT" > "$OUT.sha256"
+echo "Backup saved: $OUT"
+`
+
+`bash
+
+!/usr/bin/env bash
+
+scripts/rotate_delegate.sh
+set -euo pipefail
+OLD_KEY=$1
+NEW_KEY=$2
+echo "Rotating delegate from $OLDKEY to $NEWKEY"
+
+Submit on-chain tx; require secondary confirmation
+read -p "Confirm rotation (type 'ROTATE'): " CONFIRM
+[[ "$CONFIRM" == "ROTATE" ]] || { echo "Aborted"; exit 1; }
+
+solana program invoke ... (placeholder)
+echo "Rotation complete. Log recorded."
+`
+
+Monitoring and notifications
+
+- Alerts: CI failures on compliance tests, coverage drops, registry drift detection.
+- Channels: Slack webhook or Teams channel; route high‑severity to pager rotation.
+- Dashboards: Basic Grafana/Prometheus if you export custom metrics from validator or indexer.
+
+---
+
+Repository structure changes
+
+- docs/
+  - SECURITY.md, COMPLIANCE.md, AUDIT.md, GOVERNANCE.md, CONTRIBUTING.md
+- scripts/
+  - buildrelease.sh, coveragegate.sh, backupregistry.sh, restoreregistry.sh, rotate_delegate.sh
+- .github/
+  - workflows/ci.yml, pullrequesttemplate.md, labels.yml
+- programs/
+  - compliance_registry (tests expanded; property tests added)
+- sdk/typescript/
+  - tests with coverage; example integration app
+
+---
+
+Next steps
+
+- Add files: Drop in the documents and CI workflow above; create scripts directory.
+- Wire coverage gate: Implement coverage_gate.sh to parse artifacts and enforce thresholds.
+- Expand tests: Include revocation, sanctions gating, delegate rotation, and transfer denial paths.
+- Set branch protection: Require CI checks, signed commits, and CODEOWNERS reviews.
+- Plan first audit: Tag a release candidate, run AUDIT.md end-to-end, produce an evidence bundle.
+
+If you want, I can tailor the CI coveragegate.sh and buildrelease.sh to your exact toolchain and set concrete thresholds based on current test suites.
