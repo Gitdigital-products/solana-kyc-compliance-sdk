@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const yaml = require('js-yaml');
+
+function validateConfig() {
+  const configPath = path.join(__dirname, '../config/amcp/amcp-config.yaml');
+  
+  try {
+    const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
+    
+    // Validate required fields
+    const required = ['version', 'apiVersion', 'gateway'];
+    required.forEach(field => {
+      if (!config[field]) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    });
+    
+    console.log('✅ Configuration is valid');
+    return true;
+  } catch (error) {
+    console.error('❌ Configuration error:', error.message);
+    return false;
+  }
+}
+
+if (require.main === module) {
+  validateConfig();
+}
