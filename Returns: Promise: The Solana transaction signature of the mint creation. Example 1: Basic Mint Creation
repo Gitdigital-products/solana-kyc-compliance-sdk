@@ -1,0 +1,11 @@
+const mintTx = await sdk.initializeCompliantMint({
+  payer: wallet.payer,
+  mintAuthority: wallet.publicKey,
+  decimals: 6,
+  initialKycData: {
+    kycProvider: 'veriff',
+    requiredLevel: 'basic',
+    expirationDays: 90
+  }
+});
+console.log('Mint created:', mintTx);

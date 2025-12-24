@@ -1,0 +1,79 @@
+Below is a summary of the proposed files and their key purposes.
+
+File: .github/workflows/ci-pipeline.yml
+Purpose:The main CI/CD pipeline that runs on every pull request and push to main and staging. It ensures all code passes tests, formatting, linting, and security audits before merging.
+Core Actions:
+
+· Runs cargo test, npm test, cargo fmt --check, and cargo clippy
+· Executes security audits for dependencies (Rust/JS)
+· Builds the project in release mode
+
+File: .github/workflows/codeql-analysis.yml
+Purpose:Advanced static analysis to detect security vulnerabilities in both Rust and TypeScript/JavaScript code. Runs weekly and on pushes to main.
+Core Actions:
+
+· Initializes CodeQL for the repository
+· Performs an automated security scan across all code
+· Uploads results for review
+
+File: .github/workflows/anchor-tests.yml
+Purpose:A specialized workflow to build and test the on-chain Anchor program (Rust), which is critical for the Solana smart contract.
+Core Actions:
+
+· Sets up Solana and Anchor test environments
+· Runs anchor test for on-chain program validation
+· Ensures program compiles correctly
+
+File: .github/PULL_REQUEST_TEMPLATE/pull_request_template.md
+Purpose:Standardizes the PR review process to ensure quality and comprehensive testing. This template guides contributors on what to check before merging.
+Core Checks:
+
+· Confirms all CI checks pass
+· Requires updates to tests and documentation
+· Mandates no new security warnings from scans
+
+File: .github/dependabot.yml
+Purpose:Automates dependency updates to proactively patch security vulnerabilities in both npm and Cargo packages.
+Core Actions:
+
+· Weekly scans for updates in /sdk/ (npm) and /program/ (Cargo)
+· Opens automated pull requests for new versions
+· Helps maintain a secure supply chain
+
+File: .gitleaks.toml
+Purpose:Prevents accidental commits of secrets (like private keys, API tokens) to the repository by scanning every commit.
+Core Rules:
+
+· Detects Solana private key patterns
+· Flags common API key formats
+· Scans for high-entropy strings
+
+File: SECURITY.md
+Purpose:Provides a clear, public policy for reporting security vulnerabilities, establishing a professional and secure channel for disclosures.
+Key Elements:
+
+· Points of contact for security issues
+· Acknowledgment policy for reporters
+· Link to the GitHub Security Advisory system
+
+📁 How to Implement These Files
+
+To implement this hardened pipeline, please follow these steps:
+
+1. Create the Directory Structure: First, ensure the required .github directories exist in your repository's root.
+   ```bash
+   mkdir -p .github/workflows .github/PULL_REQUEST_TEMPLATE
+   ```
+2. Add the Workflow Files: Copy the content for each .yml file (like ci-pipeline.yml) into the .github/workflows/ directory.
+3. Add the Template and Config Files: Place the pull_request_template.md in its directory and the dependabot.yml and gitleaks.toml files in the .github/ and root directories, respectively.
+4. Commit and Push: Add these files to git, commit with a message like "feat: harden CI/CD pipeline with quality and security gates", and push to your repository.
+5. Verify in GitHub: Go to your repository on GitHub. You should see the new workflows under the "Actions" tab and the pull request template will be active when creating a new PR.
+
+🔐 Key Outcomes for Your Epic
+
+These files work together to deliver the "No compromises on enterprise-grade delivery" goal:
+
+· Automated Quality Gates: Every code change is automatically tested, linted, and checked for style.
+· Proactive Security: Regular scans for vulnerabilities in both code and dependencies, plus prevention of secrets leakage.
+· Standardized Process: A clear checklist for contributors and maintainers ensures consistent quality in every merge.
+· Comprehensive Coverage: The pipeline covers the full stack—Rust on-chain programs, TypeScript SDK, and related tooling.

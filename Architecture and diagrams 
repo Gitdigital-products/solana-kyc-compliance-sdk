@@ -1,0 +1,129 @@
+
+2️⃣ Architecture Diagram (Mermaid – zero friction)
+
+Drop this into docs/architecture.md or a new file:
+docs/architecture-diagram.md
+
+GitHub renders Mermaid natively. No images required.
+
+```mermaid
+flowchart TB
+    User[User Wallet]
+    App[Client App]
+    SDK[Compliance SDK]
+    Program[On-Chain Compliance Program]
+    Registry[Compliance Registry]
+    Attestation[Attestation Record]
+    Provider[KYC / AML Provider]
+    Risk[Risk Engine]
+
+    User --> App
+    App --> SDK
+    SDK --> Program
+    Program --> Registry
+    Registry --> Program
+
+    Provider --> Risk
+    Risk --> Attestation
+    Attestation --> Registry
+
+    Program -->|Allow / Reject| App
+
+### Why this slaps
+- Auditors instantly understand scope
+- Devs instantly understand flow
+- Investors instantly understand moat
+
+No explanation needed beyond the diagram.
+
+---
+
+## 3️⃣ Audit-Readiness Checklist (this is the big one)
+
+Create:  
+📄 `docs/audit-readiness.md`
+
+This does two things:
+- Makes auditors faster
+- Makes *you* calmer
+
+```md
+# Audit Readiness Checklist
+
+This document outlines the security posture and expectations for the Solana KYC Compliance SDK.
+
+---
+
+## Scope Definition
+
+### In Scope
+- On-chain compliance programs
+- Registry state management
+- Attestation verification
+- Transfer enforcement logic
+
+### Out of Scope
+- Off-chain KYC providers
+- Risk scoring algorithms
+- Identity verification processes
+
+---
+
+## Security Assumptions
+
+- Registry authority is trusted and multisig-controlled
+- Attestation issuer keys are protected
+- Off-chain services are independently secured
+
+---
+
+## On-Chain Controls
+
+- [ ] All instructions validate signer authority
+- [ ] PDA seeds are deterministic and documented
+- [ ] No unchecked account writes
+- [ ] No PII stored on-chain
+- [ ] Explicit error handling for all failure paths
+
+---
+
+## Enforcement Guarantees
+
+- [ ] Non-compliant transfers revert
+- [ ] Expired attestations are rejected
+- [ ] Revocations apply immediately
+- [ ] Freeze state is enforced across all paths
+
+---
+
+## Upgrade & Governance
+
+- [ ] Program upgrade authority documented
+- [ ] Recommended multisig configuration provided
+- [ ] Upgrade path documented for breaking changes
+
+---
+
+## Testing Coverage
+
+- [ ] Unit tests for all instructions
+- [ ] Negative tests for enforcement failures
+- [ ] Integration tests for SDK flows
+- [ ] Devnet deployment verified
+
+---
+
+## Known Risks
+
+- Off-chain provider compromise
+- Registry authority compromise
+- Incorrect risk scoring inputs
+
+Mitigations are documented but not enforced on-chain.
+
+---
+
+## Audit Notes
+
+This project enforces compliance outcomes, not identity verification.
+All sensitive processes occur off-chain.

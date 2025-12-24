@@ -1,0 +1,2 @@
+npm install typedoc --save-dev
+npx typedoc --out docs/api src/lib.ts

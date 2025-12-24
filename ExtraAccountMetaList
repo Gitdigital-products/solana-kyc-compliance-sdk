@@ -1,0 +1,11 @@
+  /**
+   * Initializes the required ExtraAccountMetaList PDA for the Transfer Hook.
+   * This account must be created before transfers can succeed.
+   * @param {PublicKey} mint - The public key of the compliant mint.
+   * @param {Signer} payer - The signer responsible for paying transaction fees.
+   * @returns {Promise<TransactionSignature>} The transaction signature.
+   */
+  async createExtraAccountMetaList(
+    mint: PublicKey,
+    payer: Signer
+  ): Promise<TransactionSignature>;

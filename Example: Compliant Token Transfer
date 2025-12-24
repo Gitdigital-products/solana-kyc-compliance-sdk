@@ -1,0 +1,16 @@
+const transferTx = await sdk.transferCheckedWithHook({
+  source: sourceTokenAccount,
+  mint: compliantMint,
+  destination: destTokenAccount,
+  owner: wallet, // Signer of the source account
+  amount: 100,
+  kycProof: [
+    {
+      provider: 'veriff',
+      sessionId: 'session_123',
+      timestamp: Date.now(),
+      signature: '0x...'
+    }
+  ]
+});
+console.log('Transfer succeeded:', transferTx);

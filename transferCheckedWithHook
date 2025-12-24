@@ -1,0 +1,10 @@
+  /**
+   * Executes a token transfer that will be validated by the compliance hook.
+   * This is the primary method for moving compliant tokens between wallets.
+   * @param {TransferCheckedWithHookParams} params - Transfer parameters.
+   * @returns {Promise<TransactionSignature>} The transaction signature of the transfer.
+   * @throws {TransferDeniedByHookError} If the hook program rejects the transfer (e.g., KYC failure).
+   */
+  async transferCheckedWithHook(
+    params: TransferCheckedWithHookParams
+  ): Promise<TransactionSignature>;

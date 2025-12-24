@@ -1,0 +1,5 @@
+Error Class When Thrown Recovery Suggestion
+WalletNotConnectedError Wallet required but not provided Connect wallet before calling method
+TransferDeniedByHookError Hook program rejects transfer Ensure KYC proofs are valid and current
+InsufficientBalanceError Source has insufficient tokens Check balance before transferring
+HookValidationError Hook configuration fails Verify program ID and connection

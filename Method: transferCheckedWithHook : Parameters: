@@ -1,0 +1,6 @@
+· source (PublicKey): The source token account address.
+· mint (PublicKey): The mint address of the token.
+· destination (PublicKey): The destination token account address.
+· owner (Signer): The owner and signer of the source token account.
+· amount (number | bigint): The amount of tokens to transfer.
+· kycProof (KycProof[]): KYC proofs required to pass the hook's compliance check.

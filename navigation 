@@ -1,0 +1,150 @@
+low-stress path: Docusaurus on GitHub Pages. It’s basically the Solana of documentation frameworks—fast, opinionated, and dev-friendly.
+
+
+---
+
+Step 1: Add a docs-site/ folder to the repo
+
+At the root of solana-kyc-compliance-sdk, create:
+
+docs-site/
+
+This keeps docs infra separate from SDK code. Very adult. Very scalable.
+
+
+---
+
+Step 2: Bootstrap Docusaurus (one command)
+
+From inside docs-site/:
+
+npx create-docusaurus@latest . classic
+
+Choose:
+
+TypeScript or JavaScript (dealer’s choice)
+
+Name: Solana KYC Compliance SDK
+
+
+This generates the whole docs skeleton.
+
+
+---
+
+Step 3: Configure the NAVIGATION (the missing piece)
+
+Open:
+
+docs-site/docusaurus.config.js
+
+Replace the navbar section with this:
+
+navbar: {
+  title: 'Solana KYC SDK',
+  logo: {
+    alt: 'Solana KYC SDK Logo',
+    src: 'img/logo.svg',
+  },
+  items: [
+    {
+      to: '/',
+      label: 'Home',
+      position: 'left',
+    },
+    {
+      to: '/docs/getting-started',
+      label: 'Getting Started',
+      position: 'left',
+    },
+    {
+      to: '/docs/api',
+      label: 'API',
+      position: 'left',
+    },
+    {
+      to: '/docs/on-chain-program',
+      label: 'On-Chain Program',
+      position: 'left',
+    },
+    {
+      to: '/docs/examples',
+      label: 'Examples',
+      position: 'left',
+    },
+    {
+      href: 'https://github.com/Gitdigital-products/solana-kyc-compliance-sdk',
+      label: 'GitHub',
+      position: 'right',
+    },
+  ],
+},
+
+Boom. Real navigation. No more “docs but make it single-page”.
+
+
+---
+
+Step 4: Create the actual pages the nav points to
+
+Inside:
+
+docs-site/docs/
+
+Create these files:
+
+getting-started.md
+api.md
+on-chain-program.md
+examples.md
+
+Example: getting-started.md
+
+---
+title: Getting Started
+---
+
+## What This SDK Does
+
+The Solana KYC Compliance SDK provides a programmable compliance layer
+that links off-chain identity verification with on-chain token controls.
+
+## Installation
+
+```bash
+npm install solana-kyc-compliance-sdk
+
+Basic Usage
+
+import { KycClient } from '@gitdigital/solana-kyc-sdk';
+
+const client = new KycClient({
+  endpoint: 'https://api.mainnet-beta.solana.com',
+});
+
+Each file automatically shows up in the nav. Docusaurus handles the routing magic.
+
+---
+
+## Step 5: Deploy to GitHub Pages (this replaces the current page)
+
+In `docusaurus.config.js`, set:
+
+```js
+url: 'https://gitdigital-products.github.io',
+baseUrl: '/solana-kyc-compliance-sdk/',
+organizationName: 'Gitdigital-products',
+projectName: 'solana-kyc-compliance-sdk',
+deploymentBranch: 'gh-pages',
+
+Then deploy:
+
+npm run build
+npm run deploy
+
+GitHub Pages will now serve:
+
+https://gitdigital-products.github.io/solana-kyc-compliance-sdk/
+
+…but with real navigation and real docs.
+

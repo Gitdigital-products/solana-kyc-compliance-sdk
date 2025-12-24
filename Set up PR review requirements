@@ -1,0 +1,53 @@
+Key Configuration Files Needed
+
+Based on the repository's history, these files are relevant for PR review requirements:
+
+1. Branch Protection Rules
+
+The repository has existing branch protection files. You should check and configure these in your GitHub repository settings under "Settings → Branches → Branch protection rules."
+
+2. CODEOWNERS File (.github/CODEOWNERS)
+
+This file specifies who must review specific code areas. Create this file with content like:
+
+```
+* @RickCreator87 @Gitdigital-products
+/program/ @RickCreator87
+/sdk/ @RickCreator87
+/registry/ @Gitdigital-products
+```
+
+3. Pull Request Template (.github/PULL_REQUEST_TEMPLATE.md)
+
+The repository already has this based on the file list. Ensure it includes sections for:
+
+· Description of changes
+· Testing performed
+· Required approvals checklist
+· Compliance verification
+
+4. Required Status Checks (in GitHub Settings)
+
+Configure these in your GitHub repository settings:
+
+· Require status checks to pass before merging
+· Require branches to be up to date before merging
+· Require approvals from code owners
+
+Immediate Steps to Configure
+
+1. Enable GitHub Settings:
+   · Go to your repository Settings → Branches
+   · Add branch protection rule for main branch
+   · Enable: "Require a pull request before merging"
+   · Enable: "Require approvals" (1 or more reviewers)
+   · Enable: "Require status checks" (cargo test, npm test, cargo fmt, cargo clippy)
+2. Set Up Status Checks:
+   Ensure your CI workflow (.github/workflows/CI.yml) includes the mandatory steps mentioned:
+   · cargo test (Rust)
+   · npm test (TypeScript)
+   · cargo fmt --check
+   · cargo clippy
+   · Security audit step
+3. Configure CODEOWNERS:
+   Create the .github/CODEOWNERS file to automatically request reviews from the tech lead (@RickCreator87) for technical changes.

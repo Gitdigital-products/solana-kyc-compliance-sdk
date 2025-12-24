@@ -1,0 +1,78 @@
+// server.ts
+// Minimal Express server (Node 18+) to store encrypted records and envelopes.
+// No plaintext PII stored. Add authentication, RBAC, and KMS integrations in production.
+
+import express from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
+
+type RecordMeta = {
+  id: string;
+  mime: string;
+  version: number;
+  createdAt: string;
+  commitmentHash: string;
+};
+
+type StoredRecord = {
+  meta: RecordMeta;
+  ciphertext: Uint8Array;
+  iv: Uint8Array;
+  envelopes: { envelopeId: string; wrappedDek: Uint8Array; audience: string; alg: string }[];
+  tags?: Record<string, string>;
+};
+
+const db = new Map<string, StoredRecord>();
+const auditLog: { ts: string; actor: string; action: string; recordId: string }[] = [];
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json({ limit: "5mb" }));
+
+// Upload encrypted record
+app.post("/records", (req, res) => {
+  const { id, mime, version, ciphertext, iv, envelopes, commitmentHash, tags } = req.body;
+  if (!id || !ciphertext || !iv || !envelopes || !commitmentHash) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  const record: StoredRecord = {
+    meta: { id, mime, version, createdAt: new Date().toISOString(), commitmentHash },
+    ciphertext: Uint8Array.from(ciphertext),
+    iv: Uint8Array.from(iv),
+    envelopes: envelopes.map((e: any) => ({ ...e, wrappedDek: Uint8Array.from(e.wrappedDek) })),
+    tags,
+  };
+  db.set(id, record);
+  auditLog.push({ ts: new Date().toISOString(), actor: "system", action: "record_uploaded", recordId: id });
+  return res.json({ ok: true, id });
+});
+
+// Fetch record (returns ciphertext and the envelope IDs; caller must be authorized to unwrap)
+app.get("/records/:id", (req, res) => {
+  const record = db.get(req.params.id);
+  if (!record) return res.status(404).json({ error: "Not found" });
+  auditLog.push({ ts: new Date().toISOString(), actor: "system", action: "record_fetched", recordId: req.params.id });
+  return res.json({
+    meta: record.meta,
+    ciphertext: Array.from(record.ciphertext),
+    iv: Array.from(record.iv),
+    envelopes: record.envelopes.map((e) => ({ ...e, wrappedDek: Array.from(e.wrappedDek) })),
+  });
+});
+
+// Audit trail (latest N)
+app.get("/audit", (req, res) => {
+  const n = Number(req.query.n ?? 50);
+  const events = auditLog.slice(Math.max(auditLog.length - n, 0));
+  return res.json({ events });
+});
+
+// Example: on-chain commitment and status update hook (pseudo)
+app.post("/commitment", async (req, res) => {
+  const { recordId, commitmentHash, status } = req.body;
+  // TODO: call your solana-kyc-compliance-sdk on-chain client to set status using commitmentHash
+  auditLog.push({ ts: new Date().toISOString(), actor: "system", action: status_${status}, recordId: recordId });
+  return res.json({ ok: true });
+});
+
+app.listen(3000, () => console.log("Compliance backend listening on :3000"));

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["./src/lib.ts"],
+  "entryPointStrategy": "expand",
+  "out": "./docs/api",
+  "name": "Solana KYC Compliance SDK",
+  "includeVersion": true,
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "externalPattern": ["node_modules/@solana/**"],
+  "categorizeByGroup": true,
+  "defaultCategory": "Core",
+  "categoryOrder": [
+    "Core",
+    "Instructions",
+    "Services",
+    "Utilities",
+    "Types",
+    "Errors"
+  ],
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true
+  },
+  "theme": "default",
+  "customCss": "./docs/typedoc-custom.css",
+  "githubPages": false,
+  "hideGenerator": true,
+  "searchInComments": true,
+  "cleanOutputDir": true,
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": true
+  },
+  "markedOptions": {
+    "gfm": true,
+    "breaks": false
+  }
+}

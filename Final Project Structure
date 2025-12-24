@@ -1,0 +1,20 @@
+/sdk/
+├── package.json
+├── tsconfig.json
+├── jest.config.js
+├── .eslintrc.js
+├── .prettierrc
+├── src/
+│   ├── index.ts           # Optional: alternative entry point
+│   ├── lib.ts             # Main public API exports
+│   ├── compliance-sdk.ts  # Main SDK class
+│   ├── types.ts           # TypeScript interfaces
+│   ├── errors.ts          # Custom error classes
+│   ├── services/
+│   │   └── transfer-hook-service.ts
+│   └── utils/
+│       └── index.ts
+└── tests/
+    ├── compliance-sdk.test.ts
+    └── integration/
+        └── transfer-hook.test.ts
