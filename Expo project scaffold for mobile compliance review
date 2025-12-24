@@ -1,0 +1,594 @@
+Expo app with the Address Details screen, encryption utilities, SDK wiring placeholders, and biometric gates. I’m also including a minimal backend skeleton for encrypted uploads and audit logging.
+
+---
+
+Project structure and setup
+
+`
+compliance-mobile/
+├─ app/
+│  ├─ App.tsx
+│  ├─ screens/
+│  │  └─ AddressDetailsScreen.tsx
+│  ├─ components/
+│  │  ├─ DocumentTile.tsx
+│  │  └─ UI.tsx
+│  ├─ lib/
+│  │  ├─ encryption.ts
+│  │  ├─ api.ts
+│  │  └─ sdk.ts
+│  ├─ hooks/
+│  │  └─ useBiometrics.ts
+│  ├─ types/
+│  │  └─ models.ts
+├─ package.json
+├─ tsconfig.json
+├─ .env (for API base URL)
+└─ server/ (minimal backend)
+   ├─ server.ts
+   ├─ package.json
+   └─ tsconfig.json
+`
+
+Install
+
+- In compliance-mobile: run your standard Node setup and install dependencies.
+- For iOS/Android builds, run the corresponding platform scripts from Expo.
+
+---
+
+App entry and navigation
+
+`tsx
+// app/App.tsx
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import AddressDetailsScreen from "./screens/AddressDetailsScreen";
+
+const Stack = createNativeStackNavigator();
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen
+          name="AddressDetails"
+          component={AddressDetailsScreen}
+          initialParams={{ walletAddress: "0x8a3f9c2b5e1d4a7f6c8d3b2a1f4e7c6d5b8a3f9c2b" }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+`
+
+---
+
+Types and models
+
+`ts
+// app/types/models.ts
+export type RiskLevel = "High" | "Med" | "Low";
+
+export type BasicInfo = {
+  fullName: string;
+  entityType: string;
+  country: string;
+  riskLevel: RiskLevel;
+  pepStatus: "Yes" | "No";
+  sanctions: "None" | "Listed" | "Under Review";
+};
+
+export type DocumentItem = {
+  id: string;
+  name: string;
+  mime: string;
+  encryptedUri: string;
+  envelopeIds: string[];
+  commitmentHash: string;
+};
+
+export type AuditEvent = { ts: string; actor?: string; action: string; recordId?: string };
+
+export type WalletDetails = {
+  address: string;
+  status: "Pending Review" | "Approved" | "Rejected";
+  submittedAt: string;
+  basicInfo: BasicInfo;
+  documents: DocumentItem[];
+  auditTrail: AuditEvent[];
+};
+`
+
+---
+
+Biometrics hook
+
+`ts
+// app/hooks/useBiometrics.ts
+import * as LocalAuthentication from "expo-local-authentication";
+
+export async function requireBiometric(prompt = "Confirm with biometrics") {
+  const supported = await LocalAuthentication.hasHardwareAsync();
+  const enrolled = await LocalAuthentication.isEnrolledAsync();
+  if (!supported || !enrolled) return true; // fallback allow; gate with RBAC server‑side too
+  const res = await LocalAuthentication.authenticateAsync({ promptMessage: prompt });
+  return res.success;
+}
+`
+
+---
+
+UI primitives
+
+`tsx
+// app/components/UI.tsx
+import React from "react";
+import { View, Text } from "react-native";
+
+export const Card: React.FC<{ title?: string; children: any }> = ({ title, children }) => (
+  <View style={{ borderWidth: 1, borderColor: "#eee", borderRadius: 8, padding: 12, backgroundColor: "#fff", shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6, elevation: 2, marginBottom: 12 }}>
+    {title ? <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>{title}</Text> : null}
+    {children}
+  </View>
+);
+
+export const KeyVal: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
+    <Text style={{ color: "#666" }}>{label}</Text>
+    <Text style={{ color: "#333", fontWeight: "500" }}>{value}</Text>
+  </View>
+);
+
+export const RiskBadge: React.FC<{ level: "High" | "Med" | "Low" }> = ({ level }) => {
+  const color = level === "High" ? "#d32f2f" : level === "Med" ? "#fbc02d" : "#2e7d32";
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
+      <Text style={{ color: "#333", fontWeight: "500" }}>{level}</Text>
+    </View>
+  );
+};
+`
+
+---
+
+Document tile with secure preview
+
+`tsx
+// app/components/DocumentTile.tsx
+import React from "react";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
+import { requireBiometric } from "../hooks/useBiometrics";
+import { downloadAndDecryptDocument } from "../lib/api";
+
+export default function DocumentTile({ doc }: { doc: any }) {
+  async function openSecurePreview() {
+    const ok = await requireBiometric("Decrypt document");
+    if (!ok) return;
+    try {
+      const blob = await downloadAndDecryptDocument(doc);
+      Alert.alert("Decrypted", Previewing ${doc.name} (${blob.size} bytes));
+      // TODO: show image/pdf modal
+    } catch (e) {
+      Alert.alert("Error", String(e));
+    }
+  }
+
+  return (
+    <TouchableOpacity onPress={openSecurePreview}>
+      <View style={{ width: 140, height: 90, borderWidth: 1, borderColor: "#eee", borderRadius: 8, marginRight: 8, justifyContent: "center", alignItems: "center", backgroundColor: "#fafafa" }}>
+        <Text style={{ color: "#333" }}>{doc.name}</Text>
+        <Text style={{ color: "#999", fontSize: 12 }}>Encrypted</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+`
+
+---
+
+Encryption utilities
+
+`ts
+// app/lib/encryption.ts
+export type CipherBundle = { ciphertext: Uint8Array; iv: Uint8Array; dekRaw: Uint8Array };
+export type Envelope = { envelopeId: string; wrappedDek: Uint8Array; alg: "RSA-OAEP"; audience: "org" | "role" | "reviewer" };
+
+export async function generateAesGcmKey(): Promise<CryptoKey> {
+  return crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+}
+
+export async function exportRawKey(key: CryptoKey): Promise<Uint8Array> {
+  const raw = await crypto.subtle.exportKey("raw", key);
+  return new Uint8Array(raw);
+}
+
+export async function encryptAesGcm(payload: Uint8Array, aad?: Uint8Array): Promise<CipherBundle> {
+  const key = await generateAesGcmKey();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const params: AesGcmParams & { additionalData?: BufferSource } = { name: "AES-GCM", iv };
+  if (aad) params.additionalData = aad;
+  const ciphertext = new Uint8Array(await crypto.subtle.encrypt(params, key, payload));
+  const dekRaw = await exportRawKey(key);
+  return { ciphertext, iv, dekRaw };
+}
+
+export async function importOrgRsaPublicKey(spkiDer: ArrayBuffer): Promise<CryptoKey> {
+  return crypto.subtle.importKey("spki", spkiDer, { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]);
+}
+
+export async function wrapDekRsaOaep(dekRaw: Uint8Array, orgPub: CryptoKey): Promise<Uint8Array> {
+  const wrapped = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, orgPub, dekRaw);
+  return new Uint8Array(wrapped);
+}
+
+export async function sha256(data: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export async function encryptAndEnvelope(
+  payload: Uint8Array,
+  aad: Uint8Array,
+  orgSpkiDer: ArrayBuffer
+) {
+  const bundle = await encryptAesGcm(payload, aad);
+  const orgPub = await importOrgRsaPublicKey(orgSpkiDer);
+  const orgWrapped = await wrapDekRsaOaep(bundle.dekRaw, orgPub);
+  const commitmentHash = await sha256(bundle.ciphertext);
+  const envelopes: Envelope[] = [{ envelopeId: org-${commitmentHash}, wrappedDek: orgWrapped, alg: "RSA-OAEP", audience: "org" }];
+  return { ciphertext: bundle.ciphertext, iv: bundle.iv, envelopes, commitmentHash };
+}
+`
+
+---
+
+API client with SDK hooks
+
+`ts
+// app/lib/api.ts
+import { WalletDetails, DocumentItem } from "../types/models";
+import { encryptAndEnvelope } from "./encryption";
+import { requireBiometric } from "../hooks/useBiometrics";
+import { getWalletDetails, approveWallet, rejectWallet } from "./sdk";
+
+const BASEURL = process.env.EXPOPUBLICAPIBASE ?? "http://localhost:3000";
+
+export async function fetchWalletDetails(address: string): Promise<WalletDetails> {
+  // Bind to your SDK; fallback to server aggregation
+  return getWalletDetails(address);
+}
+
+export async function postEncryptedRecord(id: string, mime: string, payload: Uint8Array, aad: Uint8Array, orgSpkiDer: ArrayBuffer) {
+  const bundle = await encryptAndEnvelope(payload, aad, orgSpkiDer);
+  const res = await fetch(${BASE_URL}/records, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id,
+      mime,
+      version: 1,
+      ciphertext: Array.from(bundle.ciphertext),
+      iv: Array.from(bundle.iv),
+      envelopes: bundle.envelopes.map((e) => ({ ...e, wrappedDek: Array.from(e.wrappedDek) })),
+      commitmentHash: bundle.commitmentHash,
+    }),
+  });
+  if (!res.ok) throw new Error(Upload failed: ${res.status});
+  return bundle.commitmentHash;
+}
+
+export async function downloadAndDecryptDocument(doc: DocumentItem): Promise<Blob> {
+  const ok = await requireBiometric("Decrypt document");
+  if (!ok) throw new Error("Biometric required");
+  const res = await fetch(${BASE_URL}/records/${doc.id});
+  if (!res.ok) throw new Error("Record fetch failed");
+  const { ciphertext } = await res.json();
+  // In production: unwrap DEK via KMS/device key -> decrypt AES-GCM
+  // Here, return ciphertext as Blob placeholder
+  return new Blob([Uint8Array.from(ciphertext)], { type: doc.mime });
+}
+
+export async function approveAddress(address: string) {
+  const ok = await requireBiometric("Confirm approval");
+  if (!ok) throw new Error("Biometric required");
+  return approveWallet(address);
+}
+
+export async function rejectAddress(address: string, notes: string) {
+  const ok = await requireBiometric("Confirm rejection");
+  if (!ok) throw new Error("Biometric required");
+  return rejectWallet(address, notes);
+}
+`
+
+---
+
+SDK bindings (placeholder to your repos)
+
+`ts
+// app/lib/sdk.ts
+import { WalletDetails } from "../types/models";
+
+export async function getWalletDetails(address: string): Promise<WalletDetails> {
+  // TODO: Bind to solana-kyc-compliance-sdk and your backend aggregation
+  return {
+    address,
+    status: "Pending Review",
+    submittedAt: "2025-12-22 14:30 UTC",
+    basicInfo: {
+      fullName: "John Q. Example",
+      entityType: "Individual",
+      country: "US",
+      riskLevel: "High",
+      pepStatus: "No",
+      sanctions: "None",
+    },
+    documents: [
+      { id: "doc-1", name: "ID Front.jpg", mime: "image/jpeg", encryptedUri: "uri://doc1", envelopeIds: ["env-1"], commitmentHash: "hash1" },
+      { id: "doc-2", name: "ID Back.jpg", mime: "image/jpeg", encryptedUri: "uri://doc2", envelopeIds: ["env-2"], commitmentHash: "hash2" },
+      { id: "doc-3", name: "Proof of Address.pdf", mime: "application/pdf", encryptedUri: "uri://doc3", envelopeIds: ["env-3"], commitmentHash: "hash3" },
+    ],
+    auditTrail: [
+      { ts: "2025-12-22 14:30 UTC", action: "Submitted for review" },
+      { ts: "2025-12-22 15:00 UTC", action: "Sanctions check completed" },
+      { ts: "2025-12-22 15:15 UTC", action: "Risk score generated" },
+    ],
+  };
+}
+
+export async function approveWallet(address: string) {
+  // TODO: call on-chain program via your SDK; update backend/audit
+  return;
+}
+
+export async function rejectWallet(address: string, notes: string) {
+  // TODO: call on-chain program via your SDK; store notes server-side (encrypted)
+  return;
+}
+`
+
+---
+
+Address details screen (mobile)
+
+`tsx
+// app/screens/AddressDetailsScreen.tsx
+import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Alert, TextInput } from "react-native";
+import { WalletDetails } from "../types/models";
+import { fetchWalletDetails, approveAddress, rejectAddress } from "../lib/api";
+import DocumentTile from "../components/DocumentTile";
+import { Card, KeyVal, RiskBadge } from "../components/UI";
+
+export default function AddressDetailsScreen({ route, navigation }: any) {
+  const [details, setDetails] = useState<WalletDetails | null>(null);
+  const [decisionNotes, setDecisionNotes] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const addr = route.params.walletAddress;
+    fetchWalletDetails(addr).then(setDetails);
+  }, [route.params.walletAddress]);
+
+  async function onApprove() {
+    if (!details) return;
+    setLoading(true);
+    try {
+      await approveAddress(details.address);
+      Alert.alert("Approved", "Wallet has been approved.");
+      navigation.goBack();
+    } catch (e) {
+      Alert.alert("Error", String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onReject() {
+    if (!details) return;
+    if (!decisionNotes.trim()) {
+      Alert.alert("Notes required", "Please add decision notes before rejecting.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await rejectAddress(details.address, decisionNotes);
+      Alert.alert("Rejected", "Wallet has been rejected.");
+      navigation.goBack();
+    } catch (e) {
+      Alert.alert("Error", String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (!details) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading address details…</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      {/ Top action bar /}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12, borderBottomWidth: 1, borderColor: "#eee" }}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={{ fontSize: 16 }}>‹ Back</Text>
+        </TouchableOpacity>
+        <Text style={{ fontSize: 18, fontWeight: "600" }}>Address Details</Text>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <TouchableOpacity onPress={onApprove} disabled={loading} style={{ paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: "#ddd", backgroundColor: "#e6f0ff" }}>
+            <Text style={{ fontWeight: "600" }}>{loading ? "…" : "APPROVE"}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onReject} disabled={loading} style={{ paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: "#ddd", backgroundColor: "#f6eaea" }}>
+            <Text style={{ fontWeight: "600" }}>{loading ? "…" : "REJECT"}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
+        {/ Address box /}
+        <Card>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <Text style={{ fontFamily: "monospace", flex: 1 }}>{details.address}</Text>
+            <TouchableOpacity onPress={() => Alert.alert("Copied", "Wallet address copied")}>
+              <Text>📋</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={{ color: "#666", marginTop: 8 }}>
+            STATUS: {details.status} • Submitted: {details.submittedAt}
+          </Text>
+        </Card>
+
+        {/ Basic Info /}
+        <Card title="Basic Info">
+          <KeyVal label="Full Name" value={details.basicInfo.fullName} />
+          <KeyVal label="Entity Type" value={details.basicInfo.entityType} />
+          <KeyVal label="Country" value={details.basicInfo.country} />
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Text style={{ color: "#666" }}>Risk Level</Text>
+            <RiskBadge level={details.basicInfo.riskLevel} />
+          </View>
+          <KeyVal label="PEP Status" value={details.basicInfo.pepStatus} />
+          <KeyVal label="Sanctions" value={details.basicInfo.sanctions} />
+        </Card>
+
+        {/ Documents /}
+        <Card title="Documents">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+            {details.documents.map((doc) => <DocumentTile key={doc.id} doc={doc} />)}
+          </ScrollView>
+          <TouchableOpacity onPress={() => Alert.alert("Documents", "Open gallery modal")}>
+            <Text style={{ color: "#3366ff", marginTop: 8 }}>View All Documents ({details.documents.length}) →</Text>
+          </TouchableOpacity>
+        </Card>
+
+        {/ Risk Factors /}
+        <Card title="Risk Factors">
+          <Text>• Recent sanctions screening anomaly</Text>
+          <Text>• Activity spike > 3x baseline in last 24h</Text>
+          <Text>• PEP proximity flagged by third‑party provider</Text>
+        </Card>
+
+        {/ Decision Notes /}
+        <Card title="Decision Notes">
+          <TextInput
+            placeholder="Add notes for your decision..."
+            value={decisionNotes}
+            onChangeText={setDecisionNotes}
+            multiline
+            style={{ borderWidth: 1, borderColor: "#eee", borderRadius: 8, padding: 12, minHeight: 80, marginTop: 8 }}
+          />
+          <Text style={{ color: "#777", fontSize: 12, marginTop: 6 }}>(Required for rejections)</Text>
+        </Card>
+
+        {/ Audit Trail /}
+        <Card title="Audit Trail">
+          {details.auditTrail.slice(0, 3).map((ev, i) => (
+            <Text key={i} style={{ color: "#333" }}>🕒 {ev.ts} — {ev.action}</Text>
+          ))}
+        </Card>
+      </ScrollView>
+    </View>
+  );
+}
+`
+
+---
+
+Minimal backend skeleton
+
+`ts
+// server/server.ts
+import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
+
+type StoredRecord = {
+  id: string;
+  mime: string;
+  version: number;
+  ciphertext: Uint8Array;
+  iv: Uint8Array;
+  envelopes: { envelopeId: string; wrappedDek: Uint8Array; audience: string; alg: string }[];
+  commitmentHash: string;
+  createdAt: string;
+};
+
+const db = new Map<string, StoredRecord>();
+const auditLog: { ts: string; actor: string; action: string; recordId: string }[] = [];
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json({ limit: "10mb" }));
+
+app.post("/records", (req, res) => {
+  const { id, mime, version, ciphertext, iv, envelopes, commitmentHash } = req.body;
+  if (!id || !ciphertext || !iv || !envelopes || !commitmentHash) return res.status(400).json({ error: "Missing fields" });
+  const record: StoredRecord = {
+    id, mime, version,
+    ciphertext: Uint8Array.from(ciphertext),
+    iv: Uint8Array.from(iv),
+    envelopes: envelopes.map((e: any) => ({ ...e, wrappedDek: Uint8Array.from(e.wrappedDek) })),
+    commitmentHash,
+    createdAt: new Date().toISOString(),
+  };
+  db.set(id, record);
+  auditLog.push({ ts: new Date().toISOString(), actor: "system", action: "record_uploaded", recordId: id });
+  res.json({ ok: true, id });
+});
+
+app.get("/records/:id", (req, res) => {
+  const r = db.get(req.params.id);
+  if (!r) return res.status(404).json({ error: "Not found" });
+  auditLog.push({ ts: new Date().toISOString(), actor: "system", action: "record_fetched", recordId: r.id });
+  res.json({
+    id: r.id,
+    mime: r.mime,
+    version: r.version,
+    ciphertext: Array.from(r.ciphertext),
+    iv: Array.from(r.iv),
+    envelopes: r.envelopes.map((e) => ({ ...e, wrappedDek: Array.from(e.wrappedDek) })),
+    commitmentHash: r.commitmentHash,
+    createdAt: r.createdAt,
+  });
+});
+
+app.get("/audit", (_req, res) => {
+  res.json({ events: auditLog.slice(-100) });
+});
+
+app.listen(3000, () => console.log("Compliance backend listening on :3000"));
+`
+
+---
+
+Package manifests
+
+`json
+// package.json (app)
+{
+  "name": "compliance-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  },
+  "dependencies": {
+    "expo": "^51.0.0",
+    "react": "^18.2.0",
+    "react-native": "0.74.0",
+    "@react-navigation/native": "^6.1.9",
+    "@react-navigation/native-stack": "^6.9.12",
+    "expo-local-authentication": "^13.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  
