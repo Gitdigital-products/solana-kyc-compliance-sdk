@@ -1,0 +1,14 @@
+// URGENT: This doesn't exist yet but is core to your value proposition
+impl TransferHook for ComplianceRegistry {
+    fn pre_transfer_check(
+        &self,
+        source: &Pubkey,
+        destination: &Pubkey,
+        amount: u64,
+    ) -> ProgramResult {
+        // MUST: Query KYC registry
+        // MUST: Check AML lists
+        // MUST: Enforce transfer limits
+        // Currently: NOT IMPLEMENTED
+    }
+}
