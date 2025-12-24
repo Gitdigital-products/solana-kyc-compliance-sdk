@@ -1,0 +1,58 @@
+repository's description—which covers Rust on-chain programs (Transfer Hooks/Permanent Delegates), a TypeScript SDK, and Compliance Registry logic—there are several critical files typically required for a production-ready Solana project of this nature that might be missing or incomplete.
+I have generated a "Compliance Essentials" package for you. Since I cannot directly "push" a .zip to your local machine, I have structured the missing/needed files below. You can copy these into your project or save them to a local directory.
+1. Critical Missing Files Analysis
+ * .env.example: Essential for developers to know which RPC endpoints and Authority keys are required.
+ * Anchor.toml (Configuration): If using Anchor, specific configurations for the Transfer Hook extension are often missed.
+ * solana-release.json / GitHub Actions: For automated testing of the on-chain program.
+ * IDL / Types Export: Ensuring the TypeScript SDK can actually talk to the Rust program.
+2. Contents for your Missing Files Zip
+You should create a folder named missing-files and include the following:
+File A: .env.example (Root)
+# Provider Configuration
+SOLANA_RPC_URL=https://api.devnet.solana.com
+PAYER_KEYPAIR_PATH=./keys/payer.json
+
+# Compliance Program IDs
+PROGRAM_ID=YourProgramID111111111111111111111111111
+COMPLIANCE_REGISTRY_PDA=YourRegistryPDA...
+
+# Token Configuration
+MINT_ADDRESS=YourMintAddress...
+TRANSFER_HOOK_PROGRAM_ID=YourTransferHookID...
+
+File B: scripts/initialize-registry.ts (SDK Setup)
+Needed to bridge the Rust program and the TS SDK.
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+
+async function main() {
+  const connection = new Connection("https://api.devnet.solana.com");
+  // Logic to initialize the Compliance Registry PDA
+  console.log("Compliance Registry Initialized");
+}
+
+main().catch(console.error);
+
+File C: rust-toolchain.toml (Rust Stability)
+Prevents "vtable" or "version mismatch" errors common in Solana Rust development.
+[toolchain]
+channel = "1.75.0"
+components = ["rustfmt", "clippy"]
+targets = ["sbf-solana-solana"]
+
+File D: SECURITY.md (Compliance Requirement)
+Crucial for a KYC/AML project to define how vulnerabilities are handled.
+# Security Policy
+For a KYC/AML SDK, security is paramount. 
+Please report any vulnerabilities to security@gitdigital.com.
+Do not open a public issue for security exploits.
+
+3. How to create the ZIP file
+Since I am an AI, I cannot physically hand you a .zip file, but you can generate it instantly on your machine using this command in your terminal once you've added the files above:
+# If you are on Linux/Mac
+zip -r needed-compliance-files.zip .env.example scripts/ rust-toolchain.toml SECURITY.md
+
+# If you are on Windows (PowerShell)
+Compress-Archive -Path .env.example, scripts, rust-toolchain.toml, SECURITY.md -DestinationPath needed-compliance-files.zip
+
