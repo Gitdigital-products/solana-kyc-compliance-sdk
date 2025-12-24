@@ -1,0 +1,229 @@
+1. CODEOWNERS File (.github/CODEOWNERS)
+
+Create this file to automatically assign reviewers:
+
+```plaintext
+# Default owners for entire repository
+*       @Gitdigital-products @RickCreator87
+
+# Specific file/directory ownership
+/program/     @RickCreator87             # On-chain program - tech lead
+/sdk/         @RickCreator87             # TypeScript SDK - tech lead
+/registry/    @Gitdigital-products       # Compliance registry - business owner
+.github/      @Gitdigital-products       # GitHub workflows and settings
+
+# Documentation
+/docs/        @Gitdigital-products
+README.md     @Gitdigital-products @RickCreator87
+
+# Test files - both review
+/tests/       @RickCreator87 @Gitdigital-products
+```
+
+2. Pull Request Template (.github/PULL_REQUEST_TEMPLATE.md)
+
+Create this file to standardize PR submissions:
+
+```markdown
+# Solana KYC Compliance SDK - Pull Request
+
+## Description
+**Please describe the changes introduced by this PR:**
+
+[Provide a clear and concise description of what this PR does]
+
+## Type of Change
+- [ ] Bug fix (non-breaking change that fixes an issue)
+- [ ] New feature (non-breaking change that adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Documentation update
+- [ ] Refactoring (no functional changes)
+
+## Compliance Impact
+**Does this PR affect compliance logic?**
+- [ ] Yes - requires compliance review
+- [ ] No
+
+**If yes, describe the impact on KYC/AML functionality:**
+
+## Testing Performed
+**Please check all that apply:**
+- [ ] Rust unit tests (`cargo test` in /program/)
+- [ ] TypeScript tests (`npm test` in /sdk/)
+- [ ] Integration tests
+- [ ] Manual testing with devnet
+- [ ] Security audit completed
+
+**Test Results:**
+[Attach test results or describe manual testing performed]
+
+## Checklist
+- [ ] My code follows the project's coding standards
+- [ ] I have run `cargo fmt --check` and `cargo clippy`
+- [ ] I have added/updated relevant documentation
+- [ ] I have added/updated relevant tests
+- [ ] I have verified the CI pipeline passes
+
+## Required Approvals
+**Based on CODEOWNERS:**
+- [ ] @RickCreator87 (Tech Lead - required for all technical changes)
+- [ ] @Gitdigital-products (Code Owner - required for business logic)
+
+**Additional approvals if applicable:**
+- [ ] Compliance review (if affecting compliance logic)
+
+## Screenshots/Logs
+[If applicable, add screenshots or logs to demonstrate the changes]
+
+## Related Issues
+Closes #[issue number]
+```
+
+3. Branch Protection Configuration
+
+In your GitHub repository settings (Settings → Branches → Add rule):
+
+Apply to branches: main
+
+Protection rules to enable:
+
+· ✅ Require a pull request before merging
+· ✅ Require approvals (1 required reviewer)
+· ✅ Dismiss stale pull request approvals when new commits are pushed
+· ✅ Require review from Code Owners
+· ✅ Require status checks to pass before merging
+  · Select: cargo-test, npm-test, cargo-fmt, cargo-clippy, security-audit
+· ✅ Require branches to be up to date before merging
+· ✅ Include administrators
+
+4. Review Requirement Workflow (.github/workflows/require-reviews.yml)
+
+Create this workflow to enforce review requirements:
+
+```yaml
+name: Enforce Review Requirements
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-reviews:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for required reviewers
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const requiredTeams = ['Gitdigital-products'];
+            const requiredUsers = ['RickCreator87'];
+            
+            const reviews = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+            
+            const approvedUsers = new Set();
+            const approvedTeams = new Set();
+            
+            reviews.data.forEach(review => {
+              if (review.state === 'APPROVED') {
+                approvedUsers.add(review.user.login);
+              }
+            });
+            
+            // Check for team approvals (simplified - GitHub handles this natively)
+            const hasTechLead = requiredUsers.some(user => approvedUsers.has(user));
+            const missingReviews = [];
+            
+            if (!hasTechLead) {
+              missingReviews.push('@RickCreator87 (Tech Lead)');
+            }
+            
+            if (missingReviews.length > 0) {
+              core.setFailed(`Missing required reviews from: ${missingReviews.join(', ')}`);
+            } else {
+              console.log('All required reviews present');
+            }
+```
+
+5. Review Checklist (.github/REVIEW_GUIDELINES.md)
+
+Create this file for consistent code reviews:
+
+```markdown
+# Code Review Guidelines
+
+## For Tech Lead (@RickCreator87)
+### Technical Requirements
+- [ ] Code follows Rust/Solana best practices
+- [ ] No security vulnerabilities introduced
+- [ ] Proper error handling and logging
+- [ ] Efficient use of on-chain resources (compute units)
+- [ ] Integration tests cover edge cases
+- [ ] Backward compatibility maintained (if needed)
+
+### Compliance Logic Review
+- [ ] KYC/AML logic follows regulatory requirements
+- [ ] No unintended compliance bypasses
+- [ ] Audit events properly emitted
+- [ ] Token extension usage follows Solana standards
+
+## For Code Owner (@Gitdigital-products)
+### Business Requirements
+- [ ] Changes align with product roadmap
+- [ ] Compliance requirements met
+- [ ] No negative impact on institutional adoption
+- [ ] Documentation updates included if needed
+- [ ] API changes properly documented
+
+## General Review Checklist
+- [ ] PR description clearly explains changes
+- [ ] Tests added/updated for new functionality
+- [ ] No breaking changes without migration plan
+- [ ] Performance impact considered
+- [ ] Security implications reviewed
+```
+
+How to Implement:
+
+1. Create the files:
+
+```bash
+# Navigate to your repository
+cd solana-kyc-compliance-sdk
+
+# Create .github directory if it doesn't exist
+mkdir -p .github
+
+# Create CODEOWNERS file
+echo "* @Gitdigital-products @RickCreator87" > .github/CODEOWNERS
+echo "/program/ @RickCreator87" >> .github/CODEOWNERS
+echo "/sdk/ @RickCreator87" >> .github/CODEOWNERS
+echo "/registry/ @Gitdigital-products" >> .github/CODEOWNERS
+echo "/.github/ @Gitdigital-products" >> .github/CODEOWNERS
+
+# Create PR template
+# (Copy the PR template content above into .github/PULL_REQUEST_TEMPLATE.md)
+
+# Create review guidelines
+# (Copy the review guidelines content above into .github/REVIEW_GUIDELINES.md)
+
+# Create workflows directory
+mkdir -p .github/workflows
+# (Copy the require-reviews.yml content above into .github/workflows/require-reviews.yml)
+```
+
+1. Enable branch protection in GitHub UI:
+   · Go to Settings → Branches → Add rule
+   · Apply to main branch
+   · Configure as described above
+2. Commit and push:
+
+```bash
+git add .github/
+git commit -m "feat: Add PR review requirements and CODEOWNERS"
+git push origin main
+```
+
