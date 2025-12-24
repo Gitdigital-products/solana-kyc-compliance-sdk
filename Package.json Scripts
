@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "start": "node amcp-server/server.js",
+    "dev": "nodemon amcp-server/server.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "build": "tsc",
+    "docker:build": "docker build -t api-gateway .",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "config:validate": "node scripts/validate-config.js",
+    "config:reload": "curl -X POST http://localhost:8081/admin/config/reload",
+    "health": "curl http://localhost:8081/health"
+  }
+}
