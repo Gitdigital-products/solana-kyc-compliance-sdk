@@ -1,0 +1,50 @@
+{
+  "version": "amcp/v1",
+  "upstreams": [
+    {
+      "name": "user-service",
+      "protocol": "http",
+      "host": "user-service",
+      "port": 3001,
+      "healthCheck": {
+        "path": "/health",
+        "interval": 10000,
+        "timeout": 2000,
+        "healthyThreshold": 2,
+        "unhealthyThreshold": 3
+      },
+      "targets": [
+        {
+          "host": "user-service-1",
+          "port": 3001,
+          "weight": 50
+        },
+        {
+          "host": "user-service-2",
+          "port": 3001,
+          "weight": 50
+        }
+      ]
+    },
+    {
+      "name": "order-service",
+      "protocol": "http",
+      "host": "order-service",
+      "port": 3002,
+      "healthCheck": {
+        "path": "/health",
+        "interval": 10000
+      }
+    },
+    {
+      "name": "product-service",
+      "protocol": "https",
+      "host": "product-service",
+      "port": 3003,
+      "tls": {
+        "verify": true,
+        "caCertPath": "/certs/ca.pem"
+      }
+    }
+  ]
+}
