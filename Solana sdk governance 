@@ -1,0 +1,218 @@
+Compliance Checklist Matrix
+
+SDK Feature
+
+Regulatory Obligation
+
+Control Details
+
+Audit Test
+
+Evidence Produced
+
+On-chain compliance registry
+
+Customer identification and verification (KYC)
+
+Verified addresses added with attestation hash and timestamp; immutable log via program events
+
+Create, update, revoke sample address; verify event logs and account state diffs
+
+Program logs, transaction IDs, registry account snapshot
+
+Transfer hook enforcement
+
+Ongoing compliance and restricted transfers
+
+Token transfers call hook; deny if sender/receiver absent from registry
+
+Attempt transfer between unverified accounts; assert revert and reason
+
+Test report with failed transfer tx IDs and error code
+
+Permanent delegate
+
+Accountability and separation of duties
+
+Delegate keys for compliance officers; rotation logged and time-bounded
+
+Rotate delegate; confirm old key denied, new key allowed
+
+Key rotation log, tx IDs, before/after registry authority keys
+
+Attestation hash storage
+
+Recordkeeping and audit trail
+
+Hash of off-chain KYC file stored; prevents PII leakage
+
+Validate hash against off-chain KYC bundle; ensure non-reversibility
+
+Hash verification report, checksum, evidence vault link
+
+Revocation and sanctions gating
+
+Sanctions screening and monitoring
+
+Registry supports revoke with reason; transfers post-revoke fail
+
+Add address, revoke with reason, retest transfer denial
+
+Revocation event log, reason code, denied transfer tx IDs
+
+Versioned program + SDK
+
+Change management and traceability
+
+Semantic versions for program and SDK; changelog with migration steps
+
+Update minor version; run migration script and compatibility tests
+
+CHANGELOG, migration report, CI matrix results
+
+Admin/RBAC separation
+
+Least privilege and governance
+
+Distinct roles: Admin, Compliance Officer, Auditor, Maintainer
+
+Attempt privileged actions with non-privileged role; assert failure
+
+RBAC test outputs, role mapping doc, access logs
+
+Coverage and CI gates
+
+Continuous verification
+
+Required tests for registry, hooks, rotations; coverage thresholds
+
+Run CI with coverage gates; verify branch protection prevents merge
+
+CI report, coverage summary, branch status
+
+Incident response and DR
+
+Resilience and continuity
+
+Backup/restore workflows for registry accounts and keys
+
+Simulate registry corruption; restore from backup; reconcile
+
+DR runbook log, restored state diff, approvals
+
+Governance Scaffolding
+
+Repository Files
+
+SECURITY.md: Threat model, disclosure process, key management.
+
+COMPLIANCE.md: Matrix, jurisdiction notes, retention and privacy posture.
+
+AUDIT.md: Auditor checklist, evidence capture steps.
+
+GOVERNANCE.md: Roles, decision process, release management.
+
+CONTRIBUTING.md: Onboarding, coding standards, PR workflow.
+
+CODEOWNERS: Enforce review from compliance/security owners.
+
+CHANGELOG.md: Semantic versioning with migration notes.
+
+Example SECURITY.md
+
+# Security
+
+## Threat model
+- Assets: Registry accounts, delegate keys, attestation hashes.
+- Adversaries: Key compromise, unauthorized updates, program tampering.
+- Controls: RBAC, key rotation, mandatory review, reproducible builds.
+
+## Key management
+- Delegate keys: Hardware-backed, rotated every 90 days.
+- Storage: Encrypted at rest; only hashes on-chain.
+- Dual control: Rotations require two approvals.
+
+## Disclosure
+- Report: security@gitdigital-products.example
+- Process: Acknowledge within 72h; triage, fix, release advisory.
+
+CI/CD Scaffolding
+
+Workflow (.github/workflows/ci.yml)
+
+Build Rust program and TypeScript SDK.
+
+Run unit and integration tests.
+
+Enforce coverage thresholds.
+
+Upload artifacts and coverage reports.
+
+Release artifacts with checksums and signatures.
+
+CODEOWNERS
+
+/programs/compliance_registry/ @compliance @security
+/sdk/typescript/ @maintainers
+/docs/ @maintainers
+
+Pull Request Template
+
+## Summary
+- Change type: feat / fix / refactor / docs
+- Risk: low / medium / high
+- Compliance impact: yes / no
+
+## Tests
+- Rust program: results and coverage %
+- TypeScript SDK: results and coverage %
+
+## Evidence
+- Tx IDs / logs
+- Migration notes
+
+## Approvals required
+- CODEOWNERS: ✅
+- Security review: ✅
+
+Resilience Scaffolding
+
+Incident Response Playbook
+
+Detection: Failed compliance checks, unusual delegate activity.
+
+Containment: Freeze delegate actions, restrict updates.
+
+Eradication: Rotate keys, revert malicious entries.
+
+Recovery: Restore registry from backup, reconcile.
+
+Post-incident: Root cause analysis, advisory, policy updates.
+
+Disaster Recovery Scripts
+
+backup_registry.sh: Export registry state, checksums.
+
+restore_registry.sh: Import snapshot, verify checksums.
+
+rotate_delegate.sh: Dual-controlled key rotation.
+
+Monitoring and Notifications
+
+Alerts: CI failures, coverage drops, registry drift.
+
+Channels: Slack/Teams webhook.
+
+Dashboards: Grafana/Prometheus metrics from validator or indexer.
+
+Repository Structure
+
+docs/: SECURITY.md, COMPLIANCE.md, AUDIT.md, GOVERNANCE.md, CONTRIBUTING.md
+
+scripts/: build_release.sh, coverage_gate.sh, backup_registry.sh, restore_registry.sh, rotate_delegate.sh
+
+.github/: workflows/ci.yml, pull_request_template.md
+
+programs/: compliance_registry
+
+sdk/typescript/: tests, example integration app
