@@ -1,0 +1,75 @@
+version: '3.0'
+apiVersion: 'amcp/v1'
+
+gateway:
+  name: "production-gateway"
+  environment: "${ENVIRONMENT:-development}"
+  logLevel: "${LOG_LEVEL:-info}"
+  port: 8080
+  adminPort: 8081
+  
+  cors:
+    enabled: true
+    origins:
+      - "https://*.example.com"
+      - "http://localhost:3000"
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    headers:
+      - Authorization
+      - Content-Type
+      - X-Requested-With
+
+  security:
+    ssl:
+      enabled: "${ENABLE_SSL:-false}"
+      certPath: "/etc/ssl/certs/gateway.crt"
+      keyPath: "/etc/ssl/private/gateway.key"
+    jwtSecret: "${JWT_SECRET}"
+    apiKeyHeader: "X-API-Key"
+
+  rateLimiting:
+    enabled: true
+    redisUrl: "${REDIS_URL:-redis://localhost:6379}"
+    defaultLimit:
+      requests: 100
+      perSeconds: 60
+    burstLimit: 150
+
+  circuitBreaker:
+    enabled: true
+    failureThreshold: 5
+    successThreshold: 2
+    timeout: 10000
+    resetTimeout: 30000
+
+  observability:
+    metrics:
+      enabled: true
+      port: 9090
+      path: "/metrics"
+    tracing:
+      enabled: true
+      jaegerEndpoint: "${JAEGER_ENDPOINT:-http://localhost:14268/api/traces}"
+    logging:
+      format: "json"
+      level: "info"
+      output: "stdout"
+
+health:
+  endpoint: "/health"
+  checks:
+    - name: "redis"
+      type: "redis"
+      config:
+        url: "${REDIS_URL}"
+    - name: "database"
+      type: "postgres"
+      config:
+        connectionString: "${DATABASE_URL}"
+  interval: 30000
+  timeout: 5000
