@@ -228,7 +228,24 @@ Out of scope:
 - Off-chain KYC providers
 - Risk scoring algorithms
 - Third-party services
+# Security Policy
 
+## Reporting Vulnerabilities
+Please report security issues responsibly.
+
+📧 Email: security@gitdigital.products
+
+## Scope
+- Solana KYC Compliance SDK
+- APIs, services, and supporting infrastructure
+
+## Response Targets
+- Critical: 24 hours
+- High: 72 hours
+- Medium: 7 days
+
+## Safe Harbor
+We support good-faith security research and will not pursue legal action for responsible disclosure.
 ---
 
 ## Disclosure Policy
