@@ -1,0 +1,39 @@
+
+### Engineering Onboarding
+
+* Clone backend & frontend repos
+* Set up local environment
+* Run dev mode & verify
+* Access ClickUp engineering board
+* Add SSH keys
+* Confirm Dev + Staging deploy permissions
+
+### DevOps Onboarding
+
+* Access to infra repos
+* Configure GitHub Actions
+* Set up environment secrets
+* Verify Docker + GPU pipeline
+
+### Product Manager Onboarding
+
+* Read docs
+* Access product roadmap in ClickUp
+* Review analytics dashboards
+
+### Designer Onboarding
+
+* Access design repos
+* Join Figma team
+* Download brand kits
+
+### Marketing Onboarding
+
+* Access marketing repos
+* Access content calendar
+* Link social management tools
+
+### Support Onboarding
+
+* Access docs
+* Access ticketing system

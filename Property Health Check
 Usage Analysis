@@ -1,0 +1,6 @@
+   -- Example queries to run:
+   SELECT "Priority Level", COUNT(*) as count 
+   FROM issues 
+   GROUP BY "Priority Level" 
+   ORDER BY count DESC;
+  

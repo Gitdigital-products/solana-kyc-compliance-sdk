@@ -1,0 +1,10 @@
+SPL “KYC-PASS” NFT  
+- Mint 10 000 NFTs (0.1 SOL each) that act as license keys.  
+- The SDK `update_kyc_level` instruction checks:  
+  `assert!(kyc_pass_mint.owner == signer || kyc_pass_mint.delegate == signer)`  
+- This lets you charge per wallet rather than per call (cheaper UX).
+
+Subscription plugin  
+- Add an `expires_at: i64` field to `KycAccount`.  
+- Create `extend_subscription(kyc_pass_mint, months)` instruction that transfers USDC to your treasury PDA.  
+- Emit `SubscriptionExtended` event for off-chain invoicing.

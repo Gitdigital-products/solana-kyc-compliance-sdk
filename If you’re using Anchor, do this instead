@@ -1,0 +1,2 @@
+- name: Build Anchor program
+  run: anchor build

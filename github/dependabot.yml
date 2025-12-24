@@ -1,0 +1,23 @@
+# .github/dependabot.yml
+
+version: 2
+updates:
+  # Enable version updates for NPM (Node.js/JavaScript)
+  - package-ecosystem: "npm"
+    directory: "/" # Location of package.json
+    schedule:
+      interval: "weekly"
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "npm"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "github_actions"

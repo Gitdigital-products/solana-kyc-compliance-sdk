@@ -1,0 +1,346 @@
+// AddressDetailsScreen.tsx
+import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { TextInput } from "react-native-gesture-handler";
+
+type BasicInfo = {
+  fullName: string;
+  entityType: string;
+  country: string;
+  riskLevel: "High" | "Med" | "Low";
+  pepStatus: "Yes" | "No";
+  sanctions: "None" | "Listed" | "Under Review";
+};
+
+type DocumentItem = {
+  id: string;
+  name: string; // e.g., "ID Front.jpg"
+  mime: string;
+  encryptedUri: string; // storage URI to ciphertext
+  envelopeIds: string[]; // references to DEK envelopes the reviewer may unwrap
+  commitmentHash: string; // SHA-256 of ciphertext
+};
+
+type AuditEvent = {
+  ts: string; // ISO
+  actor?: string;
+  action: string;
+  recordId?: string;
+};
+
+type WalletDetails = {
+  address: string;
+  status: "Pending Review" | "Approved" | "Rejected";
+  submittedAt: string;
+  basicInfo: BasicInfo;
+  documents: DocumentItem[];
+  auditTrail: AuditEvent[];
+};
+
+export default function AddressDetailsScreen({
+  route,
+  navigation,
+}: {
+  route: { params: { walletAddress: string } };
+  navigation: any;
+}) {
+  const [details, setDetails] = useState<WalletDetails | null>(null);
+  const [decisionNotes, setDecisionNotes] = useState("");
+  const [loadingAction, setLoadingAction] = useState<"approve" | "reject" | null>(null);
+
+  useEffect(() => {
+    const addr = route.params.walletAddress;
+    // TODO: replace with SDK binding: getWalletDetails(addr)
+    mockFetch(addr).then(setDetails);
+  }, [route.params.walletAddress]);
+
+  function onCopyAddress() {
+    // Use platform Clipboard; show toast
+    Alert.alert("Copied", "Wallet address copied to clipboard.");
+  }
+
+  async function handleApprove() {
+    if (!details) return;
+    setLoadingAction("approve");
+    try {
+      // TODO: bind to SDK approveWallet(details.address)
+      await mockApprove(details.address);
+      Alert.alert("Approved", "Wallet has been approved.");
+      // Refresh details or navigate back
+    } catch (e) {
+      Alert.alert("Error", String(e));
+    } finally {
+      setLoadingAction(null);
+    }
+  }
+
+  async function handleReject() {
+    if (!details) return;
+    if (!decisionNotes.trim()) {
+      Alert.alert("Notes required", "Please add decision notes before rejecting.");
+      return;
+    }
+    setLoadingAction("reject");
+    try {
+      // TODO: bind to SDK rejectWallet(details.address, decisionNotes)
+      await mockReject(details.address, decisionNotes);
+      Alert.alert("Rejected", "Wallet has been rejected.");
+    } catch (e) {
+      Alert.alert("Error", String(e));
+    } finally {
+      setLoadingAction(null);
+    }
+  }
+
+  if (!details) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading address details…</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      {/* Top action bar */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: 12,
+          borderBottomWidth: 1,
+          borderColor: "#eee",
+        }}
+      >
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={{ fontSize: 16 }}>‹ Back</Text>
+        </TouchableOpacity>
+        <Text style={{ fontSize: 18, fontWeight: "600" }}>Address Details</Text>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <TouchableOpacity
+            onPress={handleApprove}
+            disabled={loadingAction === "approve"}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderWidth: 1,
+              borderColor: "#ddd",
+              backgroundColor: "#e6f0ff",
+            }}
+          >
+            <Text style={{ fontWeight: "600" }}>
+              {loadingAction === "approve" ? "Approving…" : "APPROVE"}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleReject}
+            disabled={loadingAction === "reject"}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderWidth: 1,
+              borderColor: "#ddd",
+              backgroundColor: "#f6eaea",
+            }}
+          >
+            <Text style={{ fontWeight: "600" }}>
+              {loadingAction === "reject" ? "Rejecting…" : "REJECT"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
+        {/* Address box */}
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: "#eee",
+            padding: 12,
+            borderRadius: 8,
+            shadowColor: "#000",
+            shadowOpacity: 0.05,
+            shadowRadius: 6,
+            elevation: 2,
+          }}
+        >
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <Text style={{ fontFamily: "monospace" }}>{details.address}</Text>
+            <TouchableOpacity onPress={onCopyAddress}>
+              <Text>📋</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={{ color: "#666", marginTop: 8 }}>
+            STATUS: {details.status} • Submitted: {details.submittedAt}
+          </Text>
+        </View>
+
+        {/* Basic Info card */}
+        <View style={cardStyle}>
+          <Text style={cardTitle}>Basic Info</Text>
+          <View style={{ gap: 6, marginTop: 8 }}>
+            <KeyVal label="Full Name" value={details.basicInfo.fullName} />
+            <KeyVal label="Entity Type" value={details.basicInfo.entityType} />
+            <KeyVal label="Country" value={details.basicInfo.country} />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Text style={kvLabel}>Risk Level</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor:
+                      details.basicInfo.riskLevel === "High"
+                        ? "#d32f2f"
+                        : details.basicInfo.riskLevel === "Med"
+                        ? "#fbc02d"
+                        : "#2e7d32",
+                  }}
+                />
+                <Text style={kvVal}>{details.basicInfo.riskLevel}</Text>
+              </View>
+            </View>
+            <KeyVal label="PEP Status" value={details.basicInfo.pepStatus} />
+            <KeyVal label="Sanctions" value={details.basicInfo.sanctions} />
+          </View>
+        </View>
+
+        {/* Documents card */}
+        <View style={cardStyle}>
+          <Text style={cardTitle}>Documents</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+            {details.documents.map((doc) => (
+              <TouchableOpacity
+                key={doc.id}
+                onPress={() => Alert.alert("Secure preview", "Tap to decrypt with biometric confirmation")}
+                style={{
+                  width: 140,
+                  height: 90,
+                  borderWidth: 1,
+                  borderColor: "#eee",
+                  borderRadius: 8,
+                  marginRight: 8,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "#fafafa",
+                }}
+              >
+                <Text style={{ color: "#333" }}>{doc.name}</Text>
+                <Text style={{ color: "#999", fontSize: 12 }}>Encrypted</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <TouchableOpacity onPress={() => Alert.alert("Documents", "Open gallery modal")}>
+            <Text style={{ color: "#3366ff", marginTop: 8 }}>View All Documents ({details.documents.length}) →</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Risk Factors card */}
+        <View style={cardStyle}>
+          <Text style={cardTitle}>Risk Factors</Text>
+          <View style={{ marginTop: 8, gap: 6 }}>
+            <Bullet>Recent sanctions screening anomaly</Bullet>
+            <Bullet>Activity spike > 3x baseline in last 24h</Bullet>
+            <Bullet>PEP proximity flagged by third‑party provider</Bullet>
+          </View>
+        </View>
+
+        {/* Decision Notes */}
+        <View style={cardStyle}>
+          <Text style={cardTitle}>Decision Notes</Text>
+          <TextInput
+            placeholder="Add notes for your decision..."
+            value={decisionNotes}
+            onChangeText={setDecisionNotes}
+            multiline
+            style={{
+              borderWidth: 1,
+              borderColor: "#eee",
+              borderRadius: 8,
+              padding: 12,
+              minHeight: 80,
+              marginTop: 8,
+            }}
+          />
+          <Text style={{ color: "#777", fontSize: 12, marginTop: 6 }}>(Required for rejections)</Text>
+        </View>
+
+        {/* Audit Trail */}
+        <View style={cardStyle}>
+          <Text style={cardTitle}>Audit Trail</Text>
+          <View style={{ marginTop: 8, gap: 6 }}>
+            {details.auditTrail.slice(0, 3).map((ev, i) => (
+              <Text key={i} style={{ color: "#333" }}>
+                🕒 {ev.ts} — {ev.action}
+              </Text>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function KeyVal({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+      <Text style={kvLabel}>{label}</Text>
+      <Text style={kvVal}>{value}</Text>
+    </View>
+  );
+}
+
+function Bullet({ children }: { children: React.ReactNode }) {
+  return (
+    <View style={{ flexDirection: "row", gap: 8 }}>
+      <Text>•</Text>
+      <Text style={{ flex: 1 }}>{children}</Text>
+    </View>
+  );
+}
+
+const cardStyle = {
+  borderWidth: 1,
+  borderColor: "#eee",
+  padding: 12,
+  borderRadius: 8,
+  shadowColor: "#000",
+  shadowOpacity: 0.05,
+  shadowRadius: 6,
+  elevation: 2,
+} as const;
+
+const cardTitle = { fontSize: 16, fontWeight: "600" } as const;
+const kvLabel = { color: "#666" } as const;
+const kvVal = { color: "#333", fontWeight: "500" } as const;
+
+// Mock functions for demonstration
+async function mockFetch(address: string): Promise<WalletDetails> {
+  return {
+    address,
+    status: "Pending Review",
+    submittedAt: "2025-12-22 14:30 UTC",
+    basicInfo: {
+      fullName: "John Q. Example",
+      entityType: "Individual",
+      country: "US",
+      riskLevel: "High",
+      pepStatus: "No",
+      sanctions: "None",
+    },
+    documents: [
+      { id: "1", name: "ID Front.jpg", mime: "image/jpeg", encryptedUri: "uri://doc1", envelopeIds: ["env-1"], commitmentHash: "hash1" },
+      { id: "2", name: "ID Back.jpg", mime: "image/jpeg", encryptedUri: "uri://doc2", envelopeIds: ["env-2"], commitmentHash: "hash2" },
+      { id: "3", name: "Proof of Address.pdf", mime: "application/pdf", encryptedUri: "uri://doc3", envelopeIds: ["env-3"], commitmentHash: "hash3" },
+    ],
+    auditTrail: [
+      { ts: "2025-12-22 14:30 UTC", action: "Submitted for review" },
+      { ts: "2025-12-22 15:00 UTC", action: "Sanctions check completed" },
+      { ts: "2025-12-22 15:15 UTC", action: "Risk score generated" },
+    ],
+  };
+}
+async function mockApprove(_: string) { return; }
+async function mockReject(_: string, __: string) { return; }

@@ -1,0 +1,15 @@
+Key idea  
+– Replace kernel TCP with a QUIC-like stream layer on raw RDMA
+  RC QPs.  Zero-copy: application buffers registered once,
+  credit-based flow-control, packet reflection in NIC SRAM,
+  32 B headers, 1-RTT handshake.
+
+Benchmark (NVIDIA ConnectX-7, 400 GbE, 2×8-core)
+  iperf3 -t 60  → 398 Gb/s, 0.02 % retrans, CPU 1.8 core
+
+Build
+  cd socketx
+  cmake -B build -DSX_VERBS_PROVIDER=mlx5
+  cmake --build build
+  ./build/tools/sx_server -p 9999 -d mlx5_0
+  ./build/tools/sx_client -p 9999 -d mlx5_0 -t 60

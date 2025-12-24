@@ -1,4 +1,6 @@
 name: Anchor CI
+permissions:
+  contents: read
 
 on:
   push:

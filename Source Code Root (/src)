@@ -1,0 +1,14 @@
+· /core-api: Purpose: Houses the essential, framework-agnostic logic for compliance and attestation.
+  · attestation-service.ts: Core functions for issuing, fetching, and verifying wallet attestations (likely interacting with the Solana Attestation Service (SAS)).
+  · token-compliance.ts: Core functions for checking token transfer permissions, ownership rules, and compliance status.
+  · types/index.ts: Shared TypeScript interfaces and types (e.g., Attestation, ComplianceRule).
+  · index.ts: Main export point for the core API.
+· /integration-helpers: Purpose: Contains Solana-specific wiring and framework utilities (React, Vue, etc.).
+  · solana-provider.ts: Abstracts connection to Solana wallets (like Phantom) and the RPC network. Uses modern Solana web3 libraries (e.g., @solana/web3.js or @solana/kit/gill).
+  · hooks/ (Optional): React hooks (e.g., useSolanaWallet, useComplianceCheck).
+  · index.ts: Main export point for integration helpers.
+· /ui-components (Optional): Purpose: Provides ready-to-use UI components to speed up frontend integration.
+  · components/: Reusable React/Vue/Svelte components (e.g., AttestationBadge, ComplianceGate).
+  · styles/: Component styling files.
+  · index.ts: Main export point for UI components.
+· index.ts (at /src root): The primary entry point that re-exports functionality from all modules.

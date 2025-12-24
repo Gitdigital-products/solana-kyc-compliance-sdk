@@ -1,0 +1,2 @@
+docker build -t acme/kyc-adapter:1.0.0 .
+docker push acme/kyc-adapter:1.0.0

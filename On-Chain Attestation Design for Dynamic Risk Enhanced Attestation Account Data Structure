@@ -1,0 +1,7 @@
+// In your existing SAS program code
+pub struct RiskAwareAttestation {
+    // ... existing KYC fields (subject, issuer, issuance_date, etc.)
+    pub risk_status: RiskStatus, // Enum: Active, Flagged, Suspended, Revoked
+    pub current_risk_score: u8, // 0-100, updated by the Risk Engine
+    pub last_risk_check_timestamp: i64,
+    pub risk_metadata_uri: String, // Optional: Link to a more detailed risk report (IPFS/Arweave)

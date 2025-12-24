@@ -1,0 +1,35 @@
+# Server/.env (for API server)
+NODE_ENV=development
+PORT=3000
+
+# Database (PostgreSQL)
+DATABASE_URL=postgresql://postgres:password@localhost:5432/kyc_dev
+
+# Redis
+REDIS_URL=redis://localhost:6379
+REDIS_PASSWORD=
+
+# JWT Secret (generate with: openssl rand -base64 32)
+JWT_SECRET=your_jwt_secret_key_change_in_production
+JWT_EXPIRES_IN=7d
+
+# CORS
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000  # 15 minutes
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Webhook Configuration (for KYC providers)
+WEBHOOK_SECRET=your_webhook_secret
+WEBHOOK_TIMEOUT=5000
+WEBHOOK_RETRIES=3
+
+# Email (for notifications)
+EMAIL_PROVIDER=console  # 'sendgrid', 'mailgun', or 'console' for development
+EMAIL_FROM=noreply@kyc.gitdigital.com
+SENDGRID_API_KEY=
+
+# Monitoring
+PROMETHEUS_ENABLED=true
+LOGGING_LEVEL=info

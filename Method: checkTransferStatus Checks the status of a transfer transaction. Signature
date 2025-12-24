@@ -1,0 +1,6 @@
+/**
+ * Checks the status of a transfer transaction.
+ * @param {string} transactionSignature - The signature of the transaction to check
+ * @returns {Promise<TransferStatus>} Detailed status of the transfer
+ */
+async checkTransferStatus(transactionSignature: string): Promise<TransferStatus>

@@ -1,0 +1,9 @@
+# Clone the repository
+git clone https://github.com/Gitdigital-products/solana-kyc-compliance-sdk.git
+
+# Navigate into the project directory
+cd solana-kyc-compliance-sdk
+
+# If the project uses Git LFS, fetch all LFS objects
+git lfs fetch --all
+git lfs pull

@@ -1,0 +1,4 @@
+- name: Check repo structure
+  run: |
+    echo "Current path: $(pwd)"
+    ls -R

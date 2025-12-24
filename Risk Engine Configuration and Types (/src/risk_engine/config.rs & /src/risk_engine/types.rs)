@@ -1,0 +1,53 @@
+// src/risk_engine/config.rs
+pub struct RiskEngineConfig {
+    pub trm_api_key: String,
+    pub trm_api_url: String,
+    pub chainalysis_api_key: String,
+    pub chainalysis_api_url: String,
+    // Add other providers (e.g., Scorechain, H3M)
+    pub scoring_thresholds: RiskThresholds,
+    pub poll_interval_seconds: u64,
+    pub rpc_url: String,
+}
+ 
+pub struct RiskThresholds {
+    pub high_risk_score: f64,   // e.g., 75.0
+    pub critical_risk_score: f64, // e.g., 90.0
+}
+ 
+// src/risk_engine/types.rs
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WalletRiskProfile {
+    pub wallet_address: String,
+    pub overall_risk_score: f64, // 0-100
+    pub risk_level: RiskLevel,
+    pub risk_indicators: Vec<RiskIndicator>,
+    pub last_updated: i64,
+    pub data_sources: Vec<DataSource>,
+}
+ 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum RiskLevel {
+    Low,
+    Medium,
+    High,
+    Critical,
+}
+ 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RiskIndicator {
+    pub category: RiskCategory, // e.g., Sanctions, Mixer, Scam
+    pub score: f64,
+    pub description: String,
+    pub transaction_hash: Option<String>,
+}
+ 
+// Based on categories identified in search results [citation:4]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum RiskCategory {
+    DirectIllicitActivity, // Hacks, scams, ransomware [citation:4]
+    ObfuscationTechniques, // Mixer usage, chain-hopping [citation:4]
+    HighRiskOffRamping,    // Unregulated exchange, P2P [citation:4]
+    Sanctions,
+    AdverseMedia,
+    BehavioralAnomaly,     // Rapid movements, structuring [citation:3]

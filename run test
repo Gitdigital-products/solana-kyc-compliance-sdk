@@ -1,0 +1,3 @@
+- name: Run Anchor tests
+  run: anchor test
+  working-directory: programs/compliance_registry

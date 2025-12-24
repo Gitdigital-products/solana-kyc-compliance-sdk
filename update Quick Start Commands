@@ -1,0 +1,39 @@
+
+1. Initialize the project:
+
+```bash
+npm install
+```
+
+1. Build all outputs:
+
+```bash
+npm run build:all
+```
+
+1. Test the bundles locally:
+
+```bash
+# Create a test HTML file to verify browser bundle
+echo '<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+  <script src="./dist/browser/solana-kyc-compliance.min.js"></script>
+</head>
+<body>
+  <script>
+    console.log("SDK loaded:", window.SolanaKYC);
+  </script>
+</body>
+</html>' > test-browser.html
+```
+
+🔧 Key Configuration Decisions
+
+1. Dual Module Support: Both ESM (modern) and CJS (legacy) outputs
+2. Tree-shaking Ready: Side-effect-free modules for optimal bundler optimization
+3. Browser Compatibility: IIFE bundle for script tag usage
+4. Type Safety: Complete TypeScript declarations with source maps
+5. Performance: Terser minification and dead code elimination
+6. Modular Imports: Subpath exports for partial SDK usage

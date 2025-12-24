@@ -1,0 +1,104 @@
+import { defineConfig } from 'rollup';
+import typescript from '@rollup/plugin-typescript';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import terser from '@rollup/plugin-terser';
+import dts from 'rollup-plugin-dts';
+
+// Main library bundles
+const mainConfig = defineConfig({
+  input: {
+    index: 'src/index.ts',
+    'core-api': 'src/core-api/index.ts',
+    'integration-helpers': 'src/integration-helpers/index.ts',
+    'ui-components': 'src/ui-components/index.ts'
+  },
+  output: [
+    {
+      dir: 'dist/bundles',
+      format: 'esm',
+      entryFileNames: '[name].esm.js',
+      sourcemap: true,
+      exports: 'named'
+    },
+    {
+      dir: 'dist/bundles',
+      format: 'umd',
+      entryFileNames: '[name].umd.js',
+      name: 'SolanaKYC',
+      sourcemap: true,
+      exports: 'named',
+      globals: {
+        '@solana/web3.js': 'solanaWeb3',
+        '@solana/wallet-adapter-base': 'walletAdapterBase',
+        'react': 'React',
+        'react-dom': 'ReactDOM'
+      }
+    }
+  ],
+  external: [
+    '@solana/web3.js',
+    '@solana/wallet-adapter-base',
+    'react',
+    'react-dom',
+    'buffer'
+  ],
+  plugins: [
+    nodeResolve({
+      browser: true,
+      preferBuiltins: false
+    }),
+    commonjs(),
+    typescript({
+      tsconfig: './tsconfig.json',
+      exclude: ['**/*.test.ts', '**/*.spec.ts']
+    }),
+    terser({
+      format: {
+        comments: false
+      },
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    })
+  ],
+  treeshake: {
+    propertyReadSideEffects: false
+  }
+});
+
+// Type declarations bundle
+const dtsConfig = defineConfig({
+  input: 'dist/types/index.d.ts',
+  output: [{ file: 'dist/bundles/index.d.ts', format: 'es' }],
+  plugins: [dts()]
+});
+
+// Browser-specific standalone bundle (for script tag inclusion)
+const browserConfig = defineConfig({
+  input: 'src/index.ts',
+  output: {
+    file: 'dist/browser/solana-kyc-compliance.min.js',
+    format: 'iife',
+    name: 'SolanaKYC',
+    sourcemap: true,
+    globals: {
+      '@solana/web3.js': 'solanaWeb3'
+    }
+  },
+  external: ['@solana/web3.js'],
+  plugins: [
+    nodeResolve({
+      browser: true,
+      preferBuiltins: false
+    }),
+    commonjs(),
+    typescript({
+      tsconfig: './tsconfig.json'
+    }),
+    terser()
+  ]
+});
+
+export default [mainConfig, dtsConfig, browserConfig];

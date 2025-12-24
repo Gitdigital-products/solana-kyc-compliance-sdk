@@ -1,0 +1,17 @@
+const zkKYC = new ZKKYCVerifier();
+
+// Generate proof without revealing data
+const proof = await zkKYC.generateKYCProof({
+  isAdult: true,
+  countryCode: 840, // US
+  isSanctioned: false,
+  kycLevel: 2
+}, 'user-secret-salt');
+
+// Verify proof
+const isValid = await zkKYC.verifyKYCProof(
+  proof.proof,
+  proof.publicSignals,
+  840, // Required country
+  2    // Minimum level
+);

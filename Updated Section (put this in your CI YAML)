@@ -1,0 +1,16 @@
+- name: Install Solana CLI
+  run: |
+    sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+    echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+    export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+
+- name: Verify versions
+  run: |
+    solana --version
+    anchor --version
+    rustc --version
+
+- name: Create dummy Solana keypair
+  run: |
+    mkdir -p ~/.config/solana
+    echo '[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]' > ~/.config/solana/id.json

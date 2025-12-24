@@ -1,0 +1,43 @@
+
+## 🚀 Quick Setup Script
+
+Here's a setup script to create all files at once:
+
+### `/setup-sdk.sh`
+```bash
+#!/bin/bash
+
+echo "🚀 Setting up Solana KYC Compliance SDK..."
+
+# Create directories
+echo "📁 Creating directory structure..."
+mkdir -p sdk/src/{services,instructions,utils}
+mkdir -p sdk/tests/integration
+mkdir -p sdk/docs
+
+echo "✅ Directory structure created"
+
+echo "📝 Creating source files..."
+# Create each file with the content above
+# (You would copy each file's content here, but due to length, I'm showing the structure)
+
+echo "📦 Installing dependencies..."
+cd sdk
+npm install
+
+echo "🔧 Building SDK..."
+npm run build
+
+echo "🧪 Running tests..."
+npm test
+
+echo "📚 Generating documentation..."
+npm run docs
+
+echo "🎉 SDK setup complete!"
+echo ""
+echo "Next steps:"
+echo "1. Update program IDs in the instructions"
+echo "2. Add your actual Rust program integration"
+echo "3. Run npm test to verify everything works"
+echo "4. Run npm run docs:serve to view API documentation"

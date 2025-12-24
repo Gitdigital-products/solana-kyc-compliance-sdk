@@ -1,0 +1,9 @@
+# 1. Install dependencies
+npm install
+
+# 2. Setup environment
+cp .env.example .env
+# Edit .env with your configuration
+
+# 3. Build everything
+npm run build:all

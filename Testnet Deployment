@@ -1,0 +1,12 @@
+# 1. Switch to testnet
+solana config set --url https://api.testnet.solana.com
+
+# 2. Get testnet SOL from faucet
+# Visit: https://faucet.solana.com
+
+# 3. Update .env
+SOLANA_NETWORK=testnet
+SOLANA_RPC_URL=https://api.testnet.solana.com
+
+# 4. Deploy
+npm run deploy:testnet

@@ -1,0 +1,17 @@
+Key idea  
+– Lock-free skip-list per NUMA node, cross-node “steal” queue,
+  hashed sharding with 128-bit CRC, no malloc after init,
+  batch insert/lookup via RCU epochs.
+
+Quick numbers (Zen-5 128-core, 1 B 16-byte KV pairs)
+  212 M mixed ops/sec (50 % get, 50 % put)  P99 = 2.1 µs
+
+Build & run
+  cd kvshard
+  cmake -B build -DKVSHARD_BUILD_BENCH=ON
+  cmake --build build -j
+  numactl --cpunodebind=0-7 ./build/bench/kv_bench -t 128 -n 1000000000
+
+Docker (for CI)
+  docker build -t kvshard -f scripts/Dockerfile.ubuntu .
+  docker run --rm -e THREADS=128 kvshard ./bench/kv_bench -n 100000000

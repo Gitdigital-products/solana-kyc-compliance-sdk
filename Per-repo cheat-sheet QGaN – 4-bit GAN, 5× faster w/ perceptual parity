@@ -1,0 +1,13 @@
+Key idea  
+– Custom CUDA kernels for 4-bit quantised conv & matmul (row-wise
+  scale+zero), gradient scaler that stays in 4-bit, generator
+  trained with a FP32 shadow copy updated every N steps.
+
+Convergence plot (ImageNet 128×128, conditional GAN)
+  FP32 baseline  800 kimg  → FID 6.42
+  QGaN           160 kimg  → FID 6.38  (5× speed-up, same GPU hrs)
+
+Train
+  cd qgan
+  pip install -r requirements.txt
+  torchrun --nproc_per_node=8 train.py --config configs/imagenet128_4bit.toml

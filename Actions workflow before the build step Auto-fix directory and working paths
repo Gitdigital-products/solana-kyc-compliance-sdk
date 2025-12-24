@@ -1,0 +1,9 @@
+# Clean Rust + Anchor build junk
+cargo clean
+anchor clean
+
+# Reset Solana test validator data (optional)
+rm -rf ~/.config/solana/test-ledger
+
+# Remove old target folders (just to be sure)
+find . -type d -name "target" -exec rm -rf {} +

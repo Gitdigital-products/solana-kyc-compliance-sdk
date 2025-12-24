@@ -1,0 +1,5 @@
+cd sdk/typescript
+npm install
+npm run build
+node dist/examples/register_user.js
+# or run ts directly if you have ts-node or run the TS example after tsc

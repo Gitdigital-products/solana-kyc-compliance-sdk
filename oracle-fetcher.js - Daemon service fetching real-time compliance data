@@ -1,0 +1,121 @@
+const { Connection, PublicKey } = require('@solana/web3.js');
+const axios = require('axios');
+const { PythHttpClient, getPythProgramKeyForCluster } = require('@pythnetwork/client');
+ 
+class OracleComplianceFetcher {
+  constructor(config) {
+    this.solanaConnection = new Connection(config.rpcUrl);
+    this.pythProgramKey = getPythProgramKeyForCluster(config.cluster);
+    this.pythClient = new PythHttpClient(this.solanaConnection, this.pythProgramKey);
+    
+    // Configuration for data sources
+    this.dataSources = {
+      sanctions: config.sanctionsApiUrl,
+      jurisdiction: config.jurisdictionApiUrl,
+      riskIndicators: config.riskApiUrl
+    };
+    
+    this.updateInterval = config.updateInterval || 30000; // 30 seconds
+  }
+
+  async start() {
+    console.log('Starting Oracle Compliance Fetcher...');
+    
+    // Initial fetch
+    await this.fetchAllData();
+    
+    // Set up periodic updates
+    this.interval = setInterval(async () => {
+      try {
+        await this.fetchAllData();
+      } catch (error) {
+        console.error('Error fetching oracle data:', error);
+      }
+    }, this.updateInterval);
+  }
+
+  async fetchAllData() {
+    const [sanctions, jurisdiction, pythData] = await Promise.all([
+      this.fetchSanctionsData(),
+      this.fetchJurisdictionData(),
+      this.fetchPythPriceData() // Example of financial data
+    ]);
+    
+    // Process and calculate risk scores
+    const riskScores = this.calculateRiskScores(sanctions, jurisdiction, pythData);
+    
+    // Update on-chain compliance registry
+    await this.updateComplianceRegistry(riskScores);
+    
+    return riskScores;
+  }
+
+  async fetchSanctionsData() {
+    try {
+      const response = await axios.get(this.dataSources.sanctions, {
+        headers: { 'Authorization': `Bearer ${process.env.SANCTIONS_API_KEY}` }
+      });
+      
+      // Process OFAC/global sanctions list
+      return this.processSanctionsList(response.data);
+    } catch (error) {
+      console.error('Failed to fetch sanctions data:', error);
+      return { lastUpdated: new Date(), entries: [] };
+    }
+  }
+
+  async fetchPythPriceData() {
+    const data = await this.pythClient.getData();
+    
+    // Extract relevant price feeds for RWA
+    const relevantFeeds = [];
+    
+    for (const symbol of ['BTC/USD', 'SOL/USD', 'USDC/USD']) {
+      const price = data.productPrice.get(symbol);
+      if (price && price.price) {
+        relevantFeeds.push({
+          symbol,
+          price: price.price,
+          confidence: price.confidence,
+          timestamp: price.publishTime
+        });
+      }
+    }
+    
+    return relevantFeeds;
+  }
+
+  calculateRiskScores(sanctions, jurisdiction, marketData) {
+    const riskScores = new Map();
+    
+    // Example risk calculation logic
+    // 1. Check against sanctions list
+    // 2. Validate jurisdiction compliance
+    // 3. Monitor transaction patterns from market data
+    
+    return {
+      timestamp: new Date().toISOString(),
+      scores: Object.fromEntries(riskScores),
+      metadata: {
+        sanctionsCount: sanctions.entries.length,
+        jurisdictions: Object.keys(jurisdiction),
+        marketVolatility: this.calculateVolatility(marketData)
+      }
+    };
+  }
+
+  async updateComplianceRegistry(riskScores) {
+    // This would call your on-chain program to update risk scores
+    // Implementation depends on your compliance registry structure
+    
+    console.log('Updating compliance registry with new risk scores');
+    // Placeholder: Implement transaction to update on-chain registry
+  }
+
+  stop() {
+    if (this.interval) {
+      clearInterval(this.interval);
+    }
+  }
+}
+ 

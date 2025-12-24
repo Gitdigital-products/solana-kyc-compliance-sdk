@@ -1,0 +1,19 @@
+- name: Pre-fund CI wallet from treasury
+  env:
+    TREASURY: ${{ secrets.TREASURY_ADDRESS }}
+    FUNDING_KEYPAIR: ${{ secrets.FUNDING_KEYPAIR }}
+  run: |
+    mkdir -p ~/.config/solana
+    echo "$FUNDING_KEYPAIR" > ~/.config/solana/funding.json
+    chmod 600 ~/.config/solana/funding.json
+
+    solana config set --url https://api.devnet.solana.com
+
+    # Check CI wallet public key
+    CI_WALLET=$(solana address)
+    echo "Funding CI wallet: $CI_WALLET"
+
+    # Transfer ~0.05 SOL (adjust if needed)
+    solana transfer $CI_WALLET 0.05 --from ~/.config/solana/funding.json --fee-payer ~/.config/solana/funding.json --url https://api.devnet.solana.com --allow-unfunded-recipient
+
+    echo "✅ CI wallet funded with 0.05 SOL for deploy fees"

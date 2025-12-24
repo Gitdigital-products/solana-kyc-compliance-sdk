@@ -1,0 +1,5 @@
+
+1. Property completion rate: % of issues with all properties set
+2. Time to property assignment: Avg. time from creation to property set
+3. Property accuracy rate: % of properties changed after initial set
+4. Cleanup efficiency: Issues processed per hour during cleanup

@@ -1,0 +1,48 @@
+# .github/workflows/quarterly-cleanup.yml
+name: Quarterly Property Cleanup
+
+on:
+  schedule:
+    # Run at 9 AM on first Monday of quarter
+    - cron: '0 9 * 1,4,7,10 1'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for stale options
+        id: stale_check
+        run: |
+          # Query API for property usage
+          # Identify options with low usage
+          # Generate cleanup report
+          echo "report_path=cleanup_report.md" >> $GITHUB_OUTPUT
+          
+      - name: Create cleanup issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const report = `# Quarterly Properties Cleanup Report
+            Generated: ${new Date().toISOString()}
+            
+            ## Recommended Actions:
+            1. Merge "Frontend" and "UI" team options
+            2. Remove "Urgent" priority (use "Critical" instead)
+            3. Archive 150+ day old completed items
+            
+            Full report attached.`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[Quarterly Cleanup] ${new Date().toISOString().split('T')[0]}`,
+              body: report,
+              labels: ['automation', 'maintenance', 'properties']
+            });
+
+      - name: Notify team leads
+        run: |
+          # Send summary to Slack/Teams
+          echo "Quarterly cleanup report generated. Please review:"
+          echo "https://github.com/${{ github.repository }}/issues?q=is:open+label:properties"

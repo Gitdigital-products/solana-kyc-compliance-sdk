@@ -1,0 +1,7 @@
+/**
+ * [Brief description of function purpose]
+ * @param {ParamType} paramName - [Description]
+ * @returns {ReturnType} [Description]
+ * @throws {ErrorType} [When this error occurs]
+ */
+async functionName(params: ParamType): Promise<ReturnType>

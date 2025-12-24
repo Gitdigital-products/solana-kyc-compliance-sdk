@@ -1,0 +1,8 @@
+# Verify program deployment
+solana program show --programs
+
+# Check account info
+solana account YOUR_PROGRAM_ID
+
+# Redeploy if needed
+solana program deploy programs/kyc-verifier/target/deploy/kyc_verifier.so

@@ -1,0 +1,9 @@
+pub struct KycAccount {
+    pub owner: Pubkey,
+    pub level: u8,
+    pub role: crate::access_control::Role,
+    pub document_hash: [u8; 32],
+    #[account(max = 288)]
+    pub encrypted_payload: Vec<u8>, // iv + cipher + maybe small metadata
+    // other minimal fields...
+}

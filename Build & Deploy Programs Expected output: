@@ -1,0 +1,31 @@
+🚀 Starting KYC Programs Deployment
+📡 Target Network: devnet
+🔍 Checking prerequisites...
+🔨 Building programs...
+🚀 Deploying programs...
+  Deployer: YOUR_PUBKEY_HERE
+  Deploying KYC Verifier...
+    Program address: GENERATED_ADDRESS_1
+    Program size: 145.32 KB
+    Rent needed: 0.003456 SOL
+    Deploying...
+    Deployment TX: SIGNATURE_1
+    ✅ kyc-verifier deployed successfully
+  
+  Deploying KYC Issuer...
+    Program address: GENERATED_ADDRESS_2
+    Program size: 132.18 KB
+    Rent needed: 0.003128 SOL
+    Deploying...
+    Deployment TX: SIGNATURE_2
+    ✅ kyc-issuer deployed successfully
+  
+🔍 Verifying deployment...
+  ✅ KYC Verifier: Program is executable
+     Balance: 0.003456 SOL
+  ✅ KYC Issuer: Program is executable
+     Balance: 0.003128 SOL
+  💰 Deployer balance: 4.893416 SOL
+
+🎉 Deployment Complete!
+📁 Deployment info saved to: deployments/devnet.json

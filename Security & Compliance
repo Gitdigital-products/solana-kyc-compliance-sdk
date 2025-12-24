@@ -1,0 +1,18 @@
+PDA seed hardening  
+- Replace all string-concat seeds with domain-separated, fixed-length seeds.  
+- Add a seed-version byte (e.g. b”v1”) so you can rotate safely later.  
+- Write an explicit “migration” instruction that lets you close & re-create an account if the seed scheme ever changes.
+
+Access-control matrix  
+- Create a single Rust enum `Role { SuperAdmin, KycProvider, User, Auditor }` and store it inside every account header.  
+- Add a `#[access_control]` macro that aborts if `signer.role < required_role`.  
+- Write unit tests that try to escalate privileges (Alice calls `update_kyc_level` with a forged `authority` account).
+
+Data minimization & encryption  
+- Store only the hash of the ID document (sha256) plus an off-chain UUID.  
+- Add a `encrypted_payload` field (32-byte AES-GCM ciphertext) for any PII that must live on-chain.  
+- Publish a white-paper snippet explaining why the full image never touches Solana.
+
+ Audit stub  
+- Add a `SolanaKycComplianceAudit` program that only emits `KycEvent::StatusChanged` and `KycEvent::DocumentHashStored` logs.  
+- This gives auditors a read-only, append-only trail without extra accounts.

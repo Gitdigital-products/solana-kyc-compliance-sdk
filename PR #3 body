@@ -1,0 +1,6 @@
+Data minimization & encryption stub
+
+- Remove raw PII fields from on-chain accounts
+- Add document_hash: [u8; 32] and encrypted_payload: Vec<u8> (max=288)
+- Add packEncrypted helper to sdk/typescript
+- Update README with PII-on-chain policy

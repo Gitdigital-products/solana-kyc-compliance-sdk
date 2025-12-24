@@ -1,0 +1,173 @@
+// Complete dApp with KYC gating at every level
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { WalletProvider } from '@solana/wallet-adapter-react';
+import { 
+  KycProvider, 
+  useKyc, 
+  withKyc, 
+  AccessTier 
+} from '@solana-kyc-sdk/consumer';
+
+// Protected route component
+const ProtectedRoute: React.FC<{
+  children: React.ReactNode;
+  requirements: AccessTier;
+}> = ({ children, requirements }) => {
+  const { verified, loading } = useKyc({ requirements });
+  
+  if (loading) return <div>Loading...</div>;
+  if (!verified) return <Navigate to="/kyc-required" />;
+  
+  return <>{children}</>;
+};
+
+// Main App Component
+const App: React.FC = () => {
+  return (
+    <WalletProvider>
+      <KycProvider cluster="mainnet-beta">
+        <Router>
+          <div className="app">
+            <Navbar />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/marketplace" element={<Marketplace />} />
+              
+              {/* KYC-gated routes */}
+              <Route path="/premium" element={
+                <ProtectedRoute requirements={{ kycLevel: 'standard' }}>
+                  <PremiumContent />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/nft-mint/:collection" element={
+                <ProtectedRoute requirements={{
+                  kycLevel: 'standard',
+                  countryWhitelist: ['US', 'CA', 'EU'],
+                  minAge: 18
+                }}>
+                  <NftMintPage />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/private-sale" element={
+                <ProtectedRoute requirements={{
+                  kycLevel: 'plus',
+                  accreditationRequired: true,
+                  minHoldings: 50000 // $50k minimum
+                }}>
+                  <PrivateSale />
+                </ProtectedRoute>
+              } />
+              
+              {/* KYC onboarding */}
+              <Route path="/kyc-required" element={<KycOnboarding />} />
+              <Route path="/verify/:provider" element={<VerificationFlow />} />
+              
+              {/* Admin routes */}
+              <Route path="/admin/access-control" element={
+                <ProtectedRoute requirements={{
+                  kycLevel: 'plus',
+                  customCheck: async (wallet) => {
+                    // Check if wallet is in admin list
+                    const admins = await fetchAdminList();
+                    return admins.includes(wallet.toString());
+                  }
+                }}>
+                  <AccessControlDashboard />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </div>
+        </Router>
+      </KycProvider>
+    </WalletProvider>
+  );
+};
+
+// Example NFT mint page with real-time verification
+const NftMintPage: React.FC<{ collection: string }> = ({ collection }) => {
+  const { publicKey } = useWallet();
+  const [minting, setMinting] = useState(false);
+  const [accessChecked, setAccessChecked] = useState(false);
+  
+  const { checkAccess } = useKyc({
+    requirements: {
+      kycLevel: 'standard',
+      countryWhitelist: ['US', 'CA', 'EU'],
+      minAge: 18
+    }
+  });
+
+  useEffect(() => {
+    const verifyAccess = async () => {
+      if (publicKey) {
+        const hasAccess = await checkAccess();
+        setAccessChecked(true);
+        
+        if (!hasAccess) {
+          // Redirect to KYC flow
+          window.location.href = `/kyc-required?redirect=/nft-mint/${collection}`;
+        }
+      }
+    };
+    
+    verifyAccess();
+  }, [publicKey, collection, checkAccess]);
+
+  const handleMint = async () => {
+    setMinting(true);
+    
+    try {
+      // Final verification before mint
+      const canMint = await checkAccess();
+      
+      if (!canMint) {
+        throw new Error('Access revoked during mint process');
+      }
+      
+      // Execute mint transaction
+      await mintNFT(publicKey!, collection);
+      
+      alert('NFT minted successfully!');
+    } catch (error) {
+      alert(`Mint failed: ${error.message}`);
+    } finally {
+      setMinting(false);
+    }
+  };
+
+  if (!accessChecked) {
+    return <div>Verifying access...</div>;
+  }
+
+  return (
+    <div className="mint-page">
+      <h1>Mint Exclusive NFT</h1>
+      <div className="access-status verified">
+        <span>✓ KYC Verified</span>
+        <p>You are eligible to mint from this collection</p>
+      </div>
+      
+      <div className="nft-preview">
+        {/* NFT preview */}
+      </div>
+      
+      <button 
+        onClick={handleMint} 
+        disabled={minting}
+        className="mint-button"
+      >
+        {minting ? 'Minting...' : 'Mint NFT'}
+      </button>
+      
+      <div className="terms">
+        <p>By minting, you confirm you meet all eligibility requirements.</p>
+      </div>
+    </div>
+  );
+};
+
+export default App;

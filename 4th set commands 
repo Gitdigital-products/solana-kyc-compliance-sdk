@@ -1,0 +1,6 @@
+git checkout origin/main -b feat/migrate
+# make edits
+git add -A
+git commit -m "feat(migrate): add migrate_v1_to_v2 instruction and tests; gated to SuperAdmin"
+git push -u origin feat/migrate
+gh pr create --title "feat: migration instruction v1->v2 (close old PDA, create new PDA)" --body "Add migration instruction to close old PDA seeds and create new versioned PDA. Gate to SuperAdmin and add tests."

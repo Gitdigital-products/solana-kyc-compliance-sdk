@@ -1,0 +1,8 @@
+# Run all tests
+npm test
+
+# Run a specific test suite
+npm test -- kyc-integration.test.ts
+
+# Run tests with detailed output
+npm test -- --verbose

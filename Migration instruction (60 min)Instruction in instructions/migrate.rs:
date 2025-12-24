@@ -1,0 +1,29 @@
+use anchor_lang::prelude::*;
+use crate::access_control::Role;
+
+#[derive(Accounts)]
+pub struct MigrateV1ToV2<'info> {
+    #[account(mut, has_one = admin)]
+    pub old_pda: AccountInfo<'info>,
+    #[account(mut)]
+    pub new_pda: Signer<'info>, // or init with PDA seeds below
+    #[account(mut)]
+    pub admin: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+pub fn migrate_v1_to_v2(ctx: Context<MigrateV1ToV2>) -> Result<()> {
+    // require superadmin
+    check_role!(ctx.accounts.admin.role, Role::SuperAdmin);
+
+    // Close old pda: transfer lamports to admin
+    **ctx.accounts.admin.to_account_info().lamports.borrow_mut() += **ctx.accounts.old_pda.to_account_info().lamports.borrow();
+    **ctx.accounts.old_pda.to_account_info().lamports.borrow_mut() = 0;
+    // Deallocate data (if necessary) - Anchor does this on close; adjust for exact account types.
+
+    // Create new PDA: use program CPI/System instruction to allocate/assign lamports
+    // Use seeds with SEED_VERSION bumped or 'v2' seed
+    // If using Anchor `init`, the instruction signature must be crafted accordingly.
+
+    Ok(())
+}

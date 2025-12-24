@@ -1,0 +1,11 @@
+      # ... after Setup Rust step
+
+      - name: Install Anchor CLI
+        run: cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.0 anchor-cli --locked # Use the desired version tag
+
+      - name: Run Anchor Build
+        # This will use the program IDs defined in Anchor.toml for compilation
+        run: anchor build
+        
+      # You can then use the program ID artifacts in subsequent steps
+      # For example, your TypeScript SDK steps might depend on the IDL files 

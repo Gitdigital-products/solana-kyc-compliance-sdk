@@ -1,0 +1,14 @@
+- name: Sweep leftover funds to treasury
+  if: always()
+  env:
+    TREASURY: ${{ secrets.TREASURY_ADDRESS }}
+  run: |
+    solana config set --url https://api.devnet.solana.com
+    BALANCE=$(solana balance | cut -d' ' -f1)
+    echo "CI wallet balance: $BALANCE SOL"
+    if (( $(echo "$BALANCE > 0.05" | bc -l) )); then
+      solana transfer $TREASURY $BALANCE --allow-unfunded-recipient --fee-payer ~/.config/solana/id.json --url https://api.devnet.solana.com
+      echo "Transferred $BALANCE SOL to treasury"
+    else
+      echo "No excess funds to sweep."
+    fi

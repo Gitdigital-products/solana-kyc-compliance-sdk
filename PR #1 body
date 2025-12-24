@@ -1,0 +1,5 @@
+Seed hardening: versioned PDA seeds
+
+- Add SEED_VERSION constant
+- Replace PDA seeds: [b"user", user.key().as_ref()] -> [b"kyc", &[SEED_VERSION], user.key().as_ref()]
+- Add test that calling init twice with same user fails with ConstraintSeeds

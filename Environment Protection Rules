@@ -1,0 +1,4 @@
+
+* Dev: open to engineers
+* Staging: PR approval + DevOps signoff
+* Prod: protected, requires 2 approvals + admin rights

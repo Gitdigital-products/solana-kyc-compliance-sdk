@@ -1,0 +1,6 @@
+dist/
+├── esm/           # ES Module output
+├── cjs/           # CommonJS output
+├── types/         # TypeScript declarations
+├── bundles/       # Optimized bundles (.esm.js, .umd.js)
+└── browser/       # Standalone browser bundle

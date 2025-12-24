@@ -1,0 +1,7 @@
+# Get more devnet SOL
+solana airdrop 2
+solana airdrop 2  # Can request multiple times
+
+# Check multiple wallets
+solana balance ~/.config/solana/id.json
+solana balance ~/.config/solana/devnet-deployer.json

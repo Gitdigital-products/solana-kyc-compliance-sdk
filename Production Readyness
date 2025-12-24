@@ -1,0 +1,9 @@
+# 1. Security audit
+npm run security:audit
+
+# 2. Load test
+npm run load-test
+
+# 3. Health monitoring
+npm run monitor:start
+npm run health:continuous -- --interval=30000

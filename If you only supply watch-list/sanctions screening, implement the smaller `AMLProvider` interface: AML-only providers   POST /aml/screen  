@@ -1,0 +1,6 @@
+{
+  "applicantId": "...",
+  "names": ["Alice A. Smith"],
+  "countries": ["DE", "US"],
+  "dob": ["1990-01-01"]
+}

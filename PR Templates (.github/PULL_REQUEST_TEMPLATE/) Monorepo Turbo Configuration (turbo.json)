@@ -1,0 +1,56 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*", "tsconfig.json", "package.json"],
+  "globalEnv": [
+    "NODE_ENV",
+    "CI",
+    "SOLANA_RPC_ENDPOINT",
+    "KYC_PROVIDER_API_KEY",
+    "DATABASE_URL"
+  ],
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "cache": true
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "cache": true
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "outputs": ["coverage/**"],
+      "cache": true
+    },
+    "type-check": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "cache": true
+    },
+    "clean": {
+      "cache": false
+    },
+    "//#audit": {
+      "cache": false
+    },
+    "//#security-check": {
+      "cache": false
+    }
+  },
+  "tasks": {
+    "build": {
+      "inputs": ["src/**/*", "tsconfig.json", "package.json"],
+      "outputs": ["dist/**"]
+    },
+    "test": {
+      "inputs": ["src/**/*.test.*", "test/**/*", "jest.config.*"],
+      "outputs": ["coverage/**"]
+    }
+  }
+}

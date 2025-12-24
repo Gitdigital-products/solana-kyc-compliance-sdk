@@ -1,0 +1,22 @@
+ 🚀 Final Setup Instructions
+
+Install Dependencies:
+
+cd sdk
+npm install
+Run Tests:
+
+# Unit tests
+npm run test:unit
+
+# Integration tests (requires devnet config)
+# Set DEVNET_PROGRAM_ID environment variable first
+npm run test:integration
+Generate Documentation:
+
+npm run docs
+# View at http://localhost:3000 (after npm run docs:serve)
+Build and Publish:
+
+npm run build
+npm publish --access public

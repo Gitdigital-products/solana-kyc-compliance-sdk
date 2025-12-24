@@ -1,0 +1,7 @@
+# Navigate to your project root
+cd solana-kyc-compliance-sdk
+
+# Create SDK directory structure
+mkdir -p sdk/src/{services,instructions,utils}
+mkdir -p sdk/tests/integration
+mkdir -p sdk/docs

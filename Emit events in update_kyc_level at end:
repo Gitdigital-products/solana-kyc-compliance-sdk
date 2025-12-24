@@ -1,0 +1,1 @@
+emit!(KycEvent::StatusChanged { user: ctx.accounts.user.key(), old_level, new_level });

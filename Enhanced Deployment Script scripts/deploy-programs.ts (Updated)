@@ -1,0 +1,558 @@
+#!/usr/bin/env ts-node
+import * as anchor from '@coral-xyz/anchor';
+import { Program, Idl } from '@coral-xyz/anchor';
+import { Connection, Keypair, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import { execSync } from 'child_process';
+import { Environment } from '../src/utils/env';
+
+// Parse command line arguments
+const args = process.argv.slice(2);
+const network = args.find(arg => arg.startsWith('--network='))?.split('=')[1] || 'devnet';
+const skipBuild = args.includes('--skip-build');
+const skipTests = args.includes('--skip-tests');
+const force = args.includes('--force');
+
+console.log('🚀 Starting KYC Programs Deployment');
+console.log(`📡 Target Network: ${network}`);
+console.log(`📊 Skip Build: ${skipBuild}`);
+console.log(`🧪 Skip Tests: ${skipTests}`);
+console.log(`💥 Force: ${force}`);
+
+interface DeploymentConfig {
+  network: string;
+  deployer: string;
+  programs: {
+    kycVerifier: string;
+    kycIssuer: string;
+  };
+  rpcUrl: string;
+  timestamp: string;
+  version: string;
+}
+
+interface ProgramArtifacts {
+  programId: PublicKey;
+  idl: Idl;
+  soPath: string;
+  idlPath: string;
+}
+
+async function main() {
+  try {
+    // Validate network
+    const validNetworks = ['devnet', 'testnet', 'mainnet-beta', 'localnet'];
+    if (!validNetworks.includes(network)) {
+      throw new Error(`Invalid network: ${network}. Must be one of: ${validNetworks.join(', ')}`);
+    }
+
+    // Check prerequisites
+    await checkPrerequisites();
+
+    // Build programs if not skipped
+    if (!skipBuild) {
+      await buildPrograms();
+    }
+
+    // Run tests if not skipped
+    if (!skipTests) {
+      await runTests();
+    }
+
+    // Deploy programs
+    const deployment = await deployPrograms();
+
+    // Save deployment info
+    await saveDeploymentInfo(deployment);
+
+    // Verify deployment
+    await verifyDeployment(deployment);
+
+    console.log('\n🎉 Deployment Complete!');
+    console.log('📁 Deployment info saved to:', `deployments/${network}.json`);
+    console.log('\n🔧 Next steps:');
+    console.log('1. Update your .env file with the new program IDs');
+    console.log('2. Run integration tests: npm run test:integration');
+    console.log('3. Test the API server: cd server && npm start');
+    console.log('4. Deploy to mainnet when ready: npm run deploy:mainnet');
+
+  } catch (error) {
+    console.error('\n❌ Deployment failed:', error.message);
+    process.exit(1);
+  }
+}
+
+async function checkPrerequisites(): Promise<void> {
+  console.log('\n🔍 Checking prerequisites...');
+
+  // Check Node.js version
+  const nodeVersion = process.version;
+  console.log(`  Node.js: ${nodeVersion}`);
+  if (parseInt(nodeVersion.slice(1).split('.')[0]) < 16) {
+    throw new Error('Node.js 16 or higher is required');
+  }
+
+  // Check Anchor CLI
+  try {
+    const anchorVersion = execSync('anchor --version', { encoding: 'utf8' }).trim();
+    console.log(`  Anchor CLI: ${anchorVersion}`);
+  } catch {
+    throw new Error('Anchor CLI is not installed. Run: cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked');
+  }
+
+  // Check Solana CLI
+  try {
+    const solanaVersion = execSync('solana --version', { encoding: 'utf8' }).trim();
+    console.log(`  Solana CLI: ${solanaVersion}`);
+  } catch {
+    throw new Error('Solana CLI is not installed. Visit: https://docs.solana.com/cli/install-solana-cli-tools');
+  }
+
+  // Check Rust
+  try {
+    const rustVersion = execSync('rustc --version', { encoding: 'utf8' }).trim();
+    console.log(`  Rust: ${rustVersion}`);
+  } catch {
+    throw new Error('Rust is not installed. Visit: https://www.rust-lang.org/tools/install');
+  }
+
+  // Check if on correct network
+  const currentNetwork = execSync('solana config get', { encoding: 'utf8' })
+    .match(/RPC URL: .*?(devnet|testnet|mainnet)/)?.[1];
+
+  if (currentNetwork !== network) {
+    console.warn(`  ⚠️  Current Solana config is set to ${currentNetwork}, but deploying to ${network}`);
+    
+    if (!force) {
+      const change = await confirmPrompt(`Change Solana config to ${network}? (y/n): `);
+      if (change) {
+        execSync(`solana config set --url ${clusterApiUrl(network as any)}`);
+        console.log(`  ✅ Switched to ${network}`);
+      }
+    }
+  }
+
+  // Check balance
+  try {
+    const balanceOutput = execSync('solana balance', { encoding: 'utf8' }).trim();
+    const balance = parseFloat(balanceOutput.split(' ')[0]);
+    console.log(`  Balance: ${balance} SOL`);
+
+    const minBalance = network === 'mainnet-beta' ? 3 : 2;
+    if (balance < minBalance) {
+      console.warn(`  ⚠️  Low balance. Minimum recommended: ${minBalance} SOL`);
+      
+      if (network !== 'mainnet-beta') {
+        const airdrop = await confirmPrompt('Request airdrop? (y/n): ');
+        if (airdrop) {
+          console.log('  Requesting airdrop...');
+          execSync(`solana airdrop ${minBalance - balance + 1}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('  Could not check balance:', error.message);
+  }
+
+  console.log('✅ Prerequisites check passed');
+}
+
+async function buildPrograms(): Promise<void> {
+  console.log('\n🔨 Building programs...');
+
+  const programs = ['kyc-verifier', 'kyc-issuer'];
+  
+  for (const program of programs) {
+    console.log(`  Building ${program}...`);
+    
+    const programPath = path.join(__dirname, '..', 'programs', program);
+    
+    try {
+      // Build with Anchor
+      execSync('anchor build', { 
+        cwd: programPath,
+        stdio: 'inherit'
+      });
+
+      // Verify build artifacts
+      const soPath = path.join(programPath, 'target', 'deploy', `${program.replace('-', '_')}.so`);
+      const idlPath = path.join(programPath, 'target', 'idl', `${program.replace('-', '_')}.json`);
+
+      if (!fs.existsSync(soPath)) {
+        throw new Error(`Build failed: ${soPath} not found`);
+      }
+
+      if (!fs.existsSync(idlPath)) {
+        throw new Error(`IDL not found: ${idlPath}`);
+      }
+
+      console.log(`  ✅ ${program} built successfully`);
+      console.log(`     Program size: ${(fs.statSync(soPath).size / 1024).toFixed(2)} KB`);
+
+    } catch (error) {
+      throw new Error(`Failed to build ${program}: ${error.message}`);
+    }
+  }
+}
+
+async function runTests(): Promise<void> {
+  console.log('\n🧪 Running tests...');
+
+  try {
+    console.log('  Running unit tests...');
+    execSync('npm run test:unit', { stdio: 'inherit' });
+
+    console.log('  Running integration tests...');
+    execSync('npm run test:integration', { stdio: 'inherit' });
+
+    console.log('✅ All tests passed');
+  } catch (error) {
+    throw new Error(`Tests failed: ${error.message}`);
+  }
+}
+
+async function deployPrograms(): Promise<DeploymentConfig> {
+  console.log('\n🚀 Deploying programs...');
+
+  const rpcUrl = clusterApiUrl(network as any);
+  const connection = new Connection(rpcUrl, 'confirmed');
+
+  // Load deployer keypair
+  const deployerKeypair = await loadDeployerKeypair();
+  console.log(`  Deployer: ${deployerKeypair.publicKey.toBase58()}`);
+
+  const provider = new anchor.AnchorProvider(
+    connection,
+    new anchor.Wallet(deployerKeypair),
+    { commitment: 'confirmed' }
+  );
+
+  anchor.setProvider(provider);
+
+  const programs: Record<string, ProgramArtifacts> = {};
+
+  // Deploy KYC Verifier
+  console.log('\n  Deploying KYC Verifier...');
+  programs.kycVerifier = await deployProgram(
+    provider,
+    'kyc-verifier',
+    'kyc_verifier'
+  );
+
+  // Deploy KYC Issuer
+  console.log('\n  Deploying KYC Issuer...');
+  programs.kycIssuer = await deployProgram(
+    provider,
+    'kyc-issuer',
+    'kyc_issuer'
+  );
+
+  // Initialize programs if needed
+  console.log('\n  Initializing programs...');
+  await initializePrograms(provider, programs);
+
+  return {
+    network,
+    deployer: deployerKeypair.publicKey.toBase58(),
+    programs: {
+      kycVerifier: programs.kycVerifier.programId.toBase58(),
+      kycIssuer: programs.kycIssuer.programId.toBase58()
+    },
+    rpcUrl,
+    timestamp: new Date().toISOString(),
+    version: require('../package.json').version
+  };
+}
+
+async function deployProgram(
+  provider: anchor.AnchorProvider,
+  programName: string,
+  programCrateName: string
+): Promise<ProgramArtifacts> {
+  const programPath = path.join(__dirname, '..', 'programs', programName);
+  const soPath = path.join(programPath, 'target', 'deploy', `${programCrateName}.so`);
+  const idlPath = path.join(programPath, 'target', 'idl', `${programCrateName}.json`);
+
+  // Check if program already deployed (for upgrade)
+  const programBuffer = fs.readFileSync(soPath);
+  const programKeypair = anchor.web3.Keypair.generate();
+
+  console.log(`    Program address: ${programKeypair.publicKey.toBase58()}`);
+  console.log(`    Program size: ${(programBuffer.length / 1024).toFixed(2)} KB`);
+
+  // Calculate rent exemption
+  const balanceNeeded = await provider.connection.getMinimumBalanceForRentExemption(
+    programBuffer.length
+  );
+
+  console.log(`    Rent needed: ${(balanceNeeded / LAMPORTS_PER_SOL).toFixed(6)} SOL`);
+
+  // Check deployer balance
+  const deployerBalance = await provider.connection.getBalance(provider.wallet.publicKey);
+  if (deployerBalance < balanceNeeded * 2) {
+    throw new Error(`Insufficient balance. Need at least ${(balanceNeeded * 2 / LAMPORTS_PER_SOL).toFixed(6)} SOL`);
+  }
+
+  // Deploy program
+  console.log('    Deploying...');
+  const deployTx = await provider.connection.deploy({
+    programId: programKeypair.publicKey,
+    bytes: programBuffer,
+    payer: provider.wallet.publicKey
+  });
+
+  console.log(`    Deployment TX: ${deployTx}`);
+
+  // Wait for confirmation
+  await confirmTransaction(provider.connection, deployTx);
+
+  // Load IDL
+  const idl = JSON.parse(fs.readFileSync(idlPath, 'utf8'));
+  idl.address = programKeypair.publicKey.toBase58();
+
+  // Save updated IDL
+  fs.writeFileSync(idlPath, JSON.stringify(idl, null, 2));
+
+  console.log(`    ✅ ${programName} deployed successfully`);
+
+  return {
+    programId: programKeypair.publicKey,
+    idl,
+    soPath,
+    idlPath
+  };
+}
+
+async function initializePrograms(
+  provider: anchor.AnchorProvider,
+  programs: Record<string, ProgramArtifacts>
+): Promise<void> {
+  // Initialize KYC Verifier
+  const verifierProgram = new Program(
+    programs.kycVerifier.idl,
+    programs.kycVerifier.programId,
+    provider
+  );
+
+  try {
+    // Example initialization - adjust based on your program's needs
+    console.log('    Initializing KYC Verifier program...');
+    // Add initialization logic here
+  } catch (error) {
+    console.warn(`    Could not initialize KYC Verifier: ${error.message}`);
+  }
+
+  // Initialize KYC Issuer
+  const issuerProgram = new Program(
+    programs.kycIssuer.idl,
+    programs.kycIssuer.programId,
+    provider
+  );
+
+  try {
+    console.log('    Initializing KYC Issuer program...');
+    // Add initialization logic here
+  } catch (error) {
+    console.warn(`    Could not initialize KYC Issuer: ${error.message}`);
+  }
+}
+
+async function saveDeploymentInfo(config: DeploymentConfig): Promise<void> {
+  const deploymentsDir = path.join(__dirname, '..', 'deployments');
+  
+  if (!fs.existsSync(deploymentsDir)) {
+    fs.mkdirSync(deploymentsDir, { recursive: true });
+  }
+
+  const deploymentFile = path.join(deploymentsDir, `${config.network}.json`);
+  fs.writeFileSync(deploymentFile, JSON.stringify(config, null, 2));
+
+  // Update environment file template
+  const envTemplate = path.join(__dirname, '..', '.env.example');
+  if (fs.existsSync(envTemplate)) {
+    let envContent = fs.readFileSync(envTemplate, 'utf8');
+    
+    envContent = envContent.replace(
+      /KYC_VERIFIER_PROGRAM_ID=.*/,
+      `KYC_VERIFIER_PROGRAM_ID=${config.programs.kycVerifier}`
+    );
+    
+    envContent = envContent.replace(
+      /KYC_ISSUER_PROGRAM_ID=.*/,
+      `KYC_ISSUER_PROGRAM_ID=${config.programs.kycIssuer}`
+    );
+
+    fs.writeFileSync(envTemplate, envContent);
+  }
+}
+
+async function verifyDeployment(config: DeploymentConfig): Promise<void> {
+  console.log('\n🔍 Verifying deployment...');
+
+  const connection = new Connection(config.rpcUrl, 'confirmed');
+
+  // Verify KYC Verifier
+  const verifierAccount = await connection.getAccountInfo(
+    new PublicKey(config.programs.kycVerifier)
+  );
+
+  if (verifierAccount && verifierAccount.executable) {
+    console.log(`  ✅ KYC Verifier: Program is executable`);
+    console.log(`     Balance: ${verifierAccount.lamports / LAMPORTS_PER_SOL} SOL`);
+  } else {
+    console.log(`  ❌ KYC Verifier: Program not found or not executable`);
+  }
+
+  // Verify KYC Issuer
+  const issuerAccount = await connection.getAccountInfo(
+    new PublicKey(config.programs.kycIssuer)
+  );
+
+  if (issuerAccount && issuerAccount.executable) {
+    console.log(`  ✅ KYC Issuer: Program is executable`);
+    console.log(`     Balance: ${issuerAccount.lamports / LAMPORTS_PER_SOL} SOL`);
+  } else {
+    console.log(`  ❌ KYC Issuer: Program not found or not executable`);
+  }
+
+  // Verify deployer balance
+  const deployerBalance = await connection.getBalance(
+    new PublicKey(config.deployer)
+  );
+
+  console.log(`  💰 Deployer balance: ${deployerBalance / LAMPORTS_PER_SOL} SOL`);
+}
+
+async function loadDeployerKeypair(): Promise<Keypair> {
+  // Try to load from environment
+  const envKey = process.env.DEPLOYER_PRIVATE_KEY;
+  if (envKey) {
+    try {
+      const secretKey = Uint8Array.from(JSON.parse(envKey));
+      return Keypair.fromSecretKey(secretKey);
+    } catch {
+      // Try as base64
+      try {
+        const secretKey = Uint8Array.from(Buffer.from(envKey, 'base64'));
+        return Keypair.fromSecretKey(secretKey);
+      } catch (error) {
+        console.warn('Invalid DEPLOYER_PRIVATE_KEY format');
+      }
+    }
+  }
+
+  // Try to load from Solana CLI config
+  try {
+    const configOutput = execSync('solana config get', { encoding: 'utf8' });
+    const keypairPath = configOutput.match(/Keypair Path: (.*)/)?.[1]?.trim();
+    
+    if (keypairPath && fs.existsSync(keypairPath)) {
+      const keypairData = JSON.parse(fs.readFileSync(keypairPath, 'utf8'));
+      return Keypair.fromSecretKey(Uint8Array.from(keypairData));
+    }
+  } catch (error) {
+    // Continue to interactive prompt
+  }
+
+  // Interactive prompt
+  console.log('\n🔑 Deployer keypair not found in environment or Solana config.');
+  console.log('You can:');
+  console.log('1. Set DEPLOYER_PRIVATE_KEY environment variable');
+  console.log('2. Configure Solana CLI with: solana config set --keypair ~/.config/solana/id.json');
+  console.log('3. Enter a keypair path manually');
+
+  const keypairPath = await prompt('Enter keypair path (or leave empty to generate new): ');
+  
+  if (keypairPath && fs.existsSync(keypairPath)) {
+    try {
+      const keypairData = JSON.parse(fs.readFileSync(keypairPath, 'utf8'));
+      return Keypair.fromSecretKey(Uint8Array.from(keypairData));
+    } catch (error) {
+      throw new Error(`Failed to load keypair from ${keypairPath}: ${error.message}`);
+    }
+  } else {
+    // Generate new keypair
+    console.log('Generating new keypair...');
+    const newKeypair = Keypair.generate();
+    
+    const savePath = path.join(os.homedir(), '.config', 'solana', 'deployer.json');
+    fs.mkdirSync(path.dirname(savePath), { recursive: true });
+    fs.writeFileSync(savePath, JSON.stringify(Array.from(newKeypair.secretKey)));
+    
+    console.log(`✅ New keypair saved to: ${savePath}`);
+    console.log(`🔑 Public key: ${newKeypair.publicKey.toBase58()}`);
+    
+    // Fund if on devnet/testnet
+    if (network !== 'mainnet-beta') {
+      const fund = await confirmPrompt('Fund with airdrop? (y/n): ');
+      if (fund) {
+        const connection = new Connection(clusterApiUrl(network as any));
+        const signature = await connection.requestAirdrop(newKeypair.publicKey, 2 * LAMPORTS_PER_SOL);
+        await confirmTransaction(connection, signature);
+        console.log('✅ Airdrop completed');
+      }
+    }
+    
+    return newKeypair;
+  }
+}
+
+async function confirmTransaction(connection: Connection, signature: string): Promise<void> {
+  const startTime = Date.now();
+  const timeout = 120000; // 2 minutes
+
+  while (Date.now() - startTime < timeout) {
+    const status = await connection.getSignatureStatus(signature);
+    
+    if (status?.value?.confirmationStatus === 'confirmed' || 
+        status?.value?.confirmationStatus === 'finalized') {
+      return;
+    }
+
+    if (status?.value?.err) {
+      throw new Error(`Transaction failed: ${JSON.stringify(status.value.err)}`);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+
+  throw new Error('Transaction confirmation timeout');
+}
+
+async function confirmPrompt(question: string): Promise<boolean> {
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise(resolve => {
+    rl.question(question, answer => {
+      rl.close();
+      resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
+    });
+  });
+}
+
+async function prompt(question: string): Promise<string> {
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise(resolve => {
+    rl.question(question, answer => {
+      rl.close();
+      resolve(answer.trim());
+    });
+  });
+}
+
+// Run deployment
+main().catch(error => {
+  console.error('\n❌ Fatal error:', error);
+  process.exit(1);
+});

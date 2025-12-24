@@ -1,0 +1,10 @@
+applicantId       string   uuid assigned by the platform
+firstName         string
+lastName          string
+dateOfBirth       yyyy-mm-dd
+address           object   {street, city, state, zip, country}
+documentType      enum     [PASSPORT, ID_CARD, DRIVERS_LICENSE]
+frontImage        binary   jpeg/png <= 10 MB
+backImage         binary   optional
+selfieImage       binary   optional
+level             string   “basic” | “enhanced” (AML+PEP+Sanctions)

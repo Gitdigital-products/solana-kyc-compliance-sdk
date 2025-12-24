@@ -1,0 +1,21 @@
+      - name: Install WASM target
+        run: rustup target add wasm32-unknown-unknown
+
+      # ➡️ START FIX FOR "Error: Invalid Base58 string"
+      - name: Generate Program Keypair for CI
+        run: |
+          # The program name is derived from the repository name: 'solana-kyc-compliance'
+          PROGRAM_NAME="solana_kyc_compliance" 
+          KEYPAIR_PATH="./target/deploy/${PROGRAM_NAME}-keypair.json"
+          
+          # Create the necessary directory for Anchor's default keypair location
+          mkdir -p ./target/deploy/
+          
+          # Generate a new, non-password protected, temporary keypair
+          # This ensures a valid Base58 ID is available for Anchor to use during the build.
+          solana-keygen new --no-passphrase --force --outfile $KEYPAIR_PATH
+          echo "CI Keypair generated at $KEYPAIR_PATH"
+      # ⬅️ END FIX
+
+      - name: Install dependencies
+        run: npm ci --prefix server-signer

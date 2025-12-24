@@ -1,0 +1,59 @@
+{
+  "version": "0.0.0",
+  "name": "transfer_hook",
+  "instructions": [
+    {
+      "name": "verifyTransfer",
+      "accounts": [
+        { "name": "authority", "isMut": true, "isSigner": true },
+        { "name": "payer", "isMut": true, "isSigner": true },
+        { "name": "senderAttestation", "isMut": false, "isSigner": false },
+        { "name": "receiverAttestation", "isMut": false, "isSigner": false },
+        { "name": "amlRoot", "isMut": true, "isSigner": false },
+        { "name": "velocityAccount", "isMut": true, "isSigner": false },
+        { "name": "transferInfo", "isMut": false, "isSigner": false },
+        { "name": "sender", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amlProof", "type": { "vec": { "array": ["u8", 32] } } },
+        { "name": "amlLeaf", "type": { "array": ["u8", 32] } },
+        { "name": "amlIndex", "type": "u64" },
+        { "name": "maxTxAmount", "type": "u64" },
+        { "name": "windowSeconds", "type": "i64" },
+        { "name": "jurisdictionRestriction", "type": { "option": "string" } }
+      ]
+    },
+    {
+      "name": "setAmlRoot",
+      "accounts": [
+        { "name": "admin", "isMut": true, "isSigner": true },
+        { "name": "amlRoot", "isMut": true, "isSigner": false }
+      ],
+      "args": [{ "name": "newRoot", "type": { "array": ["u8", 32] } }]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "amlRoot",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "root", "type": { "array": ["u8", 32] } },
+          { "name": "updatedAt", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "velocityAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "windowStart", "type": "i64" },
+          { "name": "amountInWindow", "type": "u64" },
+          { "name": "txCount", "type": "u64" }
+        ]
+      }
+    }
+  ]
+}

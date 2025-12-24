@@ -1,0 +1,2 @@
+mkdir -p .github/{ISSUE_TEMPLATE,PULL_REQUEST_TEMPLATE,workflows}
+mkdir -p scripts

@@ -1,0 +1,4 @@
+solana-keygen new -o ./devnet-keypair.json
+solana config set --url https://api.devnet.solana.com
+solana airdrop 2
+solana balance

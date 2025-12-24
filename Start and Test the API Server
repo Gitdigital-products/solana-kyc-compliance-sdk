@@ -1,0 +1,14 @@
+# 1. Navigate to server directory
+cd server
+
+# 2. Install server dependencies
+npm install
+
+# 3. Start the server
+npm run dev
+
+# 4. In another terminal, test API endpoints
+curl http://localhost:3000/health
+curl -X POST http://localhost:3000/api/verify \
+  -H "Content-Type: application/json" \
+  -d '{"walletAddress": "YOUR_TEST_WALLET", "requiredTier": 1}'

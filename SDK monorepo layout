@@ -1,0 +1,5 @@
+├── programs/          (Anchor)
+├── sdk/
+│   ├── solana-kyc-js  (TypeScript, auto-gen IDL)
+│   ├── solana-kyc-py  (Python, for backend batch jobs)
+│   └── solana-kyc-cli (Rust, for CI)

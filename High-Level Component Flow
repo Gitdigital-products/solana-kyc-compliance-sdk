@@ -1,0 +1,5 @@
+1. Event Listener -> Monitors Solana for new transactions from wallets with active KYC attestations.
+2. Risk Query Service -> For a given wallet, fetches data from multiple blockchain intelligence APIs (TRM, Chainalysis, etc.).
+3. Risk Scoring Engine -> Applies custom logic to API data to generate a unified, dynamic risk score (e.g., Low, Medium, High, Critical).
+4. Attestation State Manager -> Evaluates the risk score against policy rules. If a threshold is breached, it triggers an on-chain update to the SAS attestation (e.g., flags it, revokes it, or appends a risk metadata).
+5. Alert & Dashboard System -> Notifies dApps and compliance teams of risk status changes.

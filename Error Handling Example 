@@ -1,0 +1,13 @@
+try {
+  const tx = await sdk.transferCheckedWithHook(params);
+} catch (error) {
+  if (error instanceof TransferDeniedByHookError) {
+    console.error('KYC verification failed:', error.hookReason);
+    // Prompt user for re-verification
+  } else if (error instanceof InsufficientBalanceError) {
+    console.error('Insufficient balance');
+    // Show balance and required amount
+  } else {
+    console.error('Unexpected error:', error);
+  }
+}

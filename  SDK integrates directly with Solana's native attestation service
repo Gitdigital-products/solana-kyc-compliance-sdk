@@ -1,0 +1,17 @@
+// Create attestation
+const attestationTx = await kycClient.createKycAttestation(
+  userWallet,
+  {
+    level: 'verified',
+    countryCode: 'US',
+    expiryDate: Date.now() + 30*86400000, // 30 days
+    provider: 'GitDigital'
+  },
+  providerSignature
+);
+
+// Verify attestation
+const isValid = await kycClient.verifySASAttestation(
+  userWallet,
+  'kyc/v1'
+);

@@ -1,0 +1,8 @@
+/sdk/src/
+├──lib.ts # Main public API exports
+├──compliance-sdk.ts # Main SDK class
+├──types.ts # TypeScript interfaces
+├──errors.ts # Custom error classes
+├──services/
+│└── transfer-hook-service.ts # Service layer (to be implemented)
+└──utils/ # Utility functions

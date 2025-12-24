@@ -1,0 +1,6 @@
+1. Keep the public API unchanged (header-only or .so).  
+2. Add a `bench_headline` target that prints the claim in JSON:
+   {"metric":"speedup","value":3.0,"unit":"x","baseline":"HF"}
+3. Add a single-line test in `.github/workflows/ci.yml`:
+   - run: cd flashinfer && ctest -R headline
+4. Update the top-level README badge.

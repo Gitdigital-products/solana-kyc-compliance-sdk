@@ -1,0 +1,12 @@
+# Root of your project
+
+# ... other sections
+
+[programs.localnet]
+# 🚨 CHECK THIS LINE! 🚨
+# This key's value must also be a valid Base58 string.
+your_program_name = "<YOUR_INVALID_BASE58_STRING_HERE>"
+
+[programs.devnet]
+# If you have a devnet entry, check it too.
+your_program_name = "4k2P5EwH6V1Q7zL7vC9pE5nF2S9J7rD1g8X9A3T6W4X" 

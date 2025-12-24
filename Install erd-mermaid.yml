@@ -1,0 +1,2 @@
+- name: erd-mermaid
+  uses: Nicoda-27/erd-ga@v1

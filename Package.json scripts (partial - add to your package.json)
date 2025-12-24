@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "security-check": "npm audit && npx snyk test",
+    "audit": "npm audit --audit-level=high",
+    "prepare": "husky install",
+    "env:setup": "cp .env.example .env",
+    "env:validate": "node scripts/validate-env.js"
+  }
+}

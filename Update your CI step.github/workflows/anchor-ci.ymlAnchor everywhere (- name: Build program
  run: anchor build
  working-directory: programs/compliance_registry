@@ -1,0 +1,3 @@
+- name: Build program
+  run: anchor build
+  working-directory: programs/compliance_registry

@@ -1,0 +1,14 @@
+import { ComplianceSDK } from '@gitdigital/solana-kyc-compliance-sdk';
+import { Connection, clusterApiUrl, Keypair } from '@solana/web3.js';
+
+// 1. Configure connection
+const connection = new Connection(clusterApiUrl('devnet'));
+const programId = new PublicKey('YOUR_PROGRAM_ID_HERE');
+
+// 2. Initialize SDK
+const sdk = new ComplianceSDK({
+  connection,
+  programId
+});
+
+// 3. Use SDK methods...

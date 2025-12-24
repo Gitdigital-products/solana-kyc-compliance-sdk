@@ -1,0 +1,127 @@
+// src/multichain-bridge.ts
+import { Chain, ChainId } from './types';
+import { SolanaKYCClient } from './sas-integration';
+import { EthereumKYCVerifier } from './ethereum-kyc';
+import { CircleAPI } from './circle-api';
+
+export class MultiChainKYC {
+  private chains: Map<ChainId, any> = new Map();
+  private circleAPI: CircleAPI;
+  
+  constructor(circleApiKey: string) {
+    this.circleAPI = new CircleAPI(circleApiKey);
+    
+    // Initialize chain clients
+    this.chains.set('solana', new SolanaKYCClient());
+    this.chains.set('ethereum', new EthereumKYCVerifier());
+    this.chains.set('polygon', new EthereumKYCVerifier()); // Same EVM
+  }
+  
+  // Universal KYC verification
+  async verifyUniversalKYC(
+    walletAddress: string,
+    chainId: ChainId,
+    requiredLevel: string
+  ): Promise<{
+    verified: boolean;
+    attestationId: string;
+    expiry: number;
+    chains: ChainId[];
+  }> {
+    const chainClient = this.chains.get(chainId);
+    
+    if (!chainClient) {
+      throw new Error(`Chain ${chainId} not supported`);
+    }
+    
+    // Verify on primary chain
+    const primaryVerification = await chainClient.verifyKycAttestation(
+      walletAddress,
+      requiredLevel
+    );
+    
+    if (!primaryVerification.verified) {
+      return { verified: false, attestationId: '', expiry: 0, chains: [] };
+    }
+    
+    // Check if attestation is bridged to other chains
+    const bridgedChains = await this.checkCrossChainAttestation(
+      primaryVerification.attestationId,
+      chainId
+    );
+    
+    return {
+      verified: true,
+      attestationId: primaryVerification.attestationId,
+      expiry: primaryVerification.expiry,
+      chains: [chainId, ...bridgedChains]
+    };
+  }
+  
+  // Bridge KYC attestation to another chain
+  async bridgeKYC(
+    sourceChain: ChainId,
+    targetChain: ChainId,
+    attestationId: string,
+    userSignature: Uint8Array
+  ): Promise<string> {
+    // Get attestation from source chain
+    const sourceClient = this.chains.get(sourceChain);
+    const attestation = await sourceClient.getAttestation(attestationId);
+    
+    // Create bridged attestation on target chain
+    const targetClient = this.chains.get(targetChain);
+    const bridgedAttestationId = await targetClient.createBridgedAttestation(
+      attestation,
+      userSignature
+    );
+    
+    // Store bridge mapping
+    await this.storeBridgeMapping(
+      sourceChain,
+      targetChain,
+      attestationId,
+      bridgedAttestationId
+    );
+    
+    return bridgedAttestationId;
+  }
+  
+  // Integration with Circle for compliant transfers
+  async createCompliantTransfer(
+    sourceChain: ChainId,
+    targetChain: ChainId,
+    amount: string,
+    token: 'USDC' | 'EURC',
+    senderWallet: string,
+    recipientWallet: string
+  ): Promise<{ transferId: string; requiresKYC: boolean }> {
+    
+    // Check KYC status for both parties
+    const senderKYC = await this.verifyUniversalKYC(senderWallet, sourceChain, 'verified');
+    const recipientKYC = await this.verifyUniversalKYC(recipientWallet, targetChain, 'basic');
+    
+    if (!senderKYC.verified || !recipientKYC.verified) {
+      throw new Error('KYC verification failed');
+    }
+    
+    // Create Circle transfer
+    const transfer = await this.circleAPI.createTransfer({
+      sourceChain,
+      destinationChain: targetChain,
+      amount,
+      token,
+      sender: senderWallet,
+      recipient: recipientWallet,
+      kycAttestationIds: {
+        sender: senderKYC.attestationId,
+        recipient: recipientKYC.attestationId
+      }
+    });
+    
+    return {
+      transferId: transfer.id,
+      requiresKYC: true
+    };
+  }
+}

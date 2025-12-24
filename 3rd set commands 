@@ -1,0 +1,6 @@
+git checkout origin/main -b feat/audit-log
+# make edits
+git add -A
+git commit -m "feat(events): add KycEvent and emit events for level changes and document storage"
+git push -u origin feat/audit-log
+gh pr create --title "feat: audit event emitter for KYC actions" --body "Add KycEvent enum and emit events for status changes and document hash storage; add integration test."

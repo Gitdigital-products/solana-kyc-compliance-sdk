@@ -1,0 +1,46 @@
+name: CodeQL Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 3 * * 1' # optional: runs weekly
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'rust', 'javascript' ]  # or add 'typescript' if you have .ts files
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+          paths-ignore: |
+            sdk/js/node_modules
+            sdk/js/dist
+            sdk/js/tests
+            **/*.spec.ts
+            **/test/**
+            **/build/**
+            **/coverage/**
+            **/*.d.ts
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"

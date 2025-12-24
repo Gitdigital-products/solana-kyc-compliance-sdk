@@ -1,0 +1,12 @@
+"actionButtons": {
+    "commands": [
+        {
+            "name": "$(key) Generate Dev Keypair",
+            "color": "green",
+            "command": "terminal.sendSequence",
+            "args": {
+                "text": "solana-keygen new --outfile ./temp-dev-keypair.json\n"
+            }
+        }
+    ]
+}

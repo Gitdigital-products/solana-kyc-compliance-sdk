@@ -1,0 +1,26 @@
+
+Review Schedule
+
+· When: First week of each quarter (Jan, Apr, Jul, Oct)
+· Duration: 2-3 days maximum
+· Responsible: Engineering Managers + Product Owners
+
+Review Checklist
+
+A. Property Health Check
+
+1. Usage Analysis
+   ```sql
+   -- Example queries to run:
+   SELECT "Priority Level", COUNT(*) as count 
+   FROM issues 
+   GROUP BY "Priority Level" 
+   ORDER BY count DESC;
+   
+   · Identify unused/underused options
+   · Check for option duplication
+   · Verify consistency across teams
+2. Option Rationality
+   · Remove options used < 5 times in last quarter
+   · Merge similar options (e.g., "UI" + "Frontend")
+   · Add new options if recurring manual entries exist

@@ -1,0 +1,13 @@
+# Only for repository admins
+git checkout main
+git pull origin main
+ 
+# Create hotfix branch
+git checkout -b hotfix/emergency-fix
+ 
+# Make your changes
+git add .
+git commit -m "Emergency fix: describe the issue"
+git push origin hotfix/emergency-fix
+ 
+# Create PR and use admin override to merge

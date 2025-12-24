@@ -1,0 +1,6 @@
+Role-based access control
+
+- Add Role enum and check_role! macro
+- Add role: Role to signer-capable accounts (KycAccount, ProviderAccount, etc.)
+- Add InsufficientRole error
+- Add tests asserting role checks

@@ -1,0 +1,4 @@
+
+· Alert if >30% of issues missing critical properties
+· Flag inconsistent property usage across teams
+· Monitor for property "drift" (gradual misuse)
