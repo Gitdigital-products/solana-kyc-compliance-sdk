@@ -1,0 +1,54 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f8fafc;
+    padding: 20px;
+    line-height: 1.6;
+}
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+.card {
+    background: #f1f5f9;
+    border-left: 4px solid #3b82f6;
+    padding: 20px;
+    margin: 25px 0;
+    border-radius: 12px;
+}
+button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 10px 5px 10px 0;
+}
+button:hover {
+    background: #2563eb;
+}
+input {
+    padding: 12px;
+    border: 2px solid #cbd5e1;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 500px;
+    display: block;
+    margin: 10px 0;
+}
+#resultBox {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background: #e2e8f0;
+    min-height: 60px;
+}
+#walletStatus {
+    font-weight: bold;
+    color: #64748b;
+}
