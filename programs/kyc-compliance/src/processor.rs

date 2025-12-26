@@ -1,0 +1,351 @@
+use solana_program::{
+    account_info::{next_account_info, AccountInfo},
+    entrypoint::ProgramResult,
+    msg,
+    program::{invoke, invoke_signed},
+    program_error::ProgramError,
+    program_pack::Pack,
+    pubkey::Pubkey,
+    system_instruction,
+    sysvar::{clock::Clock, Sysvar},
+};
+
+use crate::{
+    error::ComplianceError,
+    instruction::ComplianceInstruction,
+    state::*,
+    utils::*,
+};
+
+pub struct Processor;
+
+impl Processor {
+    pub fn process_instruction(
+        program_id: &Pubkey,
+        accounts: &[AccountInfo],
+        instruction_data: &[u8],
+    ) -> ProgramResult {
+        let instruction = ComplianceInstruction::try_from_slice(instruction_data)
+            .map_err(|_| ProgramError::InvalidInstructionData)?;
+            
+        match instruction {
+            ComplianceInstruction::RegisterInvestor { investor_data } => {
+                Self::process_register_investor(program_id, accounts, investor_data)
+            }
+            ComplianceInstruction::RevokeInvestor => {
+                Self::process_revoke_investor(program_id, accounts)
+            }
+            ComplianceInstruction::UpdatePolicy { policy } => {
+                Self::process_update_policy(program_id, accounts, policy)
+            }
+            ComplianceInstruction::SetAdmin => {
+                Self::process_set_admin(program_id, accounts)
+            }
+            ComplianceInstruction::FreezeWallet => {
+                Self::process_freeze_wallet(program_id, accounts, true)
+            }
+            ComplianceInstruction::UnfreezeWallet => {
+                Self::process_freeze_wallet(program_id, accounts, false)
+            }
+            ComplianceInstruction::ValidateTransfer => {
+                Self::process_validate_transfer(program_id, accounts)
+            }
+        }
+    }
+    
+    /// Register a new investor
+    fn process_register_investor(
+        program_id: &Pubkey,
+        accounts: &[AccountInfo],
+        investor_data: InvestorData,
+    ) -> ProgramResult {
+        let accounts_iter = &mut accounts.iter();
+        
+        let payer = next_account_info(accounts_iter)?;
+        let registry_account = next_account_info(accounts_iter)?;
+        let investor_record_account = next_account_info(accounts_iter)?;
+        let investor_wallet = next_account_info(accounts_iter)?;
+        let system_program = next_account_info(accounts_iter)?;
+        
+        // Validate payer is signer
+        if !payer.is_signer {
+            return Err(ComplianceError::Unauthorized.into());
+        }
+        
+        // Find compliance registry PDA
+        let (registry_pda, registry_bump) = Pubkey::find_program_address(
+            &[b"compliance-registry"],
+            program_id,
+        );
+        
+        if registry_pda != *registry_account.key {
+            return Err(ProgramError::InvalidArgument);
+        }
+        
+        // Find investor record PDA
+        let (investor_pda, investor_bump) = Pubkey::find_program_address(
+            &[b"investor-record", investor_wallet.key.as_ref()],
+            program_id,
+        );
+        
+        if investor_pda != *investor_record_account.key {
+            return Err(ProgramError::InvalidArgument);
+        }
+        
+        // Check if investor already registered
+        if investor_record_account.data_is_empty() {
+            // Create investor record account
+            let clock = Clock::get()?;
+            
+            let investor_record = InvestorRecord {
+                investor_wallet: *investor_wallet.key,
+                bump: investor_bump,
+                kyc_level: investor_data.kyc_level,
+                country_code: investor_data.country_code,
+                is_verified: true,
+                is_frozen: false,
+                registration_date: clock.unix_timestamp,
+                last_updated: clock.unix_timestamp,
+                total_transfers: 0,
+                total_volume: 0,
+            };
+            
+            // Allocate account space
+            let space = InvestorRecord::LEN;
+            let rent = solana_program::rent::Rent::get()?;
+            let lamports = rent.minimum_balance(space);
+            
+            invoke_signed(
+                &system_instruction::create_account(
+                    payer.key,
+                    investor_record_account.key,
+                    lamports,
+                    space as u64,
+                    program_id,
+                ),
+                &[payer.clone(), investor_record_account.clone()],
+                &[&[b"investor-record", investor_wallet.key.as_ref(), &[investor_bump]]],
+            )?;
+            
+            // Serialize investor record
+            investor_record.serialize(&mut &mut investor_record_account.data.borrow_mut()[..])?;
+            
+            // Update registry
+            let mut registry = ComplianceRegistry::try_from_slice(&registry_account.data.borrow())?;
+            registry.investor_count += 1;
+            registry.total_registered += 1;
+            registry.serialize(&mut &mut registry_account.data.borrow_mut()[..])?;
+            
+            msg!("Investor registered successfully: {}", investor_wallet.key);
+            Ok(())
+        } else {
+            Err(ComplianceError::AlreadyRegistered.into())
+        }
+    }
+    
+    /// Revoke investor status
+    fn process_revoke_investor(
+        program_id: &Pubkey,
+        accounts: &[AccountInfo],
+    ) -> ProgramResult {
+        let accounts_iter = &mut accounts.iter();
+        
+        let admin = next_account_info(accounts_iter)?;
+        let registry_account = next_account_info(accounts_iter)?;
+        let investor_record_account = next_account_info(accounts_iter)?;
+        
+        // Verify admin authority
+        let registry = ComplianceRegistry::try_from_slice(&registry_account.data.borrow())?;
+        if !admin.is_signer || admin.key != &registry.admin {
+            return Err(ComplianceError::Unauthorized.into());
+        }
+        
+        // Check if investor exists
+        if investor_record_account.data_is_empty() {
+            return Err(ComplianceError::NotRegistered.into());
+        }
+        
+        // Clear investor record data
+        investor_record_account.data.borrow_mut().fill(0);
+        
+        // Update registry
+        let mut registry = ComplianceRegistry::try_from_slice(&registry_account.data.borrow())?;
+        registry.investor_count = registry.investor_count.saturating_sub(1);
+        registry.total_revoked += 1;
+        registry.serialize(&mut &mut registry_account.data.borrow_mut()[..])?;
+        
+        msg!("Investor revoked successfully");
+        Ok(())
+    }
+    
+    /// Update compliance policy
+    fn process_update_policy(
+        program_id: &Pubkey,
+        accounts: &[AccountInfo],
+        new_policy: CompliancePolicy,
+    ) -> ProgramResult {
+        let accounts_iter = &mut accounts.iter();
+        
+        let admin = next_account_info(accounts_iter)?;
+        let policy_account = next_account_info(accounts_iter)?;
+        
+        // Find policy config PDA
+        let (policy_pda, _policy_bump) = Pubkey::find_program_address(
+            &[b"policy-config"],
+            program_id,
+        );
+        
+        if policy_pda != *policy_account.key {
+            return Err(ProgramError::InvalidArgument);
+        }
+        
+        // Load and verify admin
+        let mut policy_config = PolicyConfig::try_from_slice(&policy_account.data.borrow())?;
+        if !admin.is_signer || admin.key != &policy_config.admin {
+            return Err(ComplianceError::Unauthorized.into());
+        }
+        
+        // Update policy
+        let clock = Clock::get()?;
+        policy_config.policy = new_policy;
+        policy_config.last_updated = clock.unix_timestamp;
+        
+        // Serialize updated policy
+        policy_config.serialize(&mut &mut policy_account.data.borrow_mut()[..])?;
+        
+        msg!("Policy updated successfully");
+        Ok(())
+    }
+    
+    /// Set new admin authority
+    fn process_set_admin(
+        program_id: &Pubkey,
+        accounts: &[AccountInfo],
+    ) -> ProgramResult {
+        let accounts_iter = &mut accounts.iter();
+        
+        let current_admin = next_account_info(accounts_iter)?;
+        let admin_authority_account = next_account_info(accounts_iter)?;
+        let new_admin = next_account_info(accounts_iter)?;
+        
+        // Find admin authority PDA
+        let (admin_pda, _admin_bump) = Pubkey::find_program_address(
+            &[b"admin-authority"],
+            program_id,
+        );
+        
+        if admin_pda != *admin_authority_account.key {
+            return Err(ProgramError::InvalidArgument);
+        }
+        
+        // Load and verify current admin
+        let mut admin_data = Pubkey::try_from_slice(&admin_authority_account.data.borrow())?;
+        if !current_admin.is_signer || current_admin.key != &admin_data {
+            return Err(ComplianceError::Unauthorized.into());
+        }
+        
+        // Update admin
+        admin_data = *new_admin.key;
+        admin_data.serialize(&mut &mut admin_authority_account.data.borrow_mut()[..])?;
+        
+        // Also update in registry
+        let (registry_pda, _registry_bump) = Pubkey::find_program_address(
+            &[b"compliance-registry"],
+            program_id,
+        );
+        
+        msg!("Admin authority transferred to: {}", new_admin.key);
+        Ok(())
+    }
+    
+    /// Freeze/Unfreeze wallet
+    fn process_freeze_wallet(
+        program_id: &Pubkey,
+        accounts: &[AccountInfo],
+        freeze: bool,
+    ) -> ProgramResult {
+        let accounts_iter = &mut accounts.iter();
+        
+        let admin = next_account_info(accounts_iter)?;
+        let investor_record_account = next_account_info(accounts_iter)?;
+        let policy_account = next_account_info(accounts_iter)?;
+        
+        // Verify admin
+        let policy_config = PolicyConfig::try_from_slice(&policy_account.data.borrow())?;
+        if !admin.is_signer || admin.key != &policy_config.admin {
+            return Err(ComplianceError::Unauthorized.into());
+        }
+        
+        // Check investor record
+        if investor_record_account.data_is_empty() {
+            return Err(ComplianceError::NotRegistered.into());
+        }
+        
+        // Update freeze status
+        let mut investor_record = InvestorRecord::try_from_slice(&investor_record_account.data.borrow())?;
+        investor_record.is_frozen = freeze;
+        investor_record.last_updated = Clock::get()?.unix_timestamp;
+        
+        investor_record.serialize(&mut &mut investor_record_account.data.borrow_mut()[..])?;
+        
+        msg!("Wallet {}: {}", investor_record.investor_wallet, if freeze { "FROZEN" } else { "UNFROZEN" });
+        Ok(())
+    }
+    
+    /// Validate transfer (Transfer Hook)
+    fn process_validate_transfer(
+        program_id: &Pubkey,
+        accounts: &[AccountInfo],
+    ) -> ProgramResult {
+        let accounts_iter = &mut accounts.iter();
+        
+        let _transfer_hook_program = next_account_info(accounts_iter)?;
+        let source_wallet = next_account_info(accounts_iter)?;
+        let destination_wallet = next_account_info(accounts_iter)?;
+        let policy_account = next_account_info(accounts_iter)?;
+        let source_record_account = next_account_info(accounts_iter)?;
+        let dest_record_account = next_account_info(accounts_iter)?;
+        
+        // Load policy
+        let policy_config = PolicyConfig::try_from_slice(&policy_account.data.borrow())?;
+        
+        if !policy_config.policy.is_active {
+            return Ok(()); // Policy inactive, allow transfer
+        }
+        
+        // Check if transfer hook is enabled
+        if !policy_config.is_transfer_hook_enabled {
+            return Ok(());
+        }
+        
+        // Check source wallet status
+        if !source_record_account.data_is_empty() {
+            let source_record = InvestorRecord::try_from_slice(&source_record_account.data.borrow())?;
+            
+            if source_record.is_frozen {
+                return Err(ComplianceError::WalletFrozen.into());
+            }
+            
+            // Verify KYC level
+            if source_record.kyc_level < policy_config.policy.min_kyc_level {
+                return Err(ComplianceError::PolicyViolation.into());
+            }
+        } else if !policy_config.policy.allow_anonymous_sender {
+            return Err(ComplianceError::PolicyViolation.into());
+        }
+        
+        // Check destination wallet status
+        if !dest_record_account.data_is_empty() {
+            let dest_record = InvestorRecord::try_from_slice(&dest_record_account.data.borrow())?;
+            
+            if dest_record.is_frozen {
+                return Err(ComplianceError::WalletFrozen.into());
+            }
+        } else if !policy_config.policy.allow_anonymous_receiver {
+            return Err(ComplianceError::PolicyViolation.into());
+        }
+        
+        msg!("Transfer validation passed");
+        Ok(())
+    }
+}
