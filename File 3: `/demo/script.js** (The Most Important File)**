@@ -1,6 +1,6 @@
 // ========== CONFIGURATION ==========
 // 🔧 REPLACE THIS WITH YOUR ACTUAL DEVNET PROGRAM ID
-const PROGRAM_ID = new web3.PublicKey('YOUR_ACTUAL_DEVNET_PROGRAM_ID_HERE');
+const PROGRAM_ID = new web3.PublicKey('1c8d29619ee93b4de0b10cc4c37f0eefde231c31');
 
 // Initialize connection to Solana Devnet
 const connection = new web3.Connection(web3.clusterApiUrl('devnet'), 'confirmed');
