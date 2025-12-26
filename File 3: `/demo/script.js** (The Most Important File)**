@@ -1,0 +1,104 @@
+// ========== CONFIGURATION ==========
+// 🔧 REPLACE THIS WITH YOUR ACTUAL DEVNET PROGRAM ID
+const PROGRAM_ID = new web3.PublicKey('YOUR_ACTUAL_DEVNET_PROGRAM_ID_HERE');
+
+// Initialize connection to Solana Devnet
+const connection = new web3.Connection(web3.clusterApiUrl('devnet'), 'confirmed');
+
+// State
+let wallet = null;
+let provider = null;
+
+// ========== 1. WALLET CONNECTION ==========
+document.getElementById('connectButton').addEventListener('click', async () => {
+    if (!window.solana || !window.solana.isPhantom) {
+        alert('Phantom wallet not found! Please install it.');
+        return;
+    }
+
+    provider = window.solana;
+    
+    try {
+        // Connect to Phantom
+        await provider.connect();
+        wallet = provider.publicKey;
+        
+        // Update UI
+        document.getElementById('walletStatus').innerHTML = 
+            `✅ Connected: <code>${wallet.toString().slice(0, 12)}...</code>`;
+        document.getElementById('connectButton').textContent = '🔄 Wallet Connected';
+        document.getElementById('connectButton').disabled = true;
+        
+        console.log('Connected wallet:', wallet.toString());
+    } catch (err) {
+        console.error('Connection error:', err);
+        alert('Failed to connect wallet.');
+    }
+});
+
+// ========== 2. CORE KYC STATUS CHECK ==========
+document.getElementById('checkButton').addEventListener('click', async () => {
+    const input = document.getElementById('addressInput').value.trim();
+    const resultBox = document.getElementById('resultBox');
+    
+    if (!input) {
+        resultBox.innerHTML = '<p style="color:#dc2626">⚠️ Please enter a wallet address</p>';
+        return;
+    }
+
+    try {
+        // 1. Validate the address
+        const addressToCheck = new web3.PublicKey(input);
+        resultBox.innerHTML = '<p>🔍 Querying on-chain compliance registry...</p>';
+
+        // 2. ⚡ THIS IS WHERE YOU INTEGRATE YOUR SDK ⚡
+        // In a full implementation, you would call your SDK here:
+        // const sdk = new ComplianceSDK(connection, PROGRAM_ID, wallet);
+        // const status = await sdk.getVerificationStatus(addressToCheck);
+        
+        // 3. For this DEMO, we'll simulate two types of checks:
+        //    A. Fetch the account data from YOUR program
+        //    B. Fallback to a mock response if account doesn't exist
+        
+        let statusMessage = '';
+        let statusColor = '#3b82f6';
+        
+        try {
+            // Try to fetch the account data from YOUR program
+            const accountInfo = await connection.getAccountInfo(addressToCheck);
+            
+            if (accountInfo && accountInfo.owner.equals(PROGRAM_ID)) {
+                // Account exists and is owned by your program
+                // Here you would decode the data using your SDK
+                statusMessage = `✅ <strong>Registered KYC Entity</strong><br>
+                                 This wallet is registered in the compliance program.`;
+                statusColor = '#10b981';
+            } else {
+                // Account not found in your program - show mock status
+                statusMessage = `⏳ <strong>Mock Status: Verification Pending</strong><br>
+                                 <small>(In full implementation, this would check your program's state)</small>`;
+                statusColor = '#f59e0b';
+            }
+        } catch (error) {
+            console.error('Error fetching account:', error);
+            statusMessage = `❌ <strong>Error checking status</strong><br>
+                             <small>${error.message}</small>`;
+            statusColor = '#dc2626';
+        }
+        
+        // 4. Display the result
+        resultBox.innerHTML = `<p style="color:${statusColor}">${statusMessage}</p>`;
+        
+    } catch (err) {
+        resultBox.innerHTML = `<p style="color:#dc2626">❌ Invalid Solana address format</p>`;
+    }
+});
+
+// ========== 3. UPDATE DYNAMIC INFO ==========
+// Set the program ID display and explorer link
+document.getElementById('programId').textContent = PROGRAM_ID.toString();
+document.getElementById('explorerLink').href = 
+    `https://solscan.io/account/${PROGRAM_ID.toString()}?cluster=devnet`;
+
+// Initialize
+console.log('KYC Demo initialized for program:', PROGRAM_ID.toString());
