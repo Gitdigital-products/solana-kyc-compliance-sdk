@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Solana KYC SDK Demo</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Load Solana Web3 and Wallet Adapter -->
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script src="https://unpkg.com/@solana/wallet-adapter-phantom/lib/index.iife.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Solana KYC Compliance Demo</h1>
+        <p>This demo interacts with the <strong>live Devnet program</strong> to check a wallet's KYC status.</p>
+        
+        <div class="card">
+            <h2>1. Connect Your Wallet</h2>
+            <button id="connectButton">🦊 Connect Phantom Wallet</button>
+            <p id="walletStatus">Status: Not connected</p>
+        </div>
+
+        <div class="card">
+            <h2>2. Check KYC Status</h2>
+            <p>Enter any Solana wallet address to check:</p>
+            <input type="text" id="addressInput" placeholder="e.g., FH6c...">
+            <button id="checkButton">🔍 Check Status</button>
+            <div id="resultBox">
+                <p><strong>Result will appear here...</strong></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📡 Live Information</h2>
+            <p><strong>Devnet Program ID:</strong> <code id="programId">YOUR_PROGRAM_ID_HERE</code></p>
+            <p><a href="#" id="explorerLink" target="_blank">View on Solana Explorer</a></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+                 </html>
