@@ -1,0 +1,4 @@
+/demo
+├── index.html          # Basic HTML page
+├── style.css           # Minimal styling
+└── script.js           # The core logic using your SDK
