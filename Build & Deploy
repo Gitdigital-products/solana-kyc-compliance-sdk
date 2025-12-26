@@ -19,6 +19,6 @@ Step 3: Verify and Update Configuration
 2. Update Anchor.toml: Replace the placeholder ID with your new, real one.
    ```toml
    [programs.devnet]
-   solana_kyc_compliance = "YOUR_NEW_PROGRAM_ID_HERE"
+   solana_kyc_compliance = "1c8d29619ee93b4de0b10cc4c37f0eefde231c31"
    ``
 3. Re-build and sync: Run anchor build again. This ensures your TypeScript client library (IDL) knows the correct address.
