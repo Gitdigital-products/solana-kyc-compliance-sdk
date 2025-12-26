@@ -1,0 +1,24 @@
+Run these commands from your project root directory:
+
+1. Build the program:
+   ```bash
+   anchor build
+   ``
+   This compiles your Rust code and produces a new target/ directory with a .so file.
+2. Deploy to Devnet:
+   ```bash
+   anchor deploy
+   ``
+   This command will:
+   · Deploy the .so file to the Devnet cluster.
+   · Output a new Program ID (e.g., Fg6PaF...). Copy this ID immediately.
+
+Step 3: Verify and Update Configuration
+
+1. Verify: Paste your new Program ID into a Devnet explorer like Solscan (Devnet). You should see your program account.
+2. Update Anchor.toml: Replace the placeholder ID with your new, real one.
+   ```toml
+   [programs.devnet]
+   solana_kyc_compliance = "YOUR_NEW_PROGRAM_ID_HERE"
+   ``
+3. Re-build and sync: Run anchor build again. This ensures your TypeScript client library (IDL) knows the correct address.
