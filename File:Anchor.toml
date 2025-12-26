@@ -8,3 +8,12 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "mocha -t 100000"
+
+
+[provider]
+cluster = "devnet" # Make sure this says 'devnet', not localnet or mainnet-beta
+wallet = "~/.config/solana/id.json" # This is your local wallet for paying fees
+
+[programs.devnet] # This section must exist
+# Your program's local name (from Cargo.toml) maps to a future Program ID
+solana_kyc_compliance = "11111111111111111111111111111111" # We'll update this after deploy
