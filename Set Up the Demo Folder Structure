@@ -1,0 +1,5 @@
+/demo
+├── index.html      # The main page
+├── style.css       # Basic styling
+├── script.js       # All the interaction logic
+└── README.md       # Instructions for running it
