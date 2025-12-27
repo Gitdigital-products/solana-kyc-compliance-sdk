@@ -1,0 +1,21 @@
+cat > src/index.ts << 'EOF'
+export { ComplianceClient } from './client';
+export * from './instructions';
+export * from './transactions';
+export * from './pda';
+export * from './errors';
+export * from './types';
+export * from './constants';
+export * from './utils';
+
+// Re-export commonly used Solana types
+export {
+  PublicKey,
+  Connection,
+  Transaction,
+  Keypair,
+  SystemProgram,
+  sendAndConfirmTransaction,
+  LAMPORTS_PER_SOL,
+} from '@solana/web3.js';
+EOF
