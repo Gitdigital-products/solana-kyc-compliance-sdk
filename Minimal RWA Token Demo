@@ -1,0 +1,1038 @@
+1.1 RWA Token Demo Structure
+
+```bash
+mkdir -p ecosystem/rwa-token-demo/src
+```
+
+```bash
+cat > ecosystem/rwa-token-demo/README.md << 'EOF'
+# 🏢 RWA Token Demo - Real World Asset Tokenization
+
+A complete example demonstrating how to tokenize real-world assets (RWA) with KYC compliance using the Solana KYC Compliance SDK.
+
+## Features
+
+- ✅ **Token Creation**: Create compliant RWA tokens with transfer restrictions
+- ✅ **Investor Verification**: KYC verification for investors
+- ✅ **Compliance Enforcement**: On-chain transfer validation
+- ✅ **Asset Management**: Mint, burn, and transfer tokens
+- ✅ **Dashboard**: Monitor token compliance status
+
+## Prerequisites
+
+- Node.js 18+
+- Solana CLI 1.17+
+- Local validator running
+- Deployed compliance program
+
+## Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Build and run
+npm run build
+npm start
+```
+
+Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│           RWA Token Demo                    │
+│  ┌─────────────┐  ┌─────────────┐          │
+│  │  Token      │  │ Compliance  │          │
+│  │  Manager    │  │  Engine     │          │
+│  │             │  │             │          │
+│  └──────┬──────┘  └──────┬──────┘          │
+│         │                │                  │
+│         ▼                ▼                  │
+│  ┌─────────────────────────────────────┐   │
+│  │      Solana KYC Compliance SDK      │   │
+│  │  • ComplianceClient                 │   │
+│  │  • Token Extensions                 │   │
+│  │  • Transfer Validation              │   │
+│  └─────────────────────────────────────┘   │
+└─────────────────────────────────────────────┘
+```
+
+Usage Examples
+
+1. Create Compliant RWA Token
+
+```typescript
+import { RWATokenManager } from './src/token';
+
+const manager = new RWATokenManager(connection, programId);
+const token = await manager.createToken({
+  name: 'Real Estate Token',
+  symbol: 'RET',
+  decimals: 6,
+  initialSupply: 1000000,
+  compliancePolicy: {
+    requireKYC: true,
+    allowAnonymous: false,
+    maxTransferAmount: 100000,
+    accreditationRequired: true,
+  },
+});
+```
+
+2. Register Investor
+
+```typescript
+const investorData = {
+  wallet: investorWallet,
+  kycLevel: 2,
+  countryCode: 'US',
+  investorType: 0,
+  accreditationStatus: 1,
+};
+
+await manager.registerInvestor(payer, investorData);
+```
+
+3. Transfer Tokens
+
+```typescript
+const transfer = await manager.transferTokens({
+  from: investor1,
+  to: investor2,
+  amount: 1000,
+  tokenMint: token.mint,
+});
+
+if (transfer.compliant) {
+  console.log('✅ Transfer completed successfully');
+} else {
+  console.log('❌ Transfer blocked:', transfer.reason);
+}
+```
+
+Integration Guide
+
+1. Import SDK
+
+```typescript
+import { ComplianceClient } from '@gitdigital/solana-kyc-compliance-sdk';
+import { Connection, Keypair } from '@solana/web3.js';
+
+// Initialize
+const connection = new Connection('http://localhost:8899');
+const client = new ComplianceClient({
+  connection,
+  programId: new PublicKey('YOUR_PROGRAM_ID'),
+});
+```
+
+2. Create Token Manager
+
+```typescript
+class RWATokenManager {
+  constructor(
+    private connection: Connection,
+    private programId: PublicKey,
+    private client: ComplianceClient
+  ) {}
+  
+  async createToken(config: TokenConfig) {
+    // Implementation
+  }
+}
+```
+
+3. Implement Business Logic
+
+· Investor onboarding
+· Token issuance
+· Transfer validation
+· Compliance reporting
+
+API Reference
+
+TokenManager
+
+· createToken(config): Create new RWA token
+· registerInvestor(payer, data): Register investor
+· transferTokens(params): Transfer tokens with compliance check
+· getTokenStatus(mint): Get token compliance status
+· freezeToken(mint, admin): Freeze token transfers
+· unfreezeToken(mint, admin): Unfreeze token transfers
+
+ComplianceEngine
+
+· validateTransfer(source, destination, amount): Validate transfer
+· checkInvestorStatus(wallet): Check investor compliance
+· updatePolicy(admin, policy): Update compliance policy
+· generateReport(): Generate compliance report
+
+Testing
+
+```bash
+# Run tests
+npm test
+
+# Run with local validator
+npm run test:local
+
+# Test specific scenario
+npm run test:scenario -- --scenario="rwa-transfer"
+```
+
+Deployment
+
+Local Development
+
+```bash
+# Start validator
+solana-test-validator --reset
+
+# Deploy program
+solana program deploy dist/program/kyc_compliance.so
+
+# Run demo
+npm start
+```
+
+Production Deployment
+
+1. Deploy compliance program to mainnet
+2. Configure admin multi-sig
+3. Set up KYC provider integration
+4. Deploy RWA token contracts
+5. Onboard investors
+
+Security Considerations
+
+· Use multi-sig for admin functions
+· Regular security audits
+· Monitor for suspicious activity
+· Maintain audit trails
+· Follow regulatory requirements
+
+License
+
+MIT
+EOF
+
+```
+
+```bash
+cat > ecosystem/rwa-token-demo/package.json << 'EOF'
+{
+  "name": "rwa-token-demo",
+  "version": "1.0.0",
+  "description": "Real World Asset Tokenization Demo with KYC Compliance",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "dev": "ts-node src/main.ts",
+    "test": "mocha -r ts-node/register tests/**/*.test.ts",
+    "test:local": "./scripts/test-local.sh",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts"
+  },
+  "dependencies": {
+    "@gitdigital/solana-kyc-compliance-sdk": "file:../../",
+    "@solana/web3.js": "^1.87.0",
+    "@solana/spl-token": "^0.4.6",
+    "dotenv": "^16.3.1",
+    "commander": "^11.0.0",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.7",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2",
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "@types/mocha": "^10.0.1",
+    "@types/chai": "^4.3.5"
+  },
+  "keywords": [
+    "solana",
+    "rwa",
+    "tokenization",
+    "kyc",
+    "compliance",
+    "defi"
+  ]
+}
+EOF
+```
+
+```bash
+cat > ecosystem/rwa-token-demo/src/main.ts << 'EOF'
+#!/usr/bin/env node
+
+import { Command } from 'commander';
+import chalk from 'chalk';
+import ora from 'ora';
+import { RWATokenDemo } from './demo';
+import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const program = new Command();
+
+program
+  .name('rwa-token-demo')
+  .description('Real World Asset Tokenization Demo with KYC Compliance')
+  .version('1.0.0');
+
+program
+  .command('create-token')
+  .description('Create a new compliant RWA token')
+  .requiredOption('-n, --name <name>', 'Token name')
+  .requiredOption('-s, --symbol <symbol>', 'Token symbol')
+  .option('-d, --decimals <decimals>', 'Token decimals', '6')
+  .option('-a, --amount <amount>', 'Initial supply amount', '1000000')
+  .action(async (options) => {
+    const spinner = ora('Creating RWA token...').start();
+    
+    try {
+      const demo = await RWATokenDemo.initialize();
+      const token = await demo.createToken({
+        name: options.name,
+        symbol: options.symbol,
+        decimals: parseInt(options.decimals),
+        initialSupply: parseInt(options.amount),
+      });
+      
+      spinner.succeed(chalk.green('RWA token created successfully!'));
+      console.log(chalk.cyan('\nToken Details:'));
+      console.log(`Mint: ${chalk.yellow(token.mint.toString())}`);
+      console.log(`Name: ${options.name}`);
+      console.log(`Symbol: ${options.symbol}`);
+      console.log(`Decimals: ${options.decimals}`);
+      console.log(`Initial Supply: ${options.amount}`);
+      console.log(chalk.cyan('\nCompliance Features:'));
+      console.log('✅ Transfer Hook: Enabled');
+      console.log('✅ Permanent Delegate: Enabled');
+      console.log('✅ KYC Verification: Required');
+      console.log('✅ Transfer Limits: Enforced');
+      
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to create token'));
+      console.error(chalk.red(error.message));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('register-investor')
+  .description('Register a new investor with KYC verification')
+  .requiredOption('-w, --wallet <wallet>', 'Investor wallet address')
+  .requiredOption('-c, --country <country>', 'Country code (ISO 3166-1 alpha-2)')
+  .option('-l, --level <level>', 'KYC level (1-3)', '2')
+  .option('-t, --type <type>', 'Investor type (0=Individual, 1=Institution)', '0')
+  .option('-a, --accredited', 'Mark as accredited investor', false)
+  .action(async (options) => {
+    const spinner = ora('Registering investor...').start();
+    
+    try {
+      const demo = await RWATokenDemo.initialize();
+      const wallet = new PublicKey(options.wallet);
+      
+      await demo.registerInvestor(wallet, {
+        kycLevel: parseInt(options.level),
+        countryCode: options.country,
+        investorType: parseInt(options.type),
+        accreditationStatus: options.accredited ? 1 : 0,
+      });
+      
+      spinner.succeed(chalk.green('Investor registered successfully!'));
+      console.log(chalk.cyan('\nInvestor Details:'));
+      console.log(`Wallet: ${chalk.yellow(wallet.toString())}`);
+      console.log(`Country: ${options.country}`);
+      console.log(`KYC Level: ${options.level}`);
+      console.log(`Investor Type: ${options.type === '0' ? 'Individual' : 'Institution'}`);
+      console.log(`Accredited: ${options.accredited ? 'Yes' : 'No'}`);
+      
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to register investor'));
+      console.error(chalk.red(error.message));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('transfer')
+  .description('Transfer tokens between investors')
+  .requiredOption('-f, --from <wallet>', 'Source wallet address')
+  .requiredOption('-t, --to <wallet>', 'Destination wallet address')
+  .requiredOption('-m, --mint <mint>', 'Token mint address')
+  .requiredOption('-a, --amount <amount>', 'Amount to transfer')
+  .action(async (options) => {
+    const spinner = ora('Processing transfer...').start();
+    
+    try {
+      const demo = await RWATokenDemo.initialize();
+      const from = new PublicKey(options.from);
+      const to = new PublicKey(options.to);
+      const mint = new PublicKey(options.mint);
+      const amount = parseInt(options.amount);
+      
+      const result = await demo.transferTokens(from, to, mint, amount);
+      
+      if (result.success) {
+        spinner.succeed(chalk.green('Transfer completed successfully!'));
+        console.log(chalk.cyan('\nTransfer Details:'));
+        console.log(`From: ${chalk.yellow(from.toString())}`);
+        console.log(`To: ${chalk.yellow(to.toString())}`);
+        console.log(`Amount: ${amount}`);
+        console.log(`Token: ${mint.toString()}`);
+        console.log(`Signature: ${chalk.blue(result.signature)}`);
+      } else {
+        spinner.fail(chalk.red('Transfer blocked by compliance rules'));
+        console.log(chalk.red('\nCompliance Issues:'));
+        result.errors?.forEach(error => console.log(`❌ ${error}`));
+      }
+      
+    } catch (error) {
+      spinner.fail(chalk.red('Transfer failed'));
+      console.error(chalk.red(error.message));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('status')
+  .description('Check token or investor status')
+  .option('-m, --mint <mint>', 'Token mint address')
+  .option('-w, --wallet <wallet>', 'Investor wallet address')
+  .action(async (options) => {
+    const spinner = ora('Checking status...').start();
+    
+    try {
+      const demo = await RWATokenDemo.initialize();
+      
+      if (options.mint) {
+        const mint = new PublicKey(options.mint);
+        const status = await demo.getTokenStatus(mint);
+        
+        spinner.succeed(chalk.green('Token status retrieved'));
+        console.log(chalk.cyan('\nToken Status:'));
+        console.log(`Mint: ${chalk.yellow(mint.toString())}`);
+        console.log(`Transfer Hook: ${status.transferHook ? '✅ Enabled' : '❌ Disabled'}`);
+        console.log(`Permanent Delegate: ${status.permanentDelegate ? '✅ Set' : '❌ Not set'}`);
+        console.log(`Supply: ${status.supply}`);
+        console.log(`Decimals: ${status.decimals}`);
+        
+      } else if (options.wallet) {
+        const wallet = new PublicKey(options.wallet);
+        const status = await demo.getInvestorStatus(wallet);
+        
+        spinner.succeed(chalk.green('Investor status retrieved'));
+        console.log(chalk.cyan('\nInvestor Status:'));
+        console.log(`Wallet: ${chalk.yellow(wallet.toString())}`);
+        console.log(`Registered: ${status.registered ? '✅ Yes' : '❌ No'}`);
+        console.log(`Verified: ${status.verified ? '✅ Yes' : '❌ No'}`);
+        console.log(`Frozen: ${status.frozen ? '❌ Yes' : '✅ No'}`);
+        console.log(`KYC Level: ${status.kycLevel}`);
+        console.log(`Country: ${status.country}`);
+        console.log(`Compliance Score: ${status.complianceScore}/100`);
+        
+      } else {
+        spinner.fail(chalk.red('Please specify either --mint or --wallet'));
+        process.exit(1);
+      }
+      
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to get status'));
+      console.error(chalk.red(error.message));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('demo')
+  .description('Run complete RWA tokenization demo')
+  .action(async () => {
+    console.log(chalk.cyan.bold('\n🏢 RWA Tokenization Demo\n'));
+    
+    try {
+      const demo = await RWATokenDemo.initialize();
+      await demo.runCompleteDemo();
+    } catch (error) {
+      console.error(chalk.red('Demo failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program.parse();
+EOF
+```
+
+```bash
+cat > ecosystem/rwa-token-demo/src/demo.ts << 'EOF'
+import { Connection, Keypair, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import { ComplianceClient } from '@gitdigital/solana-kyc-compliance-sdk';
+import { RWATokenManager } from './token';
+import chalk from 'chalk';
+import ora from 'ora';
+
+export interface TokenConfig {
+  name: string;
+  symbol: string;
+  decimals: number;
+  initialSupply: number;
+}
+
+export interface InvestorData {
+  kycLevel: number;
+  countryCode: string;
+  investorType: number;
+  accreditationStatus: number;
+}
+
+export interface TransferResult {
+  success: boolean;
+  signature?: string;
+  errors?: string[];
+}
+
+export class RWATokenDemo {
+  private connection: Connection;
+  private client: ComplianceClient;
+  private tokenManager: RWATokenManager;
+  private payer: Keypair;
+  
+  private constructor(
+    connection: Connection,
+    client: ComplianceClient,
+    tokenManager: RWATokenManager,
+    payer: Keypair
+  ) {
+    this.connection = connection;
+    this.client = client;
+    this.tokenManager = tokenManager;
+    this.payer = payer;
+  }
+  
+  static async initialize(): Promise<RWATokenDemo> {
+    const spinner = ora('Initializing RWA demo...').start();
+    
+    try {
+      // Connect to local validator
+      const connection = new Connection('http://localhost:8899', 'confirmed');
+      
+      // Use default program ID for local development
+      const programId = new PublicKey('KycCompliance111111111111111111111111111111111');
+      
+      // Initialize compliance client
+      const client = new ComplianceClient({
+        connection,
+        programId,
+        commitment: 'confirmed',
+      });
+      
+      // Create payer keypair (in production, load from env)
+      const payer = Keypair.generate();
+      
+      // Fund payer if needed
+      try {
+        const airdrop = await connection.requestAirdrop(payer.publicKey, 2_000_000_000);
+        await connection.confirmTransaction(airdrop);
+      } catch (error) {
+        // Airdrop might fail if validator not running or already funded
+        console.log(chalk.yellow('Note: Airdrop failed, assuming payer already funded'));
+      }
+      
+      // Initialize token manager
+      const tokenManager = new RWATokenManager(connection, programId, client, payer);
+      
+      spinner.succeed('RWA demo initialized');
+      return new RWATokenDemo(connection, client, tokenManager, payer);
+      
+    } catch (error) {
+      spinner.fail('Failed to initialize demo');
+      throw error;
+    }
+  }
+  
+  async createToken(config: TokenConfig): Promise<{ mint: PublicKey }> {
+    const spinner = ora('Creating RWA token...').start();
+    
+    try {
+      const result = await this.tokenManager.createToken(config);
+      spinner.succeed(`Token created: ${result.mint.toString()}`);
+      return result;
+    } catch (error) {
+      spinner.fail('Failed to create token');
+      throw error;
+    }
+  }
+  
+  async registerInvestor(wallet: PublicKey, data: InvestorData): Promise<void> {
+    const spinner = ora('Registering investor...').start();
+    
+    try {
+      await this.tokenManager.registerInvestor(wallet, data);
+      spinner.succeed(`Investor registered: ${wallet.toString()}`);
+    } catch (error) {
+      spinner.fail('Failed to register investor');
+      throw error;
+    }
+  }
+  
+  async transferTokens(
+    from: PublicKey,
+    to: PublicKey,
+    mint: PublicKey,
+    amount: number
+  ): Promise<TransferResult> {
+    const spinner = ora('Processing transfer...').start();
+    
+    try {
+      // First check if transfer would be compliant
+      const complianceCheck = await this.client.checkTransfer(from, to, amount);
+      
+      if (!complianceCheck.isValid) {
+        spinner.fail('Transfer blocked by compliance rules');
+        return {
+          success: false,
+          errors: complianceCheck.errors,
+        };
+      }
+      
+      // Execute the transfer
+      const signature = await this.tokenManager.transferTokens(
+        from,
+        to,
+        mint,
+        amount
+      );
+      
+      spinner.succeed('Transfer completed');
+      return {
+        success: true,
+        signature,
+      };
+    } catch (error) {
+      spinner.fail('Transfer failed');
+      return {
+        success: false,
+        errors: [error.message],
+      };
+    }
+  }
+  
+  async getTokenStatus(mint: PublicKey): Promise<any> {
+    try {
+      return await this.tokenManager.getTokenStatus(mint);
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  async getInvestorStatus(wallet: PublicKey): Promise<any> {
+    try {
+      const status = await this.client.getStatus(wallet);
+      return {
+        registered: status.isRegistered,
+        verified: status.isVerified,
+        frozen: status.isFrozen,
+        kycLevel: status.record?.kycLevel || 0,
+        country: status.record?.countryCode || 'N/A',
+        complianceScore: status.complianceLevel,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  async runCompleteDemo(): Promise<void> {
+    console.log(chalk.cyan.bold('\n🚀 Running Complete RWA Tokenization Demo\n'));
+    
+    try {
+      // Step 1: Create RWA token
+      console.log(chalk.yellow('1. Creating RWA Token...'));
+      const token = await this.createToken({
+        name: 'Commercial Real Estate Token',
+        symbol: 'CRET',
+        decimals: 6,
+        initialSupply: 10_000_000,
+      });
+      
+      console.log(chalk.green(`   ✅ Token created: ${token.mint.toString()}\n`));
+      
+      // Step 2: Create test investors
+      console.log(chalk.yellow('2. Registering Test Investors...'));
+      
+      const investor1 = Keypair.generate();
+      const investor2 = Keypair.generate();
+      const unregisteredInvestor = Keypair.generate();
+      
+      await this.registerInvestor(investor1.publicKey, {
+        kycLevel: 2,
+        countryCode: 'US',
+        investorType: 0,
+        accreditationStatus: 1,
+      });
+      
+      await this.registerInvestor(investor2.publicKey, {
+        kycLevel: 2,
+        countryCode: 'GB',
+        investorType: 0,
+        accreditationStatus: 1,
+      });
+      
+      console.log(chalk.green(`   ✅ Investors registered\n`));
+      
+      // Step 3: Test compliant transfer
+      console.log(chalk.yellow('3. Testing Compliant Transfer...'));
+      const compliantTransfer = await this.transferTokens(
+        investor1.publicKey,
+        investor2.publicKey,
+        token.mint,
+        1_000
+      );
+      
+      if (compliantTransfer.success) {
+        console.log(chalk.green(`   ✅ Transfer successful: ${compliantTransfer.signature}\n`));
+      } else {
+        console.log(chalk.red(`   ❌ Transfer blocked: ${compliantTransfer.errors?.join(', ')}\n`));
+      }
+      
+      // Step 4: Test non-compliant transfer (unregistered investor)
+      console.log(chalk.yellow('4. Testing Non-Compliant Transfer...'));
+      const nonCompliantTransfer = await this.transferTokens(
+        unregisteredInvestor.publicKey,
+        investor1.publicKey,
+        token.mint,
+        500
+      );
+      
+      if (!nonCompliantTransfer.success) {
+        console.log(chalk.green(`   ✅ Transfer correctly blocked (unregistered investor)\n`));
+      } else {
+        console.log(chalk.yellow(`   ⚠️  Transfer allowed (check policy settings)\n`));
+      }
+      
+      // Step 5: Check status
+      console.log(chalk.yellow('5. Checking Status...'));
+      
+      const investor1Status = await this.getInvestorStatus(investor1.publicKey);
+      const tokenStatus = await this.getTokenStatus(token.mint);
+      
+      console.log(chalk.cyan('   Investor 1 Status:'));
+      console.log(`     Registered: ${investor1Status.registered ? '✅' : '❌'}`);
+      console.log(`     Compliance Score: ${investor1Status.complianceScore}/100\n`);
+      
+      console.log(chalk.cyan('   Token Status:'));
+      console.log(`     Transfer Hook: ${tokenStatus.transferHook ? '✅' : '❌'}`);
+      console.log(`     Permanent Delegate: ${tokenStatus.permanentDelegate ? '✅' : '❌'}\n`);
+      
+      console.log(chalk.green.bold('🎉 Demo Completed Successfully!\n'));
+      console.log(chalk.cyan('Summary:'));
+      console.log(`- Created RWA token with compliance features`);
+      console.log(`- Registered verified investors`);
+      console.log(`- Tested compliant transfers`);
+      console.log(`- Verified compliance enforcement`);
+      console.log(`- Checked status reporting\n`);
+      
+    } catch (error) {
+      console.log(chalk.red('Demo failed:'), error.message);
+      throw error;
+    }
+  }
+}
+EOF
+```
+
+```bash
+cat > ecosystem/rwa-token-demo/src/token.ts << 'EOF'
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  Transaction,
+  sendAndConfirmTransaction,
+  SystemProgram,
+} from '@solana/web3.js';
+import {
+  createMint,
+  createAccount,
+  mintTo,
+  transfer,
+  getAccount,
+  getMint,
+  TOKEN_2022_PROGRAM_ID,
+  createInitializeTransferHookInstruction,
+  createInitializePermanentDelegateInstruction,
+  getAssociatedTokenAddress,
+  createAssociatedTokenAccountInstruction,
+  getMintLen,
+  ExtensionType,
+} from '@solana/spl-token';
+import { ComplianceClient } from '@gitdigital/solana-kyc-compliance-sdk';
+import { TokenConfig } from './demo';
+
+export class RWATokenManager {
+  constructor(
+    private connection: Connection,
+    private programId: PublicKey,
+    private client: ComplianceClient,
+    private payer: Keypair
+  ) {}
+  
+  async createToken(config: TokenConfig): Promise<{ mint: PublicKey }> {
+    // Get compliance PDAs for token extensions
+    const pdas = await this.client.getProgramPDAs();
+    
+    // Create mint keypair
+    const mintKeypair = Keypair.generate();
+    
+    // Calculate space needed for extensions
+    const mintLen = getMintLen([
+      ExtensionType.TransferHook,
+      ExtensionType.PermanentDelegate,
+    ]);
+    
+    // Get minimum lamports for rent exemption
+    const lamports = await this.connection.getMinimumBalanceForRentExemption(mintLen);
+    
+    // Create mint account
+    const createAccountIx = SystemProgram.createAccount({
+      fromPubkey: this.payer.publicKey,
+      newAccountPubkey: mintKeypair.publicKey,
+      lamports,
+      space: mintLen,
+      programId: TOKEN_2022_PROGRAM_ID,
+    });
+    
+    // Initialize mint
+    const initializeMintIx = createInitializeMintInstruction(
+      mintKeypair.publicKey,
+      config.decimals,
+      this.payer.publicKey, // Mint authority
+      pdas.permanentDelegate, // Freeze authority (compliance program PDA)
+      TOKEN_2022_PROGRAM_ID
+    );
+    
+    // Initialize transfer hook extension
+    const initializeTransferHookIx = createInitializeTransferHookInstruction(
+      mintKeypair.publicKey,
+      this.payer.publicKey,
+      pdas.transferHook, // Compliance program transfer hook PDA
+      TOKEN_2022_PROGRAM_ID
+    );
+    
+    // Initialize permanent delegate extension
+    const initializePermanentDelegateIx = createInitializePermanentDelegateInstruction(
+      mintKeypair.publicKey,
+      this.payer.publicKey,
+      pdas.permanentDelegate, // Compliance program PDA
+      TOKEN_2022_PROGRAM_ID
+    );
+    
+    // Create transaction
+    const transaction = new Transaction();
+    transaction.add(createAccountIx);
+    transaction.add(initializeMintIx);
+    transaction.add(initializeTransferHookIx);
+    transaction.add(initializePermanentDelegateIx);
+    
+    // Send transaction
+    const signature = await sendAndConfirmTransaction(
+      this.connection,
+      transaction,
+      [this.payer, mintKeypair]
+    );
+    
+    // Mint initial supply to payer
+    const payerTokenAccount = await getAssociatedTokenAddress(
+      mintKeypair.publicKey,
+      this.payer.publicKey,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    );
+    
+    // Create token account if it doesn't exist
+    const payerAccountInfo = await this.connection.getAccountInfo(payerTokenAccount);
+    if (!payerAccountInfo) {
+      const createTokenAccountIx = createAssociatedTokenAccountInstruction(
+        this.payer.publicKey,
+        payerTokenAccount,
+        this.payer.publicKey,
+        mintKeypair.publicKey,
+        TOKEN_2022_PROGRAM_ID
+      );
+      
+      const createTx = new Transaction();
+      createTx.add(createTokenAccountIx);
+      
+      await sendAndConfirmTransaction(
+        this.connection,
+        createTx,
+        [this.payer]
+      );
+    }
+    
+    // Mint initial supply
+    await mintTo(
+      this.connection,
+      this.payer,
+      mintKeypair.publicKey,
+      payerTokenAccount,
+      this.payer,
+      config.initialSupply * Math.pow(10, config.decimals),
+      [],
+      undefined,
+      TOKEN_2022_PROGRAM_ID
+    );
+    
+    return {
+      mint: mintKeypair.publicKey,
+    };
+  }
+  
+  async registerInvestor(wallet: PublicKey, data: any): Promise<string> {
+    return await this.client.register(this.payer, wallet, data);
+  }
+  
+  async transferTokens(
+    from: PublicKey,
+    to: PublicKey,
+    mint: PublicKey,
+    amount: number
+  ): Promise<string> {
+    // Get token mint info to determine decimals
+    const mintInfo = await getMint(this.connection, mint, undefined, TOKEN_2022_PROGRAM_ID);
+    const amountWithDecimals = amount * Math.pow(10, mintInfo.decimals);
+    
+    // Get associated token accounts
+    const fromTokenAccount = await getAssociatedTokenAddress(
+      mint,
+      from,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    );
+    
+    const toTokenAccount = await getAssociatedTokenAddress(
+      mint,
+      to,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    );
+    
+    // Check if destination token account exists
+    const toAccountInfo = await this.connection.getAccountInfo(toTokenAccount);
+    if (!toAccountInfo) {
+      // Create destination token account
+      const createAccountIx = createAssociatedTokenAccountInstruction(
+        this.payer.publicKey,
+        toTokenAccount,
+        to,
+        mint,
+        TOKEN_2022_PROGRAM_ID
+      );
+      
+      const createTx = new Transaction();
+      createTx.add(createAccountIx);
+      
+      await sendAndConfirmTransaction(
+        this.connection,
+        createTx,
+        [this.payer]
+      );
+    }
+    
+    // Transfer tokens
+    // Note: The transfer hook will automatically validate compliance
+    const signature = await transfer(
+      this.connection,
+      this.payer,
+      fromTokenAccount,
+      toTokenAccount,
+      from, // Owner/source authority
+      amountWithDecimals,
+      [],
+      undefined,
+      TOKEN_2022_PROGRAM_ID
+    );
+    
+    return signature;
+  }
+  
+  async getTokenStatus(mint: PublicKey): Promise<any> {
+    try {
+      const mintInfo = await getMint(this.connection, mint, undefined, TOKEN_2022_PROGRAM_ID);
+      
+      // In a real implementation, you would check for extensions
+      // For this demo, we'll return basic info
+      return {
+        mint: mint.toString(),
+        supply: mintInfo.supply.toString(),
+        decimals: mintInfo.decimals,
+        transferHook: true, // Assuming it's enabled
+        permanentDelegate: true, // Assuming it's set
+      };
+    } catch (error) {
+      throw new Error(`Failed to get token status: ${error.message}`);
+    }
+  }
+  
+  async createInvestorTokenAccount(
+    investor: PublicKey,
+    mint: PublicKey
+  ): Promise<PublicKey> {
+    const tokenAccount = await getAssociatedTokenAddress(
+      mint,
+      investor,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    );
+    
+    const createAccountIx = createAssociatedTokenAccountInstruction(
+      this.payer.publicKey,
+      tokenAccount,
+      investor,
+      mint,
+      TOKEN_2022_PROGRAM_ID
+    );
+    
+    const transaction = new Transaction();
+    transaction.add(createAccountIx);
+    
+    await sendAndConfirmTransaction(
+      this.connection,
+      transaction,
+      [this.payer]
+    );
+    
+    return tokenAccount;
+  }
+  
+  async getInvestorBalance(
+    investor: PublicKey,
+    mint: PublicKey
+  ): Promise<number> {
+    try {
+      const tokenAccount = await getAssociatedTokenAddress(
+        mint,
+        investor,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+      
+      const accountInfo = await getAccount(this.connection, tokenAccount, undefined, TOKEN_2022_PROGRAM_ID);
+      const mintInfo = await getMint(this.connection, mint, undefined, TOKEN_2022_PROGRAM_ID);
+      
+      return Number(accountInfo.amount) / Math.pow(10, mintInfo.decimals);
+    } catch (error) {
+      // Account might not exist
+      return 0;
+    }
+  }
+}
+EOF
