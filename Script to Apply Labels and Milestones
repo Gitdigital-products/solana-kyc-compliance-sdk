@@ -1,0 +1,122 @@
+cat > scripts/setup-repo.sh << 'EOF'
+#!/bin/bash
+
+# Setup repository with labels, milestones, and community files
+set -e
+
+echo "Setting up repository configuration..."
+
+# Check for GitHub CLI
+if ! command -v gh &> /dev/null; then
+    echo "GitHub CLI not found. Please install: https://cli.github.com/"
+    exit 1
+fi
+
+# Authenticate with GitHub
+echo "Checking GitHub authentication..."
+gh auth status || {
+    echo "Please authenticate with GitHub CLI:"
+    gh auth login
+}
+
+# Apply labels
+echo "Setting up labels..."
+if [ -f .github/labels.json ]; then
+    echo "Creating labels from .github/labels.json..."
+    # Delete existing labels first (optional)
+    # gh label list | awk '{print $1}' | xargs -I {} gh label delete {} --yes
+    
+    # Create new labels
+    jq -c '.[]' .github/labels.json | while read label; do
+        name=$(echo $label | jq -r '.name')
+        color=$(echo $label | jq -r '.color')
+        description=$(echo $label | jq -r '.description')
+        
+        echo "Creating label: $name"
+        gh label create "$name" --color "$color" --description "$description"
+    done
+fi
+
+# Apply milestones
+echo "Setting up milestones..."
+if [ -f .github/milestones.json ]; then
+    echo "Creating milestones from .github/milestones.json..."
+    jq -c '.[]' .github/milestones.json | while read milestone; do
+        title=$(echo $milestone | jq -r '.title')
+        description=$(echo $milestone | jq -r '.description')
+        due_on=$(echo $milestone | jq -r '.due_on')
+        state=$(echo $milestone | jq -r '.state')
+        
+        echo "Creating milestone: $title"
+        gh api repos/{owner}/{repo}/milestones \
+            -f title="$title" \
+            -f description="$description" \
+            -f due_on="$due_on" \
+            -f state="$state"
+    done
+fi
+
+# Enable community health reports
+echo "Enabling community health reports..."
+gh api repos/{owner}/{repo}/community/profile --silent || {
+    echo "Enabling community features..."
+}
+
+# Create discussion categories
+echo "Setting up discussion categories..."
+CATEGORIES=(
+    '{"name": "Announcements", "description": "Project announcements and updates", "emoji": "📢", "is_answerable": false}'
+    '{"name": "General", "description": "General discussions", "emoji": "💬", "is_answerable": false}'
+    '{"name": "Ideas", "description": "Feature ideas and suggestions", "emoji": "💡", "is_answerable": true}'
+    '{"name": "Q&A", "description": "Questions and answers", "emoji": "❓", "is_answerable": true}'
+    '{"name": "Show and Tell", "description": "Share your implementations", "emoji": "🎉", "is_answerable": false}'
+)
+
+for category in "${CATEGORIES[@]}"; do
+    echo "Creating discussion category: $(echo $category | jq -r '.name')"
+    gh api repos/{owner}/{repo}/discussions/categories \
+        -f name="$(echo $category | jq -r '.name')" \
+        -f description="$(echo $category | jq -r '.description')" \
+        -f emoji="$(echo $category | jq -r '.emoji')" \
+        -f is_answerable="$(echo $category | jq -r '.is_answerable')"
+done
+
+# Set up repository topics
+echo "Setting repository topics..."
+TOPICS=("solana" "kyc" "compliance" "token-extensions" "defi" "regulatory-tech" "web3")
+gh api repos/{owner}/{repo}/topics \
+    -f names="$(IFS=,; echo "${TOPICS[*]}")"
+
+# Enable security features
+echo "Enabling security features..."
+# Enable secret scanning
+gh api repos/{owner}/{repo}/security-analysis/secret-scanning \
+    -X PUT \
+    -f status=enable
+
+# Enable dependency graph
+gh api repos/{owner}/{repo}/dependency-graph/enable \
+    -X PUT
+
+# Enable vulnerability alerts
+gh api repos/{owner}/{repo}/vulnerability-alerts \
+    -X PUT \
+    -f status=enable
+
+echo "Repository setup completed!"
+echo ""
+echo "Summary:"
+echo "- Labels configured"
+echo "- Milestones created"
+echo "- Discussion categories set up"
+echo "- Repository topics added"
+echo "- Security features enabled"
+echo ""
+echo "Next steps:"
+echo "1. Review community health files"
+echo "2. Set up branch protection rules"
+echo "3. Configure required status checks"
+echo "4. Set up automated releases"
+EOF
+
+chmod +x scripts/setup-repo.sh
