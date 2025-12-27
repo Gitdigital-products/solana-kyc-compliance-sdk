@@ -1,0 +1,98 @@
+cat > package.json << 'EOF'
+{
+  "name": "solana-kyc-compliance-sdk",
+  "version": "0.1.0",
+  "description": "KYC Compliance SDK for Solana with Token Extensions",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:program": "cargo build-bpf --manifest-path=programs/kyc-compliance/Cargo.toml --bpf-out-dir=dist/program",
+    "build:sdk": "npm run build",
+    "deploy:local": "ts-node deploy/deploy.ts",
+    "test": "mocha -r ts-node/register tests/typescript/unit/**/*.test.ts",
+    "test:unit": "npm test",
+    "test:integration": "mocha -r ts-node/register tests/typescript/integration/**/*.test.ts --timeout 30000",
+    "test:rust": "cd programs/kyc-compliance && cargo test",
+    "test:rust-unit": "cd programs/kyc-compliance && cargo test --lib",
+    "test:rust-integration": "cd programs/kyc-compliance && cargo test --test integration",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:rust",
+    "test:local": "./scripts/test-local.sh",
+    "test:coverage": "./scripts/coverage.sh",
+    "test:benchmark": "./scripts/benchmark.sh",
+    "example:register": "ts-node examples/register-investor.ts",
+    "example:token": "ts-node examples/mint-compliant-token.ts",
+    "example:transfer": "ts-node examples/transfer-validation.ts",
+    "example:admin": "ts-node examples/admin-operations.ts",
+    "lint": "eslint src/**/*.ts tests/**/*.ts examples/**/*.ts --fix",
+    "lint:check": "eslint src/**/*.ts tests/**/*.ts examples/**/*.ts",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"examples/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"examples/**/*.ts\"",
+    "clean": "rm -rf dist target node_modules coverage benchmark-results test-results",
+    "prepublishOnly": "npm run build:sdk"
+  },
+  "keywords": [
+    "solana",
+    "kyc",
+    "compliance",
+    "token-extensions",
+    "defi",
+    "sdk"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@project-serum/anchor": "^0.29.0",
+    "@solana/spl-token": "^0.4.6",
+    "@solana/web3.js": "^1.87.0",
+    "borsh": "^0.10.0"
+  },
+  "devDependencies": {
+    "@types/borsh": "^4.0.0",
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.5.7",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "chai": "^4.3.7",
+    "eslint": "^8.50.0",
+    "mocha": "^10.2.0",
+    "mocha-junit-reporter": "^2.2.1",
+    "nyc": "^15.1.0",
+    "prettier": "^3.0.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gitdigital-products/solana-kyc-compliance-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/issues"
+  },
+  "homepage": "https://github.com/Gitdigital-products/solana-kyc-compliance-sdk#readme",
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "all": true,
+    "include": [
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "src/**/*.d.ts",
+      "tests/**/*.ts",
+      "examples/**/*.ts"
+    ],
+    "reporter": [
+      "text",
+      "html",
+      "lcov"
+    ],
+    "report-dir": "coverage"
+  }
+}
+EOF
