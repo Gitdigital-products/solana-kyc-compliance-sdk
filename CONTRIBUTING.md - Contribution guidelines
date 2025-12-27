@@ -1,0 +1,347 @@
+cat > CONTRIBUTING.md << 'EOF'
+# Contributing to Solana KYC Compliance SDK
+
+Thank you for your interest in contributing! This document provides guidelines and instructions for contributors.
+
+## Table of Contents
+
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
+- [Development Workflow](#development-workflow)
+- [Pull Request Process](#pull-request-process)
+- [Code Style Guidelines](#code-style-guidelines)
+- [Testing Guidelines](#testing-guidelines)
+- [Security Considerations](#security-considerations)
+- [Community](#community)
+
+## Code of Conduct
+
+Please read and follow our [Code of Conduct](CODEOFCONDUCT.md). We are committed to providing a welcoming and inspiring community for all.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ and npm/yarn
+- Rust 1.65+ and Cargo
+- Solana CLI 1.17+
+- Git
+
+### Setting Up Development Environment
+
+1. **Fork the Repository**
+   ```bash
+   # Fork on GitHub, then clone your fork
+   git clone https://github.com/YOUR_USERNAME/solana-kyc-compliance-sdk.git
+   cd solana-kyc-compliance-sdk
+```
+
+1. Install Dependencies
+   ```bash
+   npm install
+   ```
+2. Build the Project
+   ```bash
+   npm run build:sdk
+   npm run build:program
+   ```
+3. Run Tests
+   ```bash
+   npm test
+   ```
+
+Finding Issues to Work On
+
+Check these resources for good first issues:
+
+· Good First Issues
+· Help Wanted
+
+Development Workflow
+
+Branch Strategy
+
+```bash
+# Create a feature branch
+git checkout -b feature/your-feature-name
+
+# Or a bug fix branch
+git checkout -b fix/issue-description
+
+# Or a documentation branch
+git checkout -b docs/documentation-update
+```
+
+Branch Naming Convention
+
+· feature/ - New features
+· fix/ - Bug fixes
+· docs/ - Documentation updates
+· test/ - Test improvements
+· refactor/ - Code refactoring
+· perf/ - Performance improvements
+· chore/ - Maintenance tasks
+
+Commit Messages
+
+We follow Conventional Commits:
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+Types:
+
+· feat: New feature
+· fix: Bug fix
+· docs: Documentation
+· style: Formatting
+· refactor: Code restructuring
+· test: Test updates
+· chore: Maintenance
+
+Examples:
+
+```
+feat(client): add batch registration support
+fix(processor): handle edge case in transfer validation
+docs(readme): update quick start guide
+```
+
+Pull Request Process
+
+Before Submitting
+
+1. Run Tests
+   ```bash
+   npm test
+   npm run test:rust
+   ```
+2. Check Code Style
+   ```bash
+   npm run lint:check
+   npm run format:check
+   ```
+3. Update Documentation
+   · Update README if needed
+   · Add JSDoc comments
+   · Update examples if API changes
+4. Add Tests
+   · Add unit tests for new features
+   · Add integration tests if applicable
+   · Update existing tests if needed
+
+PR Description Template
+
+```markdown
+## Description
+Brief description of the changes
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+- [ ] Other (please describe)
+
+## Testing
+- [ ] Added/updated tests
+- [ ] All tests pass
+- [ ] Manual testing performed
+
+## Checklist
+- [ ] Code follows style guidelines
+- [ ] Comments added where needed
+- [ ] Documentation updated
+- [ ] No new warnings
+
+## Related Issues
+Fixes # (issue number)
+
+## Screenshots (if applicable)
+
+## Additional Notes
+```
+
+Review Process
+
+1. Automated Checks - CI runs tests and linting
+2. Code Review - At least one maintainer reviews
+3. Changes Requested - Address feedback if needed
+4. Approval - Maintainer approves
+5. Merge - PR is merged
+
+Code Style Guidelines
+
+TypeScript
+
+```typescript
+// Use explicit return types
+function getName(): string {
+  return 'name';
+}
+
+// Use interfaces over types when possible
+interface User {
+  id: string;
+  name: string;
+}
+
+// Add JSDoc comments for public APIs
+/**
+ * Get user by ID
+ * @param id - User identifier
+ * @returns User object
+ */
+async function getUser(id: string): Promise<User> {
+  // implementation
+}
+
+// Follow ESLint rules
+// Use async/await properly
+// Handle errors appropriately
+```
+
+Rust
+
+```rust
+// Use Rust 2021 edition features
+// Follow clippy recommendations
+// Add doc comments for public items
+
+/// Register a new investor
+/// 
+/// # Arguments
+/// * `investor_data` - Investor information
+/// 
+/// # Returns
+/// Transaction signature
+pub async fn register_investor(
+    investor_data: InvestorData
+) -> Result<String, ComplianceError> {
+    // Implementation
+}
+
+// Use meaningful variable names
+// Handle errors with Result types
+// Follow the Rust API guidelines
+```
+
+Documentation
+
+· Use Markdown for documentation
+· Include code examples
+· Update README.md for major changes
+· Keep examples up to date
+· Add architecture diagrams when helpful
+
+Testing Guidelines
+
+Test Structure
+
+```
+tests/
+├── typescript/
+│   ├── unit/
+│   │   ├── client.test.ts
+│   │   └── utils.test.ts
+│   └── integration/
+│       └── e2e.test.ts
+└── rust/
+    ├── unit/
+    └── integration/
+```
+
+Writing Tests
+
+```typescript
+// Unit test example
+describe('ComplianceClient', () => {
+  it('should register investor', async () => {
+    // Arrange
+    const client = new ComplianceClient(config);
+    
+    // Act
+    const result = await client.register(...);
+    
+    // Assert
+    expect(result).to.be.a('string');
+  });
+  
+  it('should handle errors', async () => {
+    // Test error cases
+    await expect(client.register(...))
+      .to.be.rejectedWith(AlreadyRegisteredError);
+  });
+});
+```
+
+Test Coverage
+
+· Aim for 80%+ test coverage
+· Test edge cases and error conditions
+· Mock external dependencies
+· Test both success and failure paths
+
+Security Considerations
+
+Critical Areas
+
+1. Admin Functions
+   · Multi-sig support
+   · Authorization checks
+   · Audit logging
+2. PDA Generation
+   · Correct seeds and bumps
+   · Input validation
+   · No collisions
+3. Input Validation
+   · Validate all inputs
+   · Size limits
+   · Format checks
+
+Security Checklist
+
+· No hardcoded private keys
+· Input validation on all endpoints
+· Proper error messages (no info leakage)
+· Rate limiting where appropriate
+· Audit trail for admin actions
+
+Community
+
+Communication Channels
+
+· GitHub Issues: Bug reports and feature requests
+· GitHub Discussions: Questions and discussions
+· Discord: Real-time chat and support
+
+Getting Help
+
+When asking for help, include:
+
+1. What you're trying to do
+2. What you've tried
+3. Error messages
+4. Environment details
+
+Recognition
+
+Contributors will be:
+
+· Listed in CONTRIBUTORS.md
+· Acknowledged in release notes
+· Given credit for their work
+
+License
+
+By contributing, you agree that your contributions will be licensed under the project's MIT License.
+
+---
+
+Thank you for contributing to making on-chain compliance better for everyone! 🚀
+EOF
