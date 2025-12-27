@@ -1,0 +1,263 @@
+cat > src/transactions.ts << 'EOF'
+import {
+  Transaction,
+  PublicKey,
+  Connection,
+  Keypair,
+  sendAndConfirmTransaction,
+  TransactionInstruction,
+} from '@solana/web3.js';
+import { ComplianceInstructions } from './instructions';
+import { mapProgramError } from './errors';
+import {
+  InvestorData,
+  CompliancePolicy,
+  TransferContext,
+} from './types';
+
+/**
+ * Transaction builders and helpers
+ */
+export class ComplianceTransactions {
+  constructor(
+    private instructions: ComplianceInstructions,
+    private connection: Connection
+  ) {}
+
+  /**
+   * Build and send register investor transaction
+   */
+  async registerInvestor(
+    payer: Keypair,
+    investorWallet: PublicKey,
+    investorData: InvestorData,
+    additionalInstructions: TransactionInstruction[] = []
+  ): Promise<string> {
+    try {
+      const instruction = await this.instructions.registerInvestor(
+        payer.publicKey,
+        investorWallet,
+        investorData
+      );
+
+      const transaction = new Transaction();
+      transaction.add(instruction);
+      
+      // Add additional instructions if provided
+      additionalInstructions.forEach(ix => transaction.add(ix));
+
+      const signature = await sendAndConfirmTransaction(
+        this.connection,
+        transaction,
+        [payer]
+      );
+
+      return signature;
+    } catch (error) {
+      throw mapProgramError(error);
+    }
+  }
+
+  /**
+   * Build and send revoke investor transaction
+   */
+  async revokeInvestor(
+    admin: Keypair,
+    investorWallet: PublicKey
+  ): Promise<string> {
+    try {
+      const instruction = await this.instructions.revokeInvestor(
+        admin.publicKey,
+        investorWallet
+      );
+
+      const transaction = new Transaction();
+      transaction.add(instruction);
+
+      const signature = await sendAndConfirmTransaction(
+        this.connection,
+        transaction,
+        [admin]
+      );
+
+      return signature;
+    } catch (error) {
+      throw mapProgramError(error);
+    }
+  }
+
+  /**
+   * Build and send update policy transaction
+   */
+  async updatePolicy(
+    admin: Keypair,
+    policy: CompliancePolicy
+  ): Promise<string> {
+    try {
+      const instruction = await this.instructions.updatePolicy(
+        admin.publicKey,
+        policy
+      );
+
+      const transaction = new Transaction();
+      transaction.add(instruction);
+
+      const signature = await sendAndConfirmTransaction(
+        this.connection,
+        transaction,
+        [admin]
+      );
+
+      return signature;
+    } catch (error) {
+      throw mapProgramError(error);
+    }
+  }
+
+  /**
+   * Build and send set admin transaction
+   */
+  async setAdmin(
+    currentAdmin: Keypair,
+    newAdmin: PublicKey
+  ): Promise<string> {
+    try {
+      const instruction = await this.instructions.setAdmin(
+        currentAdmin.publicKey,
+        newAdmin
+      );
+
+      const transaction = new Transaction();
+      transaction.add(instruction);
+
+      const signature = await sendAndConfirmTransaction(
+        this.connection,
+        transaction,
+        [currentAdmin]
+      );
+
+      return signature;
+    } catch (error) {
+      throw mapProgramError(error);
+    }
+  }
+
+  /**
+   * Build and send freeze/unfreeze transaction
+   */
+  async freezeWallet(
+    admin: Keypair,
+    investorWallet: PublicKey,
+    freeze: boolean = true
+  ): Promise<string> {
+    try {
+      const instruction = await this.instructions.freezeWallet(
+        admin.publicKey,
+        investorWallet,
+        freeze
+      );
+
+      const transaction = new Transaction();
+      transaction.add(instruction);
+
+      const signature = await sendAndConfirmTransaction(
+        this.connection,
+        transaction,
+        [admin]
+      );
+
+      return signature;
+    } catch (error) {
+      throw mapProgramError(error);
+    }
+  }
+
+  /**
+   * Build and send batch operations transaction
+   */
+  async batchOperations(
+    signer: Keypair,
+    instructions: TransactionInstruction[]
+  ): Promise<string> {
+    try {
+      const transaction = new Transaction();
+      instructions.forEach(ix => transaction.add(ix));
+
+      const signature = await sendAndConfirmTransaction(
+        this.connection,
+        transaction,
+        [signer]
+      );
+
+      return signature;
+    } catch (error) {
+      throw mapProgramError(error);
+    }
+  }
+
+  /**
+   * Build transfer validation transaction
+   */
+  async buildTransferValidation(
+    programId: PublicKey,
+    source: PublicKey,
+    destination: PublicKey,
+    authority: PublicKey,
+    amount: bigint
+  ): Promise<Transaction> {
+    const instruction = await this.instructions.validateTransfer(
+      programId,
+      source,
+      destination,
+      authority,
+      amount
+    );
+
+    const transaction = new Transaction();
+    transaction.add(instruction);
+
+    return transaction;
+  }
+
+  /**
+   * Simulate a transaction before sending
+   */
+  async simulateTransaction(
+    transaction: Transaction,
+    signers: Keypair[] = []
+  ): Promise<any> {
+    try {
+      const { blockhash } = await this.connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = signers[0]?.publicKey;
+
+      const simulation = await this.connection.simulateTransaction(transaction);
+      return simulation;
+    } catch (error) {
+      throw mapProgramError(error);
+    }
+  }
+
+  /**
+   * Build a transfer with compliance check
+   */
+  async buildCompliantTransfer(
+    source: PublicKey,
+    destination: PublicKey,
+    amount: number,
+    tokenProgram: PublicKey,
+    mint: PublicKey,
+    transferInstructions: TransactionInstruction[]
+  ): Promise<Transaction> {
+    const transaction = new Transaction();
+    
+    // Add transfer instructions
+    transferInstructions.forEach(ix => transaction.add(ix));
+    
+    // Note: In practice, the transfer hook would automatically call validateTransfer
+    // This is just for building the transaction structure
+    
+    return transaction;
+  }
+}
+EOF
