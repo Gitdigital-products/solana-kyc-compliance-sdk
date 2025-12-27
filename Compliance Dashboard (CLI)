@@ -1,0 +1,1487 @@
+2.1 Compliance Dashboard Structure
+
+```bash
+mkdir -p ecosystem/compliance-dashboard/src
+```
+
+```bash
+cat > ecosystem/compliance-dashboard/README.md << 'EOF'
+# 📊 Compliance Dashboard
+
+A command-line interface (CLI) dashboard for monitoring and managing KYC compliance on Solana.
+
+## Features
+
+- ✅ **Real-time Monitoring**: Monitor compliance status across wallets
+- ✅ **Policy Management**: View and update compliance policies
+- ✅ **Investor Management**: Register, revoke, and manage investors
+- ✅ **Transfer Monitoring**: Track and validate transfers
+- ✅ **Reporting**: Generate compliance reports
+- ✅ **Admin Controls**: Freeze/unfreeze wallets, update policies
+
+## Installation
+
+```bash
+# Install globally
+npm install -g @gitdigital/compliance-dashboard
+
+# Or run locally
+npx @gitdigital/compliance-dashboard
+```
+
+Quick Start
+
+```bash
+# Initialize dashboard
+compliance-dashboard init
+
+# Connect to cluster
+compliance-dashboard connect --cluster devnet
+
+# Check wallet status
+compliance-dashboard status <wallet-address>
+
+# Monitor transfers
+compliance-dashboard monitor --live
+```
+
+Commands
+
+Basic Commands
+
+```bash
+# Initialize configuration
+compliance-dashboard init
+
+# Connect to cluster
+compliance-dashboard connect [--cluster <cluster>]
+
+# Check program status
+compliance-dashboard program-status
+```
+
+Investor Management
+
+```bash
+# Check wallet status
+compliance-dashboard status <wallet>
+
+# Register investor
+compliance-dashboard register <wallet> --kyc-level 2 --country US
+
+# Revoke investor
+compliance-dashboard revoke <wallet>
+
+# List all investors
+compliance-dashboard list-investors [--limit 50]
+```
+
+Policy Management
+
+```bash
+# View current policy
+compliance-dashboard policy
+
+# Update policy
+compliance-dashboard update-policy --max-transfer 1000000
+
+# Enable/disable features
+compliance-dashboard toggle-feature --transfer-hook true
+```
+
+Admin Operations
+
+```bash
+# Freeze wallet
+compliance-dashboard freeze <wallet>
+
+# Unfreeze wallet
+compliance-dashboard unfreeze <wallet>
+
+# Set new admin
+compliance-dashboard set-admin <new-admin-wallet>
+```
+
+Monitoring & Reporting
+
+```bash
+# Monitor live transfers
+compliance-dashboard monitor [--live] [--filter <filter>]
+
+# Generate report
+compliance-dashboard report [--format json|csv|pdf]
+
+# Check compliance score
+compliance-dashboard score <wallet>
+```
+
+Configuration
+
+Configuration File
+
+```yaml
+# ~/.config/compliance-dashboard/config.yaml
+cluster: devnet
+programId: KycCompliance111111111111111111111111111111111
+rpcUrl: https://api.devnet.solana.com
+adminKeypair: ~/.config/solana/admin.json
+logLevel: info
+```
+
+Environment Variables
+
+```bash
+export SOLANA_RPC_URL="https://api.devnet.solana.com"
+export COMPLIANCE_PROGRAM_ID="KycCompliance111111111111111111111111111111111"
+export ADMIN_KEYPAIR_PATH="~/.config/solana/admin.json"
+```
+
+Dashboard Features
+
+Real-time Dashboard
+
+```bash
+# Launch interactive dashboard
+compliance-dashboard dashboard
+
+# Output:
+# ┌─────────────────────────────────────────────────────┐
+# │              Compliance Dashboard                   │
+# ├─────────────────────────────────────────────────────┤
+# │  Total Investors: 1,234      Compliance Score: 92%  │
+# │  Active Transfers: 45        Blocked Today: 3       │
+# │  Frozen Wallets: 12          Pending KYC: 8         │
+# └─────────────────────────────────────────────────────┘
+```
+
+Alert System
+
+```bash
+# Set up alerts
+compliance-dashboard alerts setup \
+  --webhook https://hooks.slack.com/your-webhook \
+  --events transfer-blocked,wallet-frozen,policy-updated
+
+# Test alerts
+compliance-dashboard alerts test
+```
+
+Export Data
+
+```bash
+# Export to CSV
+compliance-dashboard export investors --format csv --output investors.csv
+
+# Export to JSON
+compliance-dashboard export transfers --format json --output transfers.json
+
+# Export to PDF report
+compliance-dashboard export report --format pdf --output report.pdf
+```
+
+Integration Examples
+
+1. Python Integration
+
+```python
+import subprocess
+import json
+
+# Call dashboard from Python
+result = subprocess.run(
+    ['compliance-dashboard', 'status', wallet_address, '--json'],
+    capture_output=True,
+    text=True
+)
+data = json.loads(result.stdout)
+```
+
+2. Bash Script Integration
+
+```bash
+#!/bin/bash
+
+# Monitor and alert script
+while true; do
+  compliance-dashboard monitor --json | jq '.events[]' | while read event; do
+    if echo "$event" | jq -e '.type == "transfer-blocked"' > /dev/null; then
+      send_alert "Transfer blocked: $(echo $event | jq '.details')"
+    fi
+  done
+  sleep 10
+done
+```
+
+3. Webhook Integration
+
+```bash
+# Set up webhook for transfers
+compliance-dashboard webhook setup \
+  --url https://your-server.com/webhook \
+  --secret your-secret \
+  --events transfer-initiated,transfer-completed
+```
+
+Advanced Usage
+
+Batch Operations
+
+```bash
+# Batch register investors from CSV
+compliance-dashboard batch register investors.csv
+
+# Batch check compliance
+compliance-dashboard batch check wallets.txt --output results.json
+```
+
+Custom Scripts
+
+```bash
+# Create custom script
+compliance-dashboard script create check-investors.js
+
+# Run custom script
+compliance-dashboard script run check-investors.js --param value
+```
+
+Plugin System
+
+```bash
+# List available plugins
+compliance-dashboard plugins list
+
+# Install plugin
+compliance-dashboard plugins install @gitdigital/analytics-plugin
+
+# Use plugin
+compliance-dashboard analytics --plugin @gitdigital/analytics-plugin
+```
+
+Security
+
+Key Management
+
+```bash
+# Use hardware wallet
+compliance-dashboard config set adminKeypair usb://ledger
+
+# Use environment variable
+export ADMIN_KEYPAIR=$(cat ~/.config/solana/admin.json)
+
+# Use encrypted keyring
+compliance-dashboard keyring setup --password
+```
+
+Audit Logging
+
+```bash
+# Enable audit logging
+compliance-dashboard config set audit.enabled true
+
+# View audit logs
+compliance-dashboard audit logs [--date 2024-01-01]
+
+# Export audit trail
+compliance-dashboard audit export --format csv
+```
+
+Development
+
+Building from Source
+
+```bash
+# Clone repository
+git clone https://github.com/Gitdigital-products/solana-kyc-compliance-sdk.git
+cd ecosystem/compliance-dashboard
+
+# Install dependencies
+npm install
+
+# Build
+npm run build
+
+# Link globally
+npm link
+```
+
+Testing
+
+```bash
+# Run tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Integration tests
+npm run test:integration
+```
+
+Support
+
+· Documentation: GitHub Wiki
+· Issues: GitHub Issues
+· Discord: Community Support
+
+License
+
+MIT
+EOF
+
+```
+
+```bash
+cat > ecosystem/compliance-dashboard/package.json << 'EOF'
+{
+  "name": "@gitdigital/compliance-dashboard",
+  "version": "1.0.0",
+  "description": "CLI Dashboard for Solana KYC Compliance Monitoring",
+  "main": "dist/index.js",
+  "bin": {
+    "compliance-dashboard": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "test": "mocha -r ts-node/register tests/**/*.test.ts",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@gitdigital/solana-kyc-compliance-sdk": "file:../../",
+    "@solana/web3.js": "^1.87.0",
+    "commander": "^11.0.0",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1",
+    "inquirer": "^9.2.12",
+    "figlet": "^1.6.0",
+    "boxen": "^7.0.2",
+    "yaml": "^2.3.2",
+    "csv-parser": "^3.0.0",
+    "json2csv": "^6.0.0-alpha.2",
+    "node-notifier": "^10.0.1",
+    "dotenv": "^16.3.1",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.7",
+    "@types/inquirer": "^9.0.3",
+    "@types/figlet": "^1.5.6",
+    "@types/boxen": "^7.0.2",
+    "@types/yaml": "^2.0.0",
+    "@types/node-notifier": "^8.0.2",
+    "@types/ws": "^8.5.8",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2",
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "@types/mocha": "^10.0.1",
+    "@types/chai": "^4.3.5"
+  },
+  "keywords": [
+    "solana",
+    "compliance",
+    "kyc",
+    "dashboard",
+    "cli",
+    "monitoring",
+    "regulatory"
+  ],
+  "author": "Gitdigital",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}
+EOF
+```
+
+```bash
+cat > ecosystem/compliance-dashboard/src/index.ts << 'EOF'
+#!/usr/bin/env node
+
+import { Command } from 'commander';
+import chalk from 'chalk';
+import ora from 'ora';
+import figlet from 'figlet';
+import boxen from 'boxen';
+import { ComplianceDashboard } from './dashboard';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const program = new Command();
+
+console.log(
+  chalk.cyan(
+    figlet.textSync('Compliance Dashboard', {
+      font: 'Standard',
+      horizontalLayout: 'full',
+    })
+  )
+);
+
+console.log(
+  boxen(
+    chalk.yellow('Solana KYC Compliance Monitoring & Management'),
+    {
+      padding: 1,
+      margin: 1,
+      borderStyle: 'round',
+      borderColor: 'cyan',
+    }
+  )
+);
+
+program
+  .name('compliance-dashboard')
+  .description('CLI Dashboard for Solana KYC Compliance Monitoring')
+  .version('1.0.0')
+  .option('-c, --cluster <cluster>', 'Solana cluster', 'devnet')
+  .option('-p, --program <programId>', 'Compliance program ID')
+  .option('-k, --keypair <path>', 'Admin keypair path')
+  .option('-v, --verbose', 'Enable verbose logging', false);
+
+program
+  .command('init')
+  .description('Initialize dashboard configuration')
+  .action(async () => {
+    const spinner = ora('Initializing dashboard...').start();
+    
+    try {
+      const dashboard = await ComplianceDashboard.initialize();
+      await dashboard.initConfig();
+      
+      spinner.succeed(chalk.green('Dashboard initialized successfully!'));
+      console.log(chalk.cyan('\nConfiguration saved to ~/.config/compliance-dashboard/config.yaml'));
+    } catch (error) {
+      spinner.fail(chalk.red('Initialization failed'));
+      console.error(chalk.red(error.message));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('status <wallet>')
+  .description('Check wallet compliance status')
+  .action(async (wallet) => {
+    const spinner = ora('Checking wallet status...').start();
+    
+    try {
+      const dashboard = await ComplianceDashboard.initialize();
+      const status = await dashboard.getWalletStatus(wallet);
+      
+      spinner.succeed(chalk.green('Status retrieved'));
+      console.log(chalk.cyan('\nWallet Status:'));
+      console.log(`Address: ${chalk.yellow(wallet)}`);
+      console.log(`Registered: ${status.registered ? chalk.green('✅ Yes') : chalk.red('❌ No')}`);
+      console.log(`Verified: ${status.verified ? chalk.green('✅ Yes') : chalk.red('❌ No')}`);
+      console.log(`Frozen: ${status.frozen ? chalk.red('❌ Yes') : chalk.green('✅ No')}`);
+      console.log(`KYC Level: ${status.kycLevel}`);
+      console.log(`Country: ${status.country}`);
+      console.log(`Compliance Score: ${chalk.yellow(status.complianceScore + '/100')}`);
+      
+      if (status.record) {
+        console.log(chalk.cyan('\nDetails:'));
+        console.log(`Registration: ${status.record.registrationDate.toLocaleDateString()}`);
+        console.log(`Total Transfers: ${status.record.totalTransfers}`);
+        console.log(`Total Volume: ${status.record.totalVolume} lamports`);
+      }
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to get status'));
+      console.error(chalk.red(error.message));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('dashboard')
+  .description('Launch interactive dashboard')
+  .action(async () => {
+    const spinner = ora('Launching dashboard...').start();
+    
+    try {
+      const dashboard = await ComplianceDashboard.initialize();
+      spinner.succeed(chalk.green('Dashboard ready'));
+      
+      await dashboard.launchInteractive();
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to launch dashboard'));
+      console.error(chalk.red(error.message));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('monitor')
+  .description('Monitor compliance events')
+  .option('-l, --live', 'Live monitoring mode', false)
+  .option('-i, --interval <seconds>', 'Polling interval in seconds', '5')
+  .action(async (options) => {
+    console.log(chalk.cyan.bold('\n🔍 Compliance Monitoring\n'));
+    
+    try {
+      const dashboard = await ComplianceDashboard.initialize();
+      
+      if (options.live) {
+        console.log(chalk.yellow('Starting live monitoring...'));
+        console.log(chalk.gray('Press Ctrl+C to stop\n'));
+        
+        await dashboard.startLiveMonitoring(parseInt(options.interval));
+      } else {
+        const events = await dashboard.getRecentEvents();
+        
+        console.log(chalk.cyan('Recent Compliance Events:'));
+        if (events.length === 0) {
+          console.log(chalk.gray('No events found'));
+        } else {
+          events.forEach((event, index) => {
+            console.log(chalk.yellow(`\n${index + 1}. ${event.type}`));
+            console.log(`   Time: ${event.timestamp.toLocaleString()}`);
+            console.log(`   Details: ${event.details}`);
+          });
+        }
+      }
+    } catch (error) {
+      console.error(chalk.red('Monitoring failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('policy')
+  .description('View or update compliance policy')
+  .option('-u, --update', 'Enter update mode', false)
+  .action(async (options) => {
+    const spinner = ora('Fetching policy...').start();
+    
+    try {
+      const dashboard = await ComplianceDashboard.initialize();
+      const policy = await dashboard.getPolicy();
+      
+      spinner.succeed(chalk.green('Policy retrieved'));
+      
+      console.log(chalk.cyan.bold('\n📋 Compliance Policy\n'));
+      console.log(`Active: ${policy.isActive ? chalk.green('✅') : chalk.red('❌')}`);
+      console.log(`Require KYC: ${policy.requireKYCForTransfer ? chalk.green('✅') : chalk.red('❌')}`);
+      console.log(`Max Transfer: ${chalk.yellow(policy.maxTransferAmount.toLocaleString())} lamports`);
+      console.log(`Min KYC Level: ${policy.minKYCLevel}`);
+      console.log(`Allow Anonymous Sender: ${policy.allowAnonymousSender ? chalk.green('✅') : chalk.red('❌')}`);
+      console.log(`Allow Anonymous Receiver: ${policy.allowAnonymousReceiver ? chalk.green('✅') : chalk.red('❌')}`);
+      console.log(`Require Accreditation: ${policy.requireAccreditation ? chalk.green('✅') : chalk.red('❌')}`);
+      
+      console.log(chalk.cyan('\nSupported Countries:'));
+      console.log(chalk.gray(policy.supportedCountries.join(', ')));
+      
+      console.log(chalk.cyan('\nRestricted Countries:'));
+      console.log(chalk.gray(policy.restrictedCountries.join(', ')));
+      
+      console.log(chalk.cyan('\nLast Updated:'));
+      console.log(chalk.gray(policy.lastUpdated.toLocaleString()));
+      
+      if (options.update) {
+        console.log(chalk.yellow('\nEntering update mode...'));
+        await dashboard.updatePolicyInteractive();
+      }
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to get policy'));
+      console.error(chalk.red(error.message));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('report')
+  .description('Generate compliance report')
+  .option('-f, --format <format>', 'Report format (json, csv, pdf)', 'json')
+  .option('-o, --output <path>', 'Output file path')
+  .action(async (options) => {
+    const spinner = ora('Generating report...').start();
+    
+    try {
+      const dashboard = await ComplianceDashboard.initialize();
+      const report = await dashboard.generateReport(options.format, options.output);
+      
+      spinner.succeed(chalk.green('Report generated'));
+      
+      if (options.output) {
+        console.log(chalk.cyan(`Report saved to: ${options.output}`));
+      } else if (options.format === 'json') {
+        console.log(JSON.stringify(report, null, 2));
+      }
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to generate report'));
+      console.error(chalk.red(error.message));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('admin')
+  .description('Admin operations')
+  .addCommand(
+    new Command('freeze')
+      .description('Freeze a wallet')
+      .argument('<wallet>', 'Wallet address to freeze')
+      .action(async (wallet) => {
+        const spinner = ora('Freezing wallet...').start();
+        
+        try {
+          const dashboard = await ComplianceDashboard.initialize();
+          await dashboard.freezeWallet(wallet);
+          
+          spinner.succeed(chalk.green(`Wallet ${wallet} frozen`));
+        } catch (error) {
+          spinner.fail(chalk.red('Failed to freeze wallet'));
+          console.error(chalk.red(error.message));
+          process.exit(1);
+        }
+      })
+  )
+  .addCommand(
+    new Command('unfreeze')
+      .description('Unfreeze a wallet')
+      .argument('<wallet>', 'Wallet address to unfreeze')
+      .action(async (wallet) => {
+        const spinner = ora('Unfreezing wallet...').start();
+        
+        try {
+          const dashboard = await ComplianceDashboard.initialize();
+          await dashboard.unfreezeWallet(wallet);
+          
+          spinner.succeed(chalk.green(`Wallet ${wallet} unfrozen`));
+        } catch (error) {
+          spinner.fail(chalk.red('Failed to unfreeze wallet'));
+          console.error(chalk.red(error.message));
+          process.exit(1);
+        }
+      })
+  );
+
+program.parse();
+EOF
+```
+
+```bash
+cat > ecosystem/compliance-dashboard/src/dashboard.ts << 'EOF'
+import { Connection, PublicKey, Keypair, clusterApiUrl } from '@solana/web3.js';
+import { ComplianceClient } from '@gitdigital/solana-kyc-compliance-sdk';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import * as yaml from 'yaml';
+import chalk from 'chalk';
+import ora from 'ora';
+import inquirer from 'inquirer';
+import { Table } from 'console-table-printer';
+
+export interface DashboardConfig {
+  cluster: string;
+  programId: string;
+  rpcUrl: string;
+  adminKeypair?: string;
+  logLevel: string;
+}
+
+export interface ComplianceEvent {
+  type: string;
+  timestamp: Date;
+  details: string;
+  severity: 'info' | 'warning' | 'error';
+}
+
+export class ComplianceDashboard {
+  private connection: Connection;
+  private client: ComplianceClient;
+  private config: DashboardConfig;
+  private configPath: string;
+  
+  private constructor(
+    connection: Connection,
+    client: ComplianceClient,
+    config: DashboardConfig
+  ) {
+    this.connection = connection;
+    this.client = client;
+    this.config = config;
+    this.configPath = path.join(os.homedir(), '.config', 'compliance-dashboard', 'config.yaml');
+  }
+  
+  static async initialize(): Promise<ComplianceDashboard> {
+    // Load or create config
+    const configPath = path.join(os.homedir(), '.config', 'compliance-dashboard', 'config.yaml');
+    let config: DashboardConfig;
+    
+    if (fs.existsSync(configPath)) {
+      const configContent = fs.readFileSync(configPath, 'utf8');
+      config = yaml.parse(configContent);
+    } else {
+      config = {
+        cluster: 'devnet',
+        programId: 'KycCompliance111111111111111111111111111111111',
+        rpcUrl: clusterApiUrl('devnet'),
+        logLevel: 'info',
+      };
+    }
+    
+    // Override with environment variables
+    if (process.env.SOLANA_RPC_URL) {
+      config.rpcUrl = process.env.SOLANA_RPC_URL;
+    }
+    if (process.env.COMPLIANCE_PROGRAM_ID) {
+      config.programId = process.env.COMPLIANCE_PROGRAM_ID;
+    }
+    if (process.env.CLUSTER) {
+      config.cluster = process.env.CLUSTER;
+    }
+    
+    // Initialize connection
+    const connection = new Connection(config.rpcUrl, 'confirmed');
+    
+    // Initialize compliance client
+    const programId = new PublicKey(config.programId);
+    const client = new ComplianceClient({
+      connection,
+      programId,
+      commitment: 'confirmed',
+    });
+    
+    return new ComplianceDashboard(connection, client, config);
+  }
+  
+  async initConfig(): Promise<void> {
+    const answers = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'cluster',
+        message: 'Select Solana cluster:',
+        choices: ['mainnet-beta', 'devnet', 'testnet', 'localnet'],
+        default: this.config.cluster,
+      },
+      {
+        type: 'input',
+        name: 'rpcUrl',
+        message: 'Enter RPC URL:',
+        default: this.config.rpcUrl || clusterApiUrl('devnet'),
+      },
+      {
+        type: 'input',
+        name: 'programId',
+        message: 'Enter compliance program ID:',
+        default: this.config.programId,
+      },
+      {
+        type: 'input',
+        name: 'adminKeypair',
+        message: 'Path to admin keypair (optional):',
+        default: this.config.adminKeypair,
+      },
+    ]);
+    
+    this.config = { ...this.config, ...answers, logLevel: 'info' };
+    
+    // Save config
+    const configDir = path.dirname(this.configPath);
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+    
+    fs.writeFileSync(this.configPath, yaml.stringify(this.config));
+  }
+  
+  async getWalletStatus(walletAddress: string): Promise<any> {
+    const wallet = new PublicKey(walletAddress);
+    const status = await this.client.getStatus(wallet);
+    
+    return {
+      registered: status.isRegistered,
+      verified: status.isVerified,
+      frozen: status.isFrozen,
+      kycLevel: status.record?.kycLevel || 0,
+      country: status.record?.countryCode || 'N/A',
+      complianceScore: status.complianceLevel,
+      record: status.record ? {
+        registrationDate: status.record.registrationDate,
+        totalTransfers: status.record.totalTransfers,
+        totalVolume: status.record.totalVolume,
+        investorType: status.record.investorType,
+        accreditationStatus: status.record.accreditationStatus,
+      } : null,
+    };
+  }
+  
+  async getPolicy(): Promise<any> {
+    const policy = await this.client.getPolicy();
+    const registry = await this.client.getRegistry();
+    
+    return {
+      ...policy,
+      lastUpdated: new Date(),
+      admin: registry.admin.toString(),
+      totalInvestors: registry.investorCount,
+    };
+  }
+  
+  async launchInteractive(): Promise<void> {
+    console.clear();
+    console.log(chalk.cyan.bold('📊 Compliance Dashboard - Interactive Mode\n'));
+    
+    while (true) {
+      const { action } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'action',
+          message: 'Select action:',
+          choices: [
+            { name: '📈 View Dashboard', value: 'dashboard' },
+            { name: '👤 Check Wallet Status', value: 'status' },
+            { name: '📋 View Policy', value: 'policy' },
+            { name: '🔍 Monitor Events', value: 'monitor' },
+            { name: '⚙️  Admin Operations', value: 'admin' },
+            { name: '📊 Generate Report', value: 'report' },
+            { name: '🚪 Exit', value: 'exit' },
+          ],
+        },
+      ]);
+      
+      if (action === 'exit') {
+        console.log(chalk.yellow('Goodbye!'));
+        break;
+      }
+      
+      await this.handleInteractiveAction(action);
+    }
+  }
+  
+  private async handleInteractiveAction(action: string): Promise<void> {
+    switch (action) {
+      case 'dashboard':
+        await this.showDashboard();
+        break;
+      case 'status':
+        await this.checkWalletStatusInteractive();
+        break;
+      case 'policy':
+        await this.showPolicyInteractive();
+        break;
+      case 'monitor':
+        await this.startLiveMonitoringInteractive();
+        break;
+      case 'admin':
+        await this.showAdminMenu();
+        break;
+      case 'report':
+        await this.generateReportInteractive();
+        break;
+    }
+  }
+  
+  private async showDashboard(): Promise<void> {
+    const spinner = ora('Loading dashboard...').start();
+    
+    try {
+      const policy = await this.client.getPolicy();
+      const registry = await this.client.getRegistry();
+      const pdas = await this.client.getProgramPDAs();
+      
+      spinner.succeed();
+      
+      console.log(chalk.cyan.bold('\n📈 Compliance Dashboard\n'));
+      
+      // Create a table for statistics
+      const table = new Table({
+        title: 'Compliance Statistics',
+        columns: [
+          { name: 'metric', alignment: 'left', title: 'Metric' },
+          { name: 'value', alignment: 'right', title: 'Value' },
+        ],
+      });
+      
+      table.addRow(
+        { metric: 'Total Investors', value: registry.investorCount.toLocaleString() },
+        { color: 'cyan' }
+      );
+      table.addRow(
+        { metric: 'Total Registered', value: registry.totalRegistered.toLocaleString() },
+        { color: 'green' }
+      );
+      table.addRow(
+        { metric: 'Total Revoked', value: registry.totalRevoked.toLocaleString() },
+        { color: 'yellow' }
+      );
+      table.addRow(
+        { metric: 'Policy Active', value: policy.isActive ? '✅ Yes' : '❌ No' },
+        { color: policy.isActive ? 'green' : 'red' }
+      );
+      table.addRow(
+        { metric: 'Transfer Hook', value: '✅ Enabled' },
+        { color: 'green' }
+      );
+      table.addRow(
+        { metric: 'Permanent Delegate', value: '✅ Set' },
+        { color: 'green' }
+      );
+      
+      table.printTable();
+      
+      console.log(chalk.cyan('\n🔑 Program PDAs:'));
+      console.log(chalk.gray(`Registry: ${pdas.complianceRegistry.toString()}`));
+      console.log(chalk.gray(`Policy: ${pdas.policyConfig.toString()}`));
+      console.log(chalk.gray(`Transfer Hook: ${pdas.transferHook.toString()}`));
+      console.log(chalk.gray(`Permanent Delegate: ${pdas.permanentDelegate.toString()}`));
+      
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to load dashboard'));
+      console.error(chalk.red(error.message));
+    }
+  }
+  
+  private async checkWalletStatusInteractive(): Promise<void> {
+    const { walletAddress } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'walletAddress',
+        message: 'Enter wallet address:',
+        validate: (input) => {
+          try {
+            new PublicKey(input);
+            return true;
+          } catch {
+            return 'Invalid wallet address';
+          }
+        },
+      },
+    ]);
+    
+    const spinner = ora('Checking wallet status...').start();
+    
+    try {
+      const status = await this.getWalletStatus(walletAddress);
+      spinner.succeed();
+      
+      console.log(chalk.cyan.bold('\n👤 Wallet Status\n'));
+      
+      const table = new Table({
+        columns: [
+          { name: 'field', alignment: 'left', title: 'Field' },
+          { name: 'value', alignment: 'left', title: 'Value' },
+        ],
+      });
+      
+      table.addRow(
+        { field: 'Address', value: walletAddress },
+        { color: 'cyan' }
+      );
+      table.addRow(
+        { field: 'Registered', value: status.registered ? '✅ Yes' : '❌ No' },
+        { color: status.registered ? 'green' : 'red' }
+      );
+      table.addRow(
+        { field: 'Verified', value: status.verified ? '✅ Yes' : '❌ No' },
+        { color: status.verified ? 'green' : 'red' }
+      );
+      table.addRow(
+        { field: 'Frozen', value: status.frozen ? '❌ Yes' : '✅ No' },
+        { color: status.frozen ? 'red' : 'green' }
+      );
+      table.addRow(
+        { field: 'KYC Level', value: status.kycLevel.toString() },
+        { color: 'yellow' }
+      );
+      table.addRow(
+        { field: 'Country', value: status.country },
+        { color: 'magenta' }
+      );
+      table.addRow(
+        { field: 'Compliance Score', value: `${status.complianceScore}/100` },
+        { color: status.complianceScore >= 80 ? 'green' : status.complianceScore >= 60 ? 'yellow' : 'red' }
+      );
+      
+      table.printTable();
+      
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to check wallet status'));
+      console.error(chalk.red(error.message));
+    }
+  }
+  
+  private async showPolicyInteractive(): Promise<void> {
+    const spinner = ora('Loading policy...').start();
+    
+    try {
+      const policy = await this.getPolicy();
+      spinner.succeed();
+      
+      console.log(chalk.cyan.bold('\n📋 Compliance Policy\n'));
+      
+      const table = new Table({
+        title: 'Policy Configuration',
+        columns: [
+          { name: 'setting', alignment: 'left', title: 'Setting' },
+          { name: 'value', alignment: 'left', title: 'Value' },
+        ],
+      });
+      
+      table.addRow(
+        { setting: 'Active', value: policy.isActive ? '✅ Yes' : '❌ No' },
+        { color: policy.isActive ? 'green' : 'red' }
+      );
+      table.addRow(
+        { setting: 'Require KYC', value: policy.requireKYCForTransfer ? '✅ Yes' : '❌ No' },
+        { color: policy.requireKYCForTransfer ? 'green' : 'red' }
+      );
+      table.addRow(
+        { setting: 'Max Transfer', value: `${(policy.maxTransferAmount / 1e9).toFixed(2)} SOL` },
+        { color: 'yellow' }
+      );
+      table.addRow(
+        { setting: 'Min KYC Level', value: policy.minKYCLevel.toString() },
+        { color: 'cyan' }
+      );
+      table.addRow(
+        { setting: 'Anonymous Sender', value: policy.allowAnonymousSender ? '✅ Allowed' : '❌ Blocked' },
+        { color: policy.allowAnonymousSender ? 'green' : 'red' }
+      );
+      table.addRow(
+        { setting: 'Anonymous Receiver', value: policy.allowAnonymousReceiver ? '✅ Allowed' : '❌ Blocked' },
+        { color: policy.allowAnonymousReceiver ? 'green' : 'red' }
+      );
+      table.addRow(
+        { setting: 'Require Accreditation', value: policy.requireAccreditation ? '✅ Yes' : '❌ No' },
+        { color: policy.requireAccreditation ? 'green' : 'red' }
+      );
+      
+      table.printTable();
+      
+      console.log(chalk.cyan('\n🌍 Country Restrictions:'));
+      console.log(chalk.green('Supported:'), policy.supportedCountries.join(', '));
+      console.log(chalk.red('Restricted:'), policy.restrictedCountries.join(', '));
+      
+      console.log(chalk.cyan('\n👑 Admin:'), policy.admin);
+      console.log(chalk.cyan('📅 Last Updated:'), policy.lastUpdated.toLocaleString());
+      
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to load policy'));
+      console.error(chalk.red(error.message));
+    }
+  }
+  
+  async startLiveMonitoring(intervalSeconds: number = 5): Promise<void> {
+    console.log(chalk.cyan('Starting live monitoring...\n'));
+    
+    let lastEventTime = new Date();
+    
+    while (true) {
+      try {
+        // Simulate monitoring events
+        const events = await this.getRecentEvents();
+        const newEvents = events.filter(e => e.timestamp > lastEventTime);
+        
+        if (newEvents.length > 0) {
+          newEvents.forEach(event => {
+            const timestamp = event.timestamp.toLocaleTimeString();
+            let symbol = 'ℹ️';
+            let color = chalk.blue;
+            
+            if (event.severity === 'warning') {
+              symbol = '⚠️';
+              color = chalk.yellow;
+            } else if (event.severity === 'error') {
+              symbol = '❌';
+              color = chalk.red;
+            }
+            
+            console.log(color(`${symbol} [${timestamp}] ${event.type}: ${event.details}`));
+          });
+          
+          lastEventTime = new Date();
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, intervalSeconds * 1000));
+      } catch (error) {
+        console.error(chalk.red('Monitoring error:'), error.message);
+        await new Promise(resolve => setTimeout(resolve, intervalSeconds * 1000));
+      }
+    }
+  }
+  
+  private async startLiveMonitoringInteractive(): Promise<void> {
+    console.log(chalk.yellow('Starting live monitoring (press Ctrl+C to stop)...\n'));
+    
+    await this.startLiveMonitoring(5);
+  }
+  
+  private async showAdminMenu(): Promise<void> {
+    const { action } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'action',
+        message: 'Admin Operations:',
+        choices: [
+          { name: '❄️  Freeze Wallet', value: 'freeze' },
+          { name: '🔥 Unfreeze Wallet', value: 'unfreeze' },
+          { name: '📝 Update Policy', value: 'update-policy' },
+          { name: '👑 Transfer Admin', value: 'transfer-admin' },
+          { name: '↩️  Back', value: 'back' },
+        ],
+      },
+    ]);
+    
+    if (action === 'back') return;
+    
+    if (!this.config.adminKeypair) {
+      console.log(chalk.red('Admin keypair not configured. Please set adminKeypair in config.'));
+      return;
+    }
+    
+    switch (action) {
+      case 'freeze':
+        await this.freezeWalletInteractive();
+        break;
+      case 'unfreeze':
+        await this.unfreezeWalletInteractive();
+        break;
+      case 'update-policy':
+        await this.updatePolicyInteractive();
+        break;
+    }
+  }
+  
+  private async freezeWalletInteractive(): Promise<void> {
+    const { walletAddress } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'walletAddress',
+        message: 'Enter wallet address to freeze:',
+        validate: (input) => {
+          try {
+            new PublicKey(input);
+            return true;
+          } catch {
+            return 'Invalid wallet address';
+          }
+        },
+      },
+      {
+        type: 'confirm',
+        name: 'confirm',
+        message: 'Are you sure you want to freeze this wallet?',
+        default: false,
+      },
+    ]);
+    
+    if (!walletAddress.confirm) {
+      console.log(chalk.yellow('Operation cancelled'));
+      return;
+    }
+    
+    const spinner = ora('Freezing wallet...').start();
+    
+    try {
+      // Load admin keypair
+      const keypairPath = path.resolve(this.config.adminKeypair!);
+      const keypairData = JSON.parse(fs.readFileSync(keypairPath, 'utf8'));
+      const admin = Keypair.fromSecretKey(new Uint8Array(keypairData));
+      
+      await this.client.freezeWallet(admin, new PublicKey(walletAddress));
+      
+      spinner.succeed(chalk.green(`Wallet ${walletAddress} frozen`));
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to freeze wallet'));
+      console.error(chalk.red(error.message));
+    }
+  }
+  
+  private async unfreezeWalletInteractive(): Promise<void> {
+    const { walletAddress } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'walletAddress',
+        message: 'Enter wallet address to unfreeze:',
+        validate: (input) => {
+          try {
+            new PublicKey(input);
+            return true;
+          } catch {
+            return 'Invalid wallet address';
+          }
+        },
+      },
+      {
+        type: 'confirm',
+        name: 'confirm',
+        message: 'Are you sure you want to unfreeze this wallet?',
+        default: false,
+      },
+    ]);
+    
+    if (!walletAddress.confirm) {
+      console.log(chalk.yellow('Operation cancelled'));
+      return;
+    }
+    
+    const spinner = ora('Unfreezing wallet...').start();
+    
+    try {
+      // Load admin keypair
+      const keypairPath = path.resolve(this.config.adminKeypair!);
+      const keypairData = JSON.parse(fs.readFileSync(keypairPath, 'utf8'));
+      const admin = Keypair.fromSecretKey(new Uint8Array(keypairData));
+      
+      await this.client.unfreezeWallet(admin, new PublicKey(walletAddress));
+      
+      spinner.succeed(chalk.green(`Wallet ${walletAddress} unfrozen`));
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to unfreeze wallet'));
+      console.error(chalk.red(error.message));
+    }
+  }
+  
+  async updatePolicyInteractive(): Promise<void> {
+    console.log(chalk.cyan.bold('\n📝 Update Compliance Policy\n'));
+    
+    const currentPolicy = await this.client.getPolicy();
+    
+    const answers = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'isActive',
+        message: 'Is policy active?',
+        default: currentPolicy.isActive,
+      },
+      {
+        type: 'confirm',
+        name: 'requireKYCForTransfer',
+        message: 'Require KYC for transfers?',
+        default: currentPolicy.requireKYCForTransfer,
+      },
+      {
+        type: 'number',
+        name: 'maxTransferAmount',
+        message: 'Maximum transfer amount (lamports):',
+        default: currentPolicy.maxTransferAmount,
+      },
+      {
+        type: 'number',
+        name: 'minKYCLevel',
+        message: 'Minimum KYC level (0-3):',
+        default: currentPolicy.minKYCLevel,
+        validate: (input) => input >= 0 && input <= 3,
+      },
+      {
+        type: 'confirm',
+        name: 'allowAnonymousSender',
+        message: 'Allow anonymous senders?',
+        default: currentPolicy.allowAnonymousSender,
+      },
+      {
+        type: 'confirm',
+        name: 'allowAnonymousReceiver',
+        message: 'Allow anonymous receivers?',
+        default: currentPolicy.allowAnonymousReceiver,
+      },
+      {
+        type: 'confirm',
+        name: 'requireAccreditation',
+        message: 'Require accreditation?',
+        default: currentPolicy.requireAccreditation,
+      },
+      {
+        type: 'confirm',
+        name: 'confirm',
+        message: 'Are you sure you want to update the policy?',
+        default: false,
+      },
+    ]);
+    
+    if (!answers.confirm) {
+      console.log(chalk.yellow('Policy update cancelled'));
+      return;
+    }
+    
+    const spinner = ora('Updating policy...').start();
+    
+    try {
+      // Load admin keypair
+      const keypairPath = path.resolve(this.config.adminKeypair!);
+      const keypairData = JSON.parse(fs.readFileSync(keypairPath, 'utf8'));
+      const admin = Keypair.fromSecretKey(new Uint8Array(keypairData));
+      
+      await this.client.updatePolicy(admin, {
+        ...answers,
+        supportedCountries: currentPolicy.supportedCountries,
+        restrictedCountries: currentPolicy.restrictedCountries,
+        maxWalletsPerInvestor: currentPolicy.maxWalletsPerInvestor,
+      });
+      
+      spinner.succeed(chalk.green('Policy updated successfully'));
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to update policy'));
+      console.error(chalk.red(error.message));
+    }
+  }
+  
+  async generateReport(format: string = 'json', outputPath?: string): Promise<any> {
+    const spinner = ora('Generating report...').start();
+    
+    try {
+      const policy = await this.client.getPolicy();
+      const registry = await this.client.getRegistry();
+      const pdas = await this.client.getProgramPDAs();
+      
+      const report = {
+        generatedAt: new Date().toISOString(),
+        summary: {
+          totalInvestors: registry.investorCount,
+          totalRegistered: registry.totalRegistered,
+          totalRevoked: registry.totalRevoked,
+          complianceScore: 85, // This would be calculated
+        },
+        policy: {
+          isActive: policy.isActive,
+          requireKYCForTransfer: policy.requireKYCForTransfer,
+          maxTransferAmount: policy.maxTransferAmount,
+          minKYCLevel: policy.minKYCLevel,
+          supportedCountries: policy.supportedCountries,
+          restrictedCountries: policy.restrictedCountries,
+        },
+        program: {
+          programId: this.config.programId,
+          registry: pdas.complianceRegistry.toString(),
+          policyConfig: pdas.policyConfig.toString(),
+          transferHook: pdas.transferHook.toString(),
+          permanentDelegate: pdas.permanentDelegate.toString(),
+        },
+        recommendations: [
+          'Consider increasing KYC requirements for large transfers',
+          'Review restricted countries list quarterly',
+          'Implement regular compliance audits',
+        ],
+      };
+      
+      spinner.succeed();
+      
+      if (outputPath) {
+        const content = format === 'json' 
+          ? JSON.stringify(report, null, 2)
+          : this.convertToCSV(report);
+        
+        fs.writeFileSync(outputPath, content);
+      }
+      
+      return report;
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to generate report'));
+      throw error;
+    }
+  }
+  
+  private async generateReportInteractive(): Promise<void> {
+    const { format, outputPath } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'format',
+        message: 'Select report format:',
+        choices: ['json', 'csv', 'text'],
+        default: 'json',
+      },
+      {
+        type: 'input',
+        name: 'outputPath',
+        message: 'Output file path (optional):',
+      },
+    ]);
+    
+    await this.generateReport(format, outputPath || undefined);
+    
+    if (outputPath) {
+      console.log(chalk.green(`Report saved to: ${outputPath}`));
+    }
+  }
+  
+  async freezeWallet(walletAddress: string): Promise<void> {
+    if (!this.config.adminKeypair) {
+      throw new Error('Admin keypair not configured');
+    }
+    
+    const keypairPath = path.resolve(this.config.adminKeypair);
+    const keypairData = JSON.parse(fs.readFileSync(keypairPath, 'utf8'));
+    const admin = Keypair.fromSecretKey(new Uint8Array(keypairData));
+    
+    await this.client.freezeWallet(admin, new PublicKey(walletAddress));
+  }
+  
+  async unfreezeWallet(walletAddress: string): Promise<void> {
+    if (!this.config.adminKeypair) {
+      throw new Error('Admin keypair not configured');
+    }
+    
+    const keypairPath = path.resolve(this.config.adminKeypair);
+    const keypairData = JSON.parse(fs.readFileSync(keypairPath, 'utf8'));
+    const admin = Keypair.fromSecretKey(new Uint8Array(keypairData));
+    
+    await this.client.unfreezeWallet(admin, new PublicKey(walletAddress));
+  }
+  
+  async getRecentEvents(): Promise<ComplianceEvent[]> {
+    // Simulate events for demo purposes
+    return [
+      {
+        type: 'Transfer Validated',
+        timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+        details: 'Transfer of 100 tokens between verified investors',
+        severity: 'info',
+      },
+      {
+        type: 'Transfer Blocked',
+        timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
+        details: 'Transfer blocked: source wallet not KYC verified',
+        severity: 'warning',
+      },
+      {
+        type: 'Investor Registered',
+        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+        details: 'New investor registered with KYC level 2',
+        severity: 'info',
+      },
+      {
+        type: 'Wallet Frozen',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+        details: 'Wallet frozen due to suspicious activity',
+        severity: 'error',
+      },
+    ];
+  }
+  
+  private convertToCSV(data: any): string {
+    // Simple CSV conversion for demo
+    const rows = [];
+    rows.push('Field,Value');
+    
+    const flatten = (obj: any, prefix = '') => {
+      for (const key in obj) {
+        const value = obj[key];
+        const newPrefix = prefix ? `${prefix}.${key}` : key;
+        
+        if (typeof value === 'object' && !Array.isArray(value) && value !== null) {
+          flatten(value, newPrefix);
+        } else if (Array.isArray(value)) {
+          rows.push(`${newPrefix},"${value.join('; ')}"`);
+        } else {
+          rows.push(`${newPrefix},${JSON.stringify(value)}`);
+        }
+      }
+    };
+    
+    flatten(data);
+    return rows.join('\n');
+  }
+}
+EOF
