@@ -1,0 +1,2 @@
+mkdir -p solana-kyc-compliance-sdk/{programs/kyc-compliance/src,deploy,tests}
+cd solana-kyc-compliance-sdk

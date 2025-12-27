@@ -1,0 +1,23 @@
+// tests/basic.test.ts
+import * as anchor from '@project-serum/anchor';
+import { Program } from '@project-serum/anchor';
+import { KycCompliance } from '../target/types/kyc_compliance';
+
+describe('kyc-compliance', () => {
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
+
+  const program = anchor.workspace.KycCompliance as Program<KycCompliance>;
+
+  it('Initializes the program', async () => {
+    // Test initialization logic
+  });
+
+  it('Registers an investor', async () => {
+    // Test investor registration
+  });
+
+  it('Validates transfers', async () => {
+    // Test transfer validation
+  });
+});

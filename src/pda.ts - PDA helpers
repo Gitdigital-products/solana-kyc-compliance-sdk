@@ -1,0 +1,124 @@
+cat > src/pda.ts << 'EOF'
+import { PublicKey } from '@solana/web3.js';
+import { PDA_SEEDS } from './constants';
+
+/**
+ * PDA helpers for the compliance program
+ */
+export class PDA {
+  constructor(private programId: PublicKey) {}
+
+  /**
+   * Get compliance registry PDA
+   */
+  async getComplianceRegistry(): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddressSync(
+      [PDA_SEEDS.COMPLIANCE_REGISTRY],
+      this.programId
+    );
+  }
+
+  /**
+   * Get policy config PDA
+   */
+  async getPolicyConfig(): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddressSync(
+      [PDA_SEEDS.POLICY_CONFIG],
+      this.programId
+    );
+  }
+
+  /**
+   * Get investor record PDA for a wallet
+   */
+  async getInvestorRecord(wallet: PublicKey): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddressSync(
+      [PDA_SEEDS.INVESTOR_RECORD(wallet)],
+      this.programId
+    );
+  }
+
+  /**
+   * Get admin authority PDA
+   */
+  async getAdminAuthority(): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddressSync(
+      [PDA_SEEDS.ADMIN_AUTHORITY],
+      this.programId
+    );
+  }
+
+  /**
+   * Get transfer hook PDA
+   */
+  async getTransferHook(): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddressSync(
+      [PDA_SEEDS.TRANSFER_HOOK],
+      this.programId
+    );
+  }
+
+  /**
+   * Get permanent delegate PDA
+   */
+  async getPermanentDelegate(): Promise<[PublicKey, number]> {
+    return PublicKey.findProgramAddressSync(
+      [PDA_SEEDS.PERMANENT_DELEGATE],
+      this.programId
+    );
+  }
+
+  /**
+   * Get all PDAs for a wallet
+   */
+  async getAllPDAs(wallet?: PublicKey): Promise<{
+    complianceRegistry: PublicKey;
+    policyConfig: PublicKey;
+    investorRecord?: PublicKey;
+    adminAuthority: PublicKey;
+    transferHook: PublicKey;
+    permanentDelegate: PublicKey;
+  }> {
+    const [
+      [complianceRegistry],
+      [policyConfig],
+      [adminAuthority],
+      [transferHook],
+      [permanentDelegate],
+    ] = await Promise.all([
+      this.getComplianceRegistry(),
+      this.getPolicyConfig(),
+      this.getAdminAuthority(),
+      this.getTransferHook(),
+      this.getPermanentDelegate(),
+    ]);
+
+    let investorRecord: PublicKey | undefined;
+    if (wallet) {
+      const [record] = await this.getInvestorRecord(wallet);
+      investorRecord = record;
+    }
+
+    return {
+      complianceRegistry,
+      policyConfig,
+      investorRecord,
+      adminAuthority,
+      transferHook,
+      permanentDelegate,
+    };
+  }
+
+  /**
+   * Check if a PDA is valid
+   */
+  static async isValidPDA(
+    pda: PublicKey,
+    seeds: Buffer[],
+    programId: PublicKey
+  ): Promise<boolean> {
+    const [expectedPda] = PublicKey.findProgramAddressSync(seeds, programId);
+    return pda.equals(expectedPda);
+  }
+}
+EOF

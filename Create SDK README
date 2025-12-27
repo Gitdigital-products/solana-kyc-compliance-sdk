@@ -1,0 +1,269 @@
+cat > SDK-README.md << 'EOF'
+# Solana KYC Compliance SDK - TypeScript
+
+A TypeScript SDK for interacting with the Solana KYC Compliance Program with Token Extensions integration.
+
+## Installation
+
+```bash
+npm install @gitdigital/solana-kyc-compliance-sdk
+```
+
+or
+
+```bash
+yarn add @gitdigital/solana-kyc-compliance-sdk
+```
+
+Quick Start
+
+```typescript
+import { ComplianceClient } from '@gitdigital/solana-kyc-compliance-sdk';
+import { Connection, Keypair, clusterApiUrl } from '@solana/web3.js';
+import { KYCLevel, InvestorType, AccreditationStatus } from '@gitdigital/solana-kyc-compliance-sdk';
+
+// Initialize client
+const connection = new Connection(clusterApiUrl('devnet'));
+const client = new ComplianceClient({
+  connection,
+  programId: new PublicKey('YOUR_PROGRAM_ID'),
+});
+
+// Check wallet status
+const wallet = new PublicKey('...');
+const status = await client.getStatus(wallet);
+console.log(`Wallet registered: ${status.isRegistered}`);
+console.log(`Compliance score: ${status.complianceLevel}`);
+
+// Register investor
+const payer = Keypair.fromSecretKey(...);
+const investorData = {
+  kycLevel: KYCLevel.ENHANCED,
+  countryCode: 'US',
+  investorType: InvestorType.INDIVIDUAL,
+  accreditationStatus: AccreditationStatus.ACCREDITED,
+};
+
+const signature = await client.register(payer, wallet, investorData);
+console.log(`Registration successful: ${signature}`);
+
+// Check transfer compliance
+const transferResult = await client.checkTransfer(
+  sourceWallet,
+  destWallet,
+  amount
+);
+console.log(`Transfer valid: ${transferResult.isValid}`);
+```
+
+API Reference
+
+ComplianceClient
+
+Main class for interacting with the compliance program.
+
+Constructor
+
+```typescript
+new ComplianceClient(config: ComplianceSDKConfig)
+```
+
+Methods
+
+· getStatus(wallet: PublicKey): Promise<WalletStatus> - Get wallet compliance status
+· register(payer: Keypair, wallet: PublicKey, metadata: InvestorData): Promise<string> - Register investor
+· revoke(admin: Keypair, wallet: PublicKey): Promise<string> - Revoke investor status (admin only)
+· checkTransfer(from: PublicKey, to: PublicKey, amount: number): Promise<TransferValidationResult> - Validate transfer
+· syncOffchainKYCResult(payer: Keypair, kycResult: OffchainKYCResult): Promise<string> - Sync off-chain KYC
+· getInvestorRecord(wallet: PublicKey): Promise<InvestorRecord> - Get investor record
+· getRegistry(): Promise<ComplianceRegistry> - Get registry info
+· getPolicy(): Promise<CompliancePolicy> - Get current policy
+· updatePolicy(admin: Keypair, policy: CompliancePolicy): Promise<string> - Update policy (admin only)
+· freezeWallet(admin: Keypair, wallet: PublicKey): Promise<string> - Freeze wallet (admin only)
+· unfreezeWallet(admin: Keypair, wallet: PublicKey): Promise<string> - Unfreeze wallet (admin only)
+· setAdmin(currentAdmin: Keypair, newAdmin: PublicKey): Promise<string> - Transfer admin (admin only)
+· getComplianceScore(wallet: PublicKey): Promise<number> - Get compliance score (0-100)
+· batchRegister(payer: Keypair, registrations: Array<{wallet: PublicKey, metadata: InvestorData}>): Promise<string[]> - Batch register
+· batchCheckTransfers(transfers: Array<{from: PublicKey, to: PublicKey, amount: number}>): Promise<TransferValidationResult[]> - Batch validate transfers
+
+Types
+
+InvestorData
+
+```typescript
+interface InvestorData {
+  kycLevel: KYCLevel;
+  countryCode: string;
+  investorType: InvestorType;
+  accreditationStatus: AccreditationStatus;
+}
+```
+
+WalletStatus
+
+```typescript
+interface WalletStatus {
+  isRegistered: boolean;
+  isVerified: boolean;
+  isFrozen: boolean;
+  record?: InvestorRecord;
+  complianceLevel: number;
+}
+```
+
+TransferValidationResult
+
+```typescript
+interface TransferValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  sourceStatus?: InvestorRecord;
+  destinationStatus?: InvestorRecord;
+  policy: CompliancePolicy;
+}
+```
+
+Enums
+
+```typescript
+enum KYCLevel {
+  UNVERIFIED = 0,
+  BASIC = 1,
+  ENHANCED = 2,
+  INSTITUTIONAL = 3,
+}
+
+enum InvestorType {
+  INDIVIDUAL = 0,
+  INSTITUTION = 1,
+  CORPORATION = 2,
+  TRUST = 3,
+}
+
+enum AccreditationStatus {
+  NOT_ACCREDITED = 0,
+  ACCREDITED = 1,
+  QUALIFIED_PURCHASER = 2,
+}
+```
+
+Examples
+
+See the examples/ directory for complete working examples:
+
+1. Register Investor - Basic investor registration
+2. Mint Compliant Token - Create token with transfer hook and permanent delegate
+3. Transfer Validation - Check transfer compliance
+4. Admin Operations - Admin functions (freeze, update policy, etc.)
+
+Run examples:
+
+```bash
+npm run example:register
+npm run example:token
+npm run example:transfer
+npm run example:admin
+```
+
+Token Extensions Integration
+
+The SDK supports Token Extensions:
+
+Transfer Hook
+
+· All transfers are validated against compliance policy
+· Invalid transfers are blocked
+· Validation happens on-chain in real-time
+
+Permanent Delegate
+
+· Compliance program can freeze/unfreeze tokens
+· Emergency intervention capability
+· Admin-controlled freeze authority
+
+Creating a Compliant Token
+
+```typescript
+import { createInitializeTransferHookInstruction } from '@solana/spl-token';
+import { ComplianceClient, PDA } from '@gitdigital/solana-kyc-compliance-sdk';
+
+// Get transfer hook PDA
+const pda = new PDA(programId);
+const [transferHookPda] = await pda.getTransferHook();
+
+// Initialize token with transfer hook
+const initializeTransferHookIx = createInitializeTransferHookInstruction(
+  mint,
+  authority,
+  transferHookPda, // Your compliance program's transfer hook PDA
+  TOKEN_2022_PROGRAM_ID
+);
+```
+
+Error Handling
+
+The SDK provides custom error classes:
+
+```typescript
+import {
+  ComplianceSDKError,
+  UnauthorizedError,
+  AlreadyRegisteredError,
+  NotRegisteredError,
+  PolicyViolationError,
+  WalletFrozenError,
+} from '@gitdigital/solana-kyc-compliance-sdk';
+
+try {
+  await client.register(payer, wallet, investorData);
+} catch (error) {
+  if (error instanceof AlreadyRegisteredError) {
+    console.log('Wallet already registered');
+  } else if (error instanceof PolicyViolationError) {
+    console.log('Transfer violates policy');
+  } else {
+    console.error('Unexpected error:', error);
+  }
+}
+```
+
+Testing
+
+```bash
+# Run SDK tests
+npm test
+
+# Run specific test
+npm run test:sdk
+```
+
+Building from Source
+
+```bash
+# Clone repository
+git clone https://github.com/Gitdigital-products/solana-kyc-compliance-sdk.git
+cd solana-kyc-compliance-sdk
+
+# Install dependencies
+npm install
+
+# Build SDK
+npm run build:sdk
+
+# Build Rust program
+npm run build:program
+```
+
+Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for your changes
+4. Ensure all tests pass
+5. Submit a pull request
+
+License
+
+MIT
+EOF

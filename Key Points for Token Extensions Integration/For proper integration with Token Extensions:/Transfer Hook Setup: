@@ -1,0 +1,5 @@
+// In your token creation, enable transfer hook
+let transfer_hook_account = find_program_address(
+    &[b"transfer-hook"],
+    program_id,
+);
