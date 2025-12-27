@@ -1,0 +1,28 @@
+cat > .github/milestones.json << 'EOF'
+[
+  {
+    "title": "v1.0.0 - Initial Release",
+    "description": "Initial stable release with core compliance features",
+    "due_on": "2024-03-31T00:00:00Z",
+    "state": "open"
+  },
+  {
+    "title": "v1.1.0 - Enhanced Features",
+    "description": "Additional compliance features and improvements",
+    "due_on": "2024-05-31T00:00:00Z",
+    "state": "open"
+  },
+  {
+    "title": "v1.2.0 - Token Extensions Maturity",
+    "description": "Advanced token extensions integration",
+    "due_on": "2024-07-31T00:00:00Z",
+    "state": "open"
+  },
+  {
+    "title": "v2.0.0 - Multi-chain Support",
+    "description": "Cross-chain compliance capabilities",
+    "due_on": "2024-12-31T00:00:00Z",
+    "state": "open"
+  }
+]
+EOF
