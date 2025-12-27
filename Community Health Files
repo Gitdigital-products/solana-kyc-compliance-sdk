@@ -1,0 +1,109 @@
+mkdir -p .github/community
+
+cat > .github/community/CODEOWNERS << 'EOF'
+# Default owners for everything in the repo
+* @gitdigital/maintainers
+
+# Rust program ownership
+/programs/ @gitdigital/rust-team
+
+# TypeScript SDK ownership
+/src/ @gitdigital/typescript-team
+
+# Documentation ownership
+/docs/ @gitdigital/docs-team
+*.md @gitdigital/docs-team
+
+# Test ownership
+/tests/ @gitdigital/qa-team
+
+# Examples ownership
+/examples/ @gitdigital/examples-team
+EOF
+```
+
+```bash
+cat > .github/community/FUNDING.yml << 'EOF'
+# These are supported funding model platforms
+
+github: # Replace with up to 4 GitHub Sponsors-enabled usernames e.g., [user1, user2]
+  - gitdigital
+
+patreon: # Replace with a single Patreon username
+  gitdigital
+
+open_collective: # Replace with a single Open Collective username
+  gitdigital
+
+ko_fi: # Replace with a single Ko-fi username
+  gitdigital
+
+tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
+  npm/solana-kyc-compliance-sdk
+
+community_bridge: # Replace with a single Community Bridge project-name e.g., cloud-foundry
+  solana-kyc-compliance
+
+liberapay: # Replace with a single Liberapay username
+  gitdigital
+
+issuehunt: # Replace with a single IssueHunt username
+  gitdigital
+
+otechie: # Replace with a single Otechie username
+  gitdigital
+
+custom: # Replace with up to 4 custom sponsorship URLs e.g., ['link1', 'link2']
+  - https://gitdigital.com/sponsor
+  - https://gitdigital.com/business
+EOF
+```
+
+```bash
+cat > .github/community/health.yml << 'EOF'
+# Repository health metrics and goals
+metrics:
+  code_coverage:
+    target: 80
+    current: 75
+  test_passing:
+    target: 95
+    current: 98
+  issue_resolution:
+    target: 7  # days
+    current: 5
+  pr_review:
+    target: 2  # days
+    current: 3
+
+goals:
+  - name: "Increase test coverage"
+    target: 85
+    deadline: "2024-06-30"
+  - name: "Reduce issue resolution time"
+    target: 3
+    deadline: "2024-03-31"
+  - name: "Increase contributor diversity"
+    target: 50  # new contributors
+    deadline: "2024-12-31"
+
+community:
+  channels:
+    - name: "Discord"
+      url: "https://discord.gg/gitdigital"
+      active: true
+    - name: "Twitter"
+      url: "https://twitter.com/gitdigital"
+      active: true
+    - name: "GitHub Discussions"
+      url: "https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/discussions"
+      active: true
+
+maintainers:
+  - username: "@gitdigital/maintainers"
+    responsibilities:
+      - "Code review"
+      - "Issue triage"
+      - "Release management"
+      - "Community support"
+EOF
