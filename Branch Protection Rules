@@ -1,0 +1,70 @@
+cat > .github/branch-protection-rules.json << 'EOF'
+{
+  "rules": [
+    {
+      "branch_name_pattern": "main",
+      "required_status_checks": {
+        "strict": true,
+        "contexts": [
+          "ci",
+          "lint",
+          "test",
+          "build",
+          "security-scan"
+        ]
+      },
+      "required_pull_request_reviews": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": true,
+        "required_approving_review_count": 1
+      },
+      "required_linear_history": true,
+      "allow_force_pushes": false,
+      "allow_deletions": false,
+      "required_conversation_resolution": true,
+      "lock_branch": false,
+      "allow_fork_syncing": true
+    },
+    {
+      "branch_name_pattern": "develop",
+      "required_status_checks": {
+        "strict": true,
+        "contexts": [
+          "ci",
+          "lint",
+          "test"
+        ]
+      },
+      "required_pull_request_reviews": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews": true
+      },
+      "required_linear_history": false,
+      "allow_force_pushes": false,
+      "allow_deletions": false,
+      "required_conversation_resolution": true
+    },
+    {
+      "branch_name_pattern": "release/*",
+      "required_status_checks": {
+        "strict": true,
+        "contexts": [
+          "ci",
+          "test",
+          "security-scan"
+        ]
+      },
+      "required_pull_request_reviews": {
+        "required_approving_review_count": 2,
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": true
+      },
+      "required_linear_history": true,
+      "allow_force_pushes": false,
+      "allow_deletions": false,
+      "required_conversation_resolution": true
+    }
+  ]
+}
+EOF
