@@ -1,0 +1,156 @@
+cat > src/types.ts << 'EOF'
+import { PublicKey } from '@solana/web3.js';
+
+/**
+ * KYC levels for investors
+ */
+export enum KYCLevel {
+  UNVERIFIED = 0,
+  BASIC = 1,
+  ENHANCED = 2,
+  INSTITUTIONAL = 3,
+}
+
+/**
+ * Investor types
+ */
+export enum InvestorType {
+  INDIVIDUAL = 0,
+  INSTITUTION = 1,
+  CORPORATION = 2,
+  TRUST = 3,
+}
+
+/**
+ * Accreditation status
+ */
+export enum AccreditationStatus {
+  NOT_ACCREDITED = 0,
+  ACCREDITED = 1,
+  QUALIFIED_PURCHASER = 2,
+}
+
+/**
+ * Investor registration data
+ */
+export interface InvestorData {
+  kycLevel: KYCLevel;
+  countryCode: string; // ISO 3166-1 alpha-2
+  investorType: InvestorType;
+  accreditationStatus: AccreditationStatus;
+}
+
+/**
+ * Compliance policy configuration
+ */
+export interface CompliancePolicy {
+  requireKYCForTransfer: boolean;
+  allowAnonymousSender: boolean;
+  allowAnonymousReceiver: boolean;
+  maxTransferAmount: number; // in lamports
+  minKYCLevel: KYCLevel;
+  supportedCountries: string[];
+  restrictedCountries: string[];
+  isActive: boolean;
+  requireAccreditation: boolean;
+  maxWalletsPerInvestor: number;
+}
+
+/**
+ * Investor record from on-chain data
+ */
+export interface InvestorRecord {
+  investorWallet: PublicKey;
+  kycLevel: KYCLevel;
+  countryCode: string;
+  isVerified: boolean;
+  isFrozen: boolean;
+  registrationDate: Date;
+  lastUpdated: Date;
+  totalTransfers: number;
+  totalVolume: number;
+  investorType: InvestorType;
+  accreditationStatus: AccreditationStatus;
+  walletCount: number;
+}
+
+/**
+ * Compliance registry state
+ */
+export interface ComplianceRegistry {
+  admin: PublicKey;
+  investorCount: number;
+  totalRegistered: number;
+  totalRevoked: number;
+  version: number;
+}
+
+/**
+ * Policy configuration state
+ */
+export interface PolicyConfig {
+  admin: PublicKey;
+  policy: CompliancePolicy;
+  permanentDelegate: PublicKey;
+  isTransferHookEnabled: boolean;
+  lastUpdated: Date;
+}
+
+/**
+ * Transfer validation context
+ */
+export interface TransferContext {
+  source: PublicKey;
+  destination: PublicKey;
+  amount: number;
+  timestamp: Date;
+}
+
+/**
+ * SDK configuration
+ */
+export interface ComplianceSDKConfig {
+  programId: PublicKey;
+  connection: any; // Connection from @solana/web3.js
+  cluster?: 'mainnet-beta' | 'devnet' | 'testnet' | 'localnet';
+  commitment?: 'processed' | 'confirmed' | 'finalized';
+}
+
+/**
+ * Off-chain KYC result
+ */
+export interface OffchainKYCResult {
+  wallet: PublicKey;
+  kycLevel: KYCLevel;
+  countryCode: string;
+  investorType: InvestorType;
+  accreditationStatus: AccreditationStatus;
+  verifiedAt: Date;
+  expiresAt?: Date;
+  provider: string;
+  dataHash: string;
+}
+
+/**
+ * Transfer validation result
+ */
+export interface TransferValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  sourceStatus?: InvestorRecord;
+  destinationStatus?: InvestorRecord;
+  policy: CompliancePolicy;
+}
+
+/**
+ * Wallet status
+ */
+export interface WalletStatus {
+  isRegistered: boolean;
+  isVerified: boolean;
+  isFrozen: boolean;
+  record?: InvestorRecord;
+  complianceLevel: number; // 0-100
+}
+EOF
