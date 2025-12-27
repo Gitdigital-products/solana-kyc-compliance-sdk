@@ -1,0 +1,169 @@
+cat > .github/labels.json << 'EOF'
+[
+  {
+    "name": "bug",
+    "color": "d73a4a",
+    "description": "Something isn't working"
+  },
+  {
+    "name": "security",
+    "color": "ee0701",
+    "description": "Security issue"
+  },
+  {
+    "name": "enhancement",
+    "color": "a2eeef",
+    "description": "New feature or request"
+  },
+  {
+    "name": "documentation",
+    "color": "0075ca",
+    "description": "Improvements or additions to documentation"
+  },
+  {
+    "name": "good first issue",
+    "color": "7057ff",
+    "description": "Good for newcomers"
+  },
+  {
+    "name": "help wanted",
+    "color": "008672",
+    "description": "Extra attention is needed"
+  },
+  {
+    "name": "question",
+    "color": "d876e3",
+    "description": "Further information is requested"
+  },
+  {
+    "name": "duplicate",
+    "color": "cfd3d7",
+    "description": "This issue or pull request already exists"
+  },
+  {
+    "name": "wontfix",
+    "color": "ffffff",
+    "description": "This will not be worked on"
+  },
+  {
+    "name": "invalid",
+    "color": "e4e669",
+    "description": "This doesn't seem right"
+  },
+  {
+    "name": "needs-triage",
+    "color": "fbca04",
+    "description": "Needs initial review and categorization"
+  },
+  {
+    "name": "priority: critical",
+    "color": "b60205",
+    "description": "Highest priority"
+  },
+  {
+    "name": "priority: high",
+    "color": "d93f0b",
+    "description": "High priority"
+  },
+  {
+    "name": "priority: medium",
+    "color": "f9d0c4",
+    "description": "Medium priority"
+  },
+  {
+    "name": "priority: low",
+    "color": "0e8a16",
+    "description": "Low priority"
+  },
+  {
+    "name": "type: rust",
+    "color": "fef2c0",
+    "description": "Related to Rust program"
+  },
+  {
+    "name": "type: typescript",
+    "color": "c2e0c6",
+    "description": "Related to TypeScript SDK"
+  },
+  {
+    "name": "type: token-extensions",
+    "color": "bfdadc",
+    "description": "Related to token extensions"
+  },
+  {
+    "name": "type: compliance",
+    "color": "bfd4f2",
+    "description": "Related to compliance features"
+  },
+  {
+    "name": "type: security",
+    "color": "f9d0c4",
+    "description": "Security-related"
+  },
+  {
+    "name": "type: performance",
+    "color": "fbca04",
+    "description": "Performance-related"
+  },
+  {
+    "name": "breaking-change",
+    "color": "b60205",
+    "description": "Contains breaking changes"
+  },
+  {
+    "name": "dependencies",
+    "color": "0366d6",
+    "description": "Pull requests that update a dependency file"
+  },
+  {
+    "name": "hacktoberfest",
+    "color": "ff8c00",
+    "description": "Hacktoberfest contributions"
+  },
+  {
+    "name": "size: xs",
+    "color": "61f096",
+    "description": "Extra small PR (1-9 lines changed)"
+  },
+  {
+    "name": "size: s",
+    "color": "61f096",
+    "description": "Small PR (10-29 lines changed)"
+  },
+  {
+    "name": "size: m",
+    "color": "fcf95d",
+    "description": "Medium PR (30-99 lines changed)"
+  },
+  {
+    "name": "size: l",
+    "color": "f7b32d",
+    "description": "Large PR (100-499 lines changed)"
+  },
+  {
+    "name": "size: xl",
+    "color": "f77932",
+    "description": "Extra large PR (500+ lines changed)"
+  },
+  {
+    "name": "status: blocked",
+    "color": "d93f0b",
+    "description": "Blocked on something else"
+  },
+  {
+    "name": "status: in-progress",
+    "color": "fbca04",
+    "description": "Someone is working on this"
+  },
+  {
+    "name": "status: ready-for-review",
+    "color": "0e8a16",
+    "description": "Ready for review"
+  },
+  {
+    "name": "status: needs-more-info",
+    "color": "fef2c0",
+    "description": "Needs more information to proceed"
+  }
+]
+EOF
