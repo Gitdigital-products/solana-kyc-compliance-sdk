@@ -1,0 +1,367 @@
+cat > SECURITY.md << 'EOF'
+# 🔒 Security Policy
+
+## Supported Versions
+
+| Version | Supported          | Security Updates Until |
+| ------- | ------------------ | ---------------------- |
+| 1.x.x   | ✅ Yes             | TBD                    |
+| 0.x.x   | ⚠️ Limited         | 2024-12-31             |
+| < 0.1   | ❌ No              | N/A                    |
+
+## Reporting a Vulnerability
+
+### Private Disclosure Process
+
+We take security seriously. If you discover a security vulnerability, please follow these steps:
+
+**IMPORTANT**: Do NOT disclose the vulnerability publicly or create a GitHub issue.
+
+**Email**: security@gitdigital.com
+
+**Subject**: `[SECURITY] Vulnerability Report - Solana KYC Compliance SDK`
+
+**Include**:
+```markdown
+- Vulnerability Type: (e.g., Access Control, Input Validation)
+- Component: (e.g., Rust Program, TypeScript SDK, Token Extensions)
+- Version: (e.g., 1.0.0)
+- Description: Detailed explanation of the vulnerability
+- Reproduction Steps: Step-by-step instructions to reproduce
+- Impact: Potential damage or exploitation
+- Suggested Fix: If you have one
+- Your Contact: Email and/or Telegram
+- Disclosure Preferences: How you'd like to be credited
+```
+
+PGP Key (Optional):
+
+```
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+[Available upon request]
+-----END PGP PUBLIC KEY BLOCK-----
+```
+
+Response Timeline
+
+Timeframe Action
+24 hours Initial acknowledgement
+3 days Triage and severity assessment
+7 days Detailed analysis and fix planning
+14 days Patch development
+21 days Coordinated disclosure
+30 days Public release
+
+Bug Bounty Program
+
+We offer rewards for responsibly disclosed vulnerabilities:
+
+Severity Reward Range Example Vulnerabilities
+Critical $10,000 - $50,000 Admin bypass, fund loss, remote code execution
+High $5,000 - $10,000 Privilege escalation, data leakage
+Medium $1,000 - $5,000 Logic errors, partial bypass
+Low $100 - $1,000 Information disclosure, minor issues
+
+Eligibility:
+
+· First reporter of unique vulnerability
+· Follow responsible disclosure process
+· Provide clear reproduction steps
+· Not employed by Gitdigital or affiliates
+
+Security Best Practices
+
+For Developers
+
+Key Management
+
+```bash
+# Use hardware wallets for admin keys
+# Implement multi-sig for critical operations
+# Never commit private keys to repositories
+
+# Example multi-sig setup
+solana-keygen new --outfile admin1.json
+solana-keygen new --outfile admin2.json
+solana-keygen new --outfile admin3.json
+# Configure 2-of-3 multi-sig
+```
+
+Code Security
+
+```typescript
+// Validate all inputs
+if (!validateCountryCode(countryCode)) {
+    throw new Error('Invalid country code');
+}
+
+// Use PDAs for account security
+const [pda, bump] = await PublicKey.findProgramAddress(
+    [Buffer.from('compliance-registry')],
+    programId
+);
+
+// Implement proper access controls
+if (!isAdmin(signer)) {
+    throw new UnauthorizedError();
+}
+```
+
+For Users
+
+Administration
+
+· Use multi-sig wallets for admin authority (2-of-3 minimum)
+· Regularly rotate admin keys (every 90 days)
+· Monitor for suspicious activity
+· Keep backups of critical data
+
+Integration
+
+```typescript
+// Validate all on-chain data
+const accountInfo = await connection.getAccountInfo(pda);
+if (!accountInfo) {
+    throw new Error('Account not found');
+}
+
+// Implement rate limiting
+const rateLimit = new RateLimiter(10, 60000); // 10 requests per minute
+
+// Monitor transaction failures
+connection.onLogs('all', (logs) => {
+    if (logs.err) {
+        alertSecurityTeam(logs);
+    }
+});
+```
+
+Security Features
+
+Built-in Security
+
+1. PDA-based Accounts
+
+· All critical accounts are PDAs
+· Deterministic address generation
+· No arbitrary account creation
+
+2. Access Control
+
+```rust
+// Rust program access control
+pub fn process_instruction(...) -> ProgramResult {
+    // Verify admin signature
+    if !admin.is_signer {
+        return Err(ComplianceError::Unauthorized.into());
+    }
+    
+    // Verify PDA ownership
+    let expected_pda = Pubkey::find_program_address(&[b"admin"], program_id).0;
+    if admin_pda.key != &expected_pda {
+        return Err(ProgramError::InvalidArgument);
+    }
+}
+```
+
+3. Input Validation
+
+```rust
+// Validate all inputs
+pub fn validate_investor_data(data: &InvestorData) -> Result<(), ComplianceError> {
+    if data.country_code.len() != 2 {
+        return Err(ComplianceError::InvalidCountryCode);
+    }
+    
+    if data.kyc_level > 3 {
+        return Err(ComplianceError::InvalidInstruction);
+    }
+    
+    Ok(())
+}
+```
+
+Token Extensions Security
+
+Transfer Hook Security
+
+· Only called by Token Program
+· Validated execution context
+· No mint authority exposure
+
+Permanent Delegate Security
+
+· Controlled by admin PDA
+· Freeze/unfreeze only by admin
+· No token minting capability
+
+Security Audit
+
+Audit Status
+
+Audit Type Status Report Date
+Internal Review ✅ Complete Internal 2024-01-15
+External Audit - Phase 1 ⏳ Planned Q2 2024 2024-06-30
+External Audit - Phase 2 ⏳ Planned Q4 2024 2024-12-31
+Formal Verification ⏳ Future TBD TBD
+
+Audit Scope
+
+1. Rust Program
+   · Instruction logic safety
+   · Account validation
+   · Error handling
+   · Arithmetic safety
+   · Reentrancy protection
+2. TypeScript SDK
+   · Transaction building safety
+   · PDA generation correctness
+   · Error mapping
+   · Integration safety
+3. Token Extensions
+   · Hook integration security
+   · Delegate authority safety
+   · Cross-program invocation
+
+Audit Reports
+
+Audit reports will be published in the audits/ directory upon completion:
+
+```
+audits/
+├── 2024-Q2/
+│   ├── summary.md
+│   ├── findings.csv
+│   └── remediation.md
+└── 2024-Q4/
+    └── ...
+```
+
+Incident Response
+
+Response Plan
+
+Phase 1: Identification (0-1 hours)
+
+```bash
+# Monitor alerts
+# Verify incident
+# Activate response team
+```
+
+Phase 2: Containment (1-4 hours)
+
+```bash
+# Temporary disable affected features
+# Implement emergency fixes
+# Communicate with stakeholders
+```
+
+Phase 3: Eradication (4-24 hours)
+
+```bash
+# Root cause analysis
+# Permanent fix development
+# Security improvements
+```
+
+Phase 4: Recovery (24-72 hours)
+
+```bash
+# Deploy fixes
+# Restore services
+# Post-mortem analysis
+```
+
+Phase 5: Lessons Learned (1 week)
+
+```bash
+# Document incident
+# Update procedures
+# Share learnings
+```
+
+Communication Plan
+
+Audience Channel Timing Message
+Internal Team Slack/Email Immediately Incident declared, roles assigned
+Affected Users Email/Dashboard 1-2 hours Incident acknowledged, workaround if available
+All Users Status Page 4 hours Incident details, expected resolution
+Public Twitter/Blog 24 hours Incident summary, resolution, improvements
+Regulators Formal Report 72 hours Comprehensive incident report
+
+Dependencies Security
+
+Monitoring
+
+We monitor security of:
+
+· @solana/web3.js
+· @solana/spl-token
+· borsh
+· anchor
+· Rust crates (via cargo-audit)
+
+Update Policy
+
+Severity Update Timeframe Actions
+Critical 24 hours Immediate patch release, security advisory
+High 7 days Next patch release, security notice
+Medium 30 days Scheduled update, release notes
+Low 90 days Regular update cycle
+
+Integration Partners
+
+Partner Type Security Requirements
+KYC Providers External API SOC 2, ISO 27001
+Oracle Services Data Feed Security audits, SLAs
+Wallet Providers Integration Security reviews
+Audit Firms Third-party Reputation, expertise
+
+Responsible Disclosure
+
+Our Commitment
+
+We will:
+
+· Acknowledge receipt within 24 hours
+· Work quickly on a fix
+· Credit reporters (if desired)
+· Disclose after patching
+· Not take legal action against security researchers
+
+Your Commitment
+
+Please:
+
+· Allow reasonable time for fixes
+· Not exploit the vulnerability
+· Not affect other users
+· Keep details confidential until disclosure
+· Follow responsible disclosure guidelines
+
+Contact
+
+Security Team
+
+Primary Contact: security@gitdigital.com
+
+Backup Contact: security-alert@gitdigital.com
+
+Response Time: Within 24 hours (usually < 4 hours)
+
+Emergency Contact: For urgent security issues outside business hours
+
+Security Resources
+
+· Security Advisories
+· Security Updates
+· Dependency Graph
+
+---
+
+Security is a shared responsibility. Thank you for helping keep the ecosystem safe.
+
+Last Updated: 2024-01-01
+Next Review: 2024-07-01
+EOF
