@@ -1,0 +1,218 @@
+mkdir -p .github/ISSUE_TEMPLATE
+
+cat > .github/ISSUE_TEMPLATE/bug_report.md << 'EOF'
+---
+name: 🐛 Bug Report
+about: Report a bug or unexpected behavior
+title: '[BUG] '
+labels: ['bug', 'needs-triage']
+assignees: ''
+---
+
+## Bug Description
+A clear and concise description of what the bug is.
+
+## Environment
+- **OS**: [e.g., macOS 12.0, Ubuntu 20.04, Windows 11]
+- **Node.js Version**: [e.g., 18.15.0]
+- **Rust Version**: [e.g., 1.70.0]
+- **Solana CLI Version**: [e.g., 1.17.0]
+- **SDK Version**: [e.g., 1.0.0]
+- **Cluster**: [e.g., localnet, devnet, mainnet-beta]
+
+## Steps to Reproduce
+1. Step 1
+2. Step 2
+3. Step 3
+
+## Expected Behavior
+What should happen?
+
+## Actual Behavior
+What actually happens?
+
+## Code Example
+```typescript
+// Include code that reproduces the issue
+const client = new ComplianceClient(config);
+await client.register(...);
+```
+
+Error Messages
+
+```
+Paste error messages here
+```
+
+Screenshots/Logs
+
+If applicable, add screenshots or logs to help explain your problem.
+
+Possible Solution
+
+If you have suggestions on how to fix the issue.
+
+Additional Context
+
+Add any other context about the problem here.
+
+Checklist
+
+· I have searched existing issues
+· I have provided all required information
+· I have included reproduction steps
+· This is not a security issue (use security@gitdigital.com for security issues)
+  EOF
+
+```
+
+```bash
+cat > .github/ISSUE_TEMPLATE/feature_request.md << 'EOF'
+---
+name: 🚀 Feature Request
+about: Suggest an idea or new feature
+title: '[FEATURE] '
+labels: ['enhancement', 'needs-triage']
+assignees: ''
+---
+
+## Problem Statement
+A clear and concise description of the problem or limitation you're facing.
+
+## Proposed Solution
+A clear and concise description of what you want to happen.
+
+## Alternative Solutions
+A clear and concise description of any alternative solutions or features you've considered.
+
+## Use Case
+Describe the specific use case(s) where this feature would be helpful.
+
+## Example Implementation
+```typescript
+// Show how the feature might be used
+const result = await client.newFeature(params);
+```
+
+Benefits
+
+· Benefit 1
+· Benefit 2
+· Benefit 3
+
+Potential Drawbacks
+
+· Drawback 1
+· Drawback 2
+
+Additional Context
+
+Add any other context, screenshots, or references about the feature request here.
+
+Checklist
+
+· This is not a duplicate of an existing feature request
+· I have provided a clear problem statement
+· I have described the proposed solution
+· I have included use cases
+  EOF
+
+```
+
+```bash
+cat > .github/ISSUE_TEMPLATE/question.md << 'EOF'
+---
+name: ❓ Question
+about: Ask a question about the project
+title: '[QUESTION] '
+labels: ['question', 'needs-triage']
+assignees: ''
+---
+
+## Question
+A clear and concise question about the project.
+
+## What I'm Trying to Do
+Describe what you're trying to accomplish.
+
+## What I've Tried
+```typescript
+// Show what you've tried so far
+const client = new ComplianceClient(config);
+// Your code here
+```
+
+Relevant Documentation
+
+· Link to documentation
+· Specific section
+
+Environment Details (if relevant)
+
+· OS: [e.g., macOS]
+· Node.js Version: [e.g., 18.0.0]
+· SDK Version: [e.g., 1.0.0]
+
+Screenshots/Logs
+
+If applicable, add screenshots or logs to help explain your question.
+
+Additional Context
+
+Add any other context about the question here.
+
+Checklist
+
+· I have searched existing issues and discussions
+· I have checked the documentation
+· I have provided context about what I'm trying to do
+· This is not a bug report or feature request
+  EOF
+
+```
+
+```bash
+cat > .github/ISSUE_TEMPLATE/documentation.md << 'EOF'
+---
+name: 📖 Documentation
+about: Report documentation issues or suggest improvements
+title: '[DOCS] '
+labels: ['documentation', 'needs-triage']
+assignees: ''
+---
+
+## Documentation Issue
+A clear and concise description of what the documentation issue is.
+
+## Location
+- File: [e.g., README.md, DEVELOPER_GUIDE.md]
+- Section: [e.g., "Getting Started", "API Reference"]
+- URL: [if online]
+
+## Current State
+What the documentation currently says or shows.
+
+## Desired State
+What the documentation should say or show.
+
+## Why This Matters
+Why this documentation improvement is important.
+
+## Suggested Changes
+```markdown
+# Proposed documentation changes
+- Change 1
+- Change 2
+```
+
+Additional Context
+
+Add any other context, screenshots, or references about the documentation issue here.
+
+Checklist
+
+· I have verified the documentation is incorrect or missing
+· I have provided specific location details
+· I have suggested improvements
+· This is not a question (use ❓ Question template for questions)
+  EOF
