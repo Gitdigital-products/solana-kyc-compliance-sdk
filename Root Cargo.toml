@@ -1,0 +1,11 @@
+cat > Cargo.toml << 'EOF'
+[workspace]
+members = [
+    "programs/kyc-compliance",
+]
+resolver = "2"
+
+[profile.release]
+lto = true
+codegen-units = 1
+EOF

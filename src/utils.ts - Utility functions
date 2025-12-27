@@ -1,0 +1,254 @@
+cat > src/utils.ts << 'EOF'
+import { PublicKey, Connection } from '@solana/web3.js';
+import {
+  InvestorRecord,
+  WalletStatus,
+  TransferValidationResult,
+  CompliancePolicy,
+  OffchainKYCResult,
+} from './types';
+import { SUPPORTED_COUNTRIES, HIGH_RISK_COUNTRIES } from './constants';
+
+/**
+ * Utility functions for the compliance SDK
+ */
+export class ComplianceUtils {
+  /**
+   * Validate country code format
+   */
+  static validateCountryCode(countryCode: string): boolean {
+    return /^[A-Z]{2}$/.test(countryCode);
+  }
+
+  /**
+   * Check if country is supported
+   */
+  static isCountrySupported(countryCode: string): boolean {
+    return SUPPORTED_COUNTRIES.includes(countryCode);
+  }
+
+  /**
+   * Check if country is restricted
+   */
+  static isCountryRestricted(countryCode: string): boolean {
+    return HIGH_RISK_COUNTRIES.includes(countryCode);
+  }
+
+  /**
+   * Calculate compliance score for a wallet
+   */
+  static calculateComplianceScore(record?: InvestorRecord): number {
+    if (!record) return 0;
+
+    let score = 0;
+
+    // KYC level contribution (max 40 points)
+    score += record.kycLevel * 10;
+
+    // Accreditation status (max 20 points)
+    if (record.accreditationStatus > 0) {
+      score += 20;
+    }
+
+    // Country risk (max 20 points)
+    if (this.isCountrySupported(record.countryCode)) {
+      score += 20;
+    } else if (!this.isCountryRestricted(record.countryCode)) {
+      score += 10;
+    }
+
+    // History (max 20 points)
+    if (record.totalTransfers > 0 && record.totalVolume > 0) {
+      score += Math.min(20, record.totalTransfers / 10);
+    }
+
+    // Not frozen (20 points)
+    if (!record.isFrozen) {
+      score += 20;
+    }
+
+    return Math.min(100, score);
+  }
+
+  /**
+   * Validate transfer against policy
+   */
+  static validateTransfer(
+    sourceRecord: InvestorRecord | undefined,
+    destRecord: InvestorRecord | undefined,
+    amount: number,
+    policy: CompliancePolicy
+  ): TransferValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    // Check if policy is active
+    if (!policy.isActive) {
+      warnings.push('Compliance policy is not active');
+      return {
+        isValid: true,
+        errors,
+        warnings,
+        sourceStatus: sourceRecord,
+        destinationStatus: destRecord,
+        policy,
+      };
+    }
+
+    // Check amount limit
+    if (amount > policy.maxTransferAmount) {
+      errors.push(`Transfer amount exceeds maximum allowed: ${policy.maxTransferAmount} lamports`);
+    }
+
+    // Check source wallet
+    if (sourceRecord) {
+      if (sourceRecord.isFrozen) {
+        errors.push('Source wallet is frozen');
+      }
+
+      if (sourceRecord.kycLevel < policy.minKYCLevel) {
+        errors.push(`Source wallet KYC level (${sourceRecord.kycLevel}) is below minimum (${policy.minKYCLevel})`);
+      }
+
+      if (policy.requireAccreditation && sourceRecord.accreditationStatus === 0) {
+        errors.push('Source wallet accreditation required');
+      }
+
+      if (policy.restrictedCountries.includes(sourceRecord.countryCode)) {
+        errors.push(`Source wallet country (${sourceRecord.countryCode}) is restricted`);
+      }
+    } else if (!policy.allowAnonymousSender) {
+      errors.push('Anonymous sender not allowed');
+    }
+
+    // Check destination wallet
+    if (destRecord) {
+      if (destRecord.isFrozen) {
+        errors.push('Destination wallet is frozen');
+      }
+
+      if (policy.restrictedCountries.includes(destRecord.countryCode)) {
+        errors.push(`Destination wallet country (${destRecord.countryCode}) is restricted`);
+      }
+    } else if (!policy.allowAnonymousReceiver) {
+      errors.push('Anonymous receiver not allowed');
+    }
+
+    // Check country restrictions
+    if (sourceRecord && destRecord) {
+      const sourceCountry = sourceRecord.countryCode;
+      const destCountry = destRecord.countryCode;
+
+      if (policy.restrictedCountries.includes(sourceCountry) ||
+          policy.restrictedCountries.includes(destCountry)) {
+        errors.push('Transfer involves restricted country');
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      sourceStatus: sourceRecord,
+      destinationStatus: destRecord,
+      policy,
+    };
+  }
+
+  /**
+   * Convert off-chain KYC result to investor data
+   */
+  static convertKYCResultToInvestorData(
+    kycResult: OffchainKYCResult
+  ): {
+    kycLevel: number;
+    countryCode: string;
+    investorType: number;
+    accreditationStatus: number;
+  } {
+    return {
+      kycLevel: kycResult.kycLevel,
+      countryCode: kycResult.countryCode,
+      investorType: kycResult.investorType,
+      accreditationStatus: kycResult.accreditationStatus,
+    };
+  }
+
+  /**
+   * Format wallet status
+   */
+  static formatWalletStatus(record?: InvestorRecord): WalletStatus {
+    const isRegistered = !!record;
+    const isVerified = record?.isVerified || false;
+    const isFrozen = record?.isFrozen || false;
+    const complianceLevel = this.calculateComplianceScore(record);
+
+    return {
+      isRegistered,
+      isVerified,
+      isFrozen,
+      record,
+      complianceLevel,
+    };
+  }
+
+  /**
+   * Wait for transaction confirmation
+   */
+  static async waitForConfirmation(
+    connection: Connection,
+    signature: string,
+    timeout: number = 30000
+  ): Promise<boolean> {
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < timeout) {
+      try {
+        const status = await connection.getSignatureStatus(signature);
+        
+        if (status.value?.confirmationStatus === 'confirmed' ||
+            status.value?.confirmationStatus === 'finalized') {
+          return true;
+        }
+        
+        if (status.value?.err) {
+          throw new Error(`Transaction failed: ${JSON.stringify(status.value.err)}`);
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.warn('Error checking transaction status:', error);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+    
+    throw new Error(`Transaction confirmation timeout after ${timeout}ms`);
+  }
+
+  /**
+   * Generate a unique request ID
+   */
+  static generateRequestId(): string {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Format amount for display
+   */
+  static formatAmount(lamports: number, decimals: number = 9): string {
+    const sol = lamports / Math.pow(10, decimals);
+    return `${sol.toLocaleString()} SOL (${lamports.toLocaleString()} lamports)`;
+  }
+
+  /**
+   * Parse ISO country code
+   */
+  static parseCountryCode(code: string): string {
+    const alpha2 = code.toUpperCase().substring(0, 2);
+    if (!this.validateCountryCode(alpha2)) {
+      throw new Error(`Invalid country code: ${code}`);
+    }
+    return alpha2;
+  }
+}
+EOF

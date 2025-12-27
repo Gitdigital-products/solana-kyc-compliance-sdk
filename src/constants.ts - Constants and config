@@ -1,0 +1,109 @@
+cat > src/constants.ts << 'EOF'
+import { PublicKey } from '@solana/web3.js';
+
+/**
+ * Default program ID (can be overridden)
+ */
+export const DEFAULT_PROGRAM_ID = new PublicKey(
+  'KycCompliance111111111111111111111111111111111'
+);
+
+/**
+ * Supported country codes (ISO 3166-1 alpha-2)
+ */
+export const SUPPORTED_COUNTRIES = [
+  'US', // United States
+  'GB', // United Kingdom
+  'DE', // Germany
+  'FR', // France
+  'JP', // Japan
+  'CA', // Canada
+  'AU', // Australia
+  'SG', // Singapore
+  'CH', // Switzerland
+  'NL', // Netherlands
+];
+
+/**
+ * High-risk countries (restricted by default)
+ */
+export const HIGH_RISK_COUNTRIES = [
+  'RU', // Russia
+  'KP', // North Korea
+  'IR', // Iran
+  'SY', // Syria
+  'CU', // Cuba
+];
+
+/**
+ * KYC level descriptions
+ */
+export const KYC_LEVEL_DESCRIPTIONS = {
+  0: 'Unverified',
+  1: 'Basic Verification',
+  2: 'Enhanced Verification',
+  3: 'Institutional Verification',
+};
+
+/**
+ * Investor type descriptions
+ */
+export const INVESTOR_TYPE_DESCRIPTIONS = {
+  0: 'Individual',
+  1: 'Institution',
+  2: 'Corporation',
+  3: 'Trust',
+};
+
+/**
+ * Error codes mapping
+ */
+export const ERROR_CODES = {
+  Unauthorized: 0,
+  AlreadyRegistered: 1,
+  NotRegistered: 2,
+  PolicyViolation: 3,
+  InvalidInstruction: 4,
+  NotInitialized: 5,
+  InvalidPolicy: 6,
+  TransferNotAllowed: 7,
+  WalletFrozen: 8,
+  AccountFrozen: 9,
+  InvalidCountryCode: 10,
+  KYCLevelTooLow: 11,
+};
+
+/**
+ * Default compliance policy
+ */
+export const DEFAULT_COMPLIANCE_POLICY = {
+  requireKYCForTransfer: true,
+  allowAnonymousSender: false,
+  allowAnonymousReceiver: false,
+  maxTransferAmount: 1_000_000_000, // 1 SOL in lamports
+  minKYCLevel: 1, // Basic verification
+  supportedCountries: SUPPORTED_COUNTRIES,
+  restrictedCountries: HIGH_RISK_COUNTRIES,
+  isActive: true,
+  requireAccreditation: false,
+  maxWalletsPerInvestor: 5,
+};
+
+/**
+ * PDAs seeds
+ */
+export const PDA_SEEDS = {
+  COMPLIANCE_REGISTRY: Buffer.from('compliance-registry'),
+  POLICY_CONFIG: Buffer.from('policy-config'),
+  INVESTOR_RECORD: (wallet: PublicKey) => 
+    Buffer.concat([Buffer.from('investor-record'), wallet.toBuffer()]),
+  ADMIN_AUTHORITY: Buffer.from('admin-authority'),
+  TRANSFER_HOOK: Buffer.from('transfer-hook'),
+  PERMANENT_DELEGATE: Buffer.from('permanent-delegate'),
+};
+
+/**
+ * SDK version
+ */
+export const SDK_VERSION = '0.1.0';
+EOF

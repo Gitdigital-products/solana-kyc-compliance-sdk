@@ -1,0 +1,5 @@
+// Set permanent delegate to your program's PDA
+let permanent_delegate = find_program_address(
+    &[b"permanent-delegate"],
+    program_id,
+);

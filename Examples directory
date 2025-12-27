@@ -1,0 +1,607 @@
+
+Let's create the example files:
+
+```bash
+mkdir -p examples
+```
+
+Example 1: examples/register-investor.ts
+
+```bash
+cat > examples/register-investor.ts << 'EOF'
+import { Connection, Keypair, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import { ComplianceClient } from '../src';
+import { KYCLevel, InvestorType, AccreditationStatus } from '../src/types';
+
+async function main() {
+  console.log('=== KYC Compliance SDK Example: Register Investor ===\n');
+
+  // Configuration
+  const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+  
+  // In production, you would load these from secure storage
+  const payer = Keypair.generate();
+  const investorWallet = Keypair.generate();
+  
+  // Airdrop some SOL for testing (devnet only)
+  try {
+    console.log('Requesting airdrop for payer...');
+    const airdropSignature = await connection.requestAirdrop(
+      payer.publicKey,
+      1_000_000_000 // 1 SOL
+    );
+    await connection.confirmTransaction(airdropSignature);
+    console.log('Airdrop successful!\n');
+  } catch (error) {
+    console.log('Airdrop failed, using existing wallet');
+  }
+
+  // Initialize compliance client
+  const client = new ComplianceClient({
+    connection,
+    programId: new PublicKey('KycCompliance111111111111111111111111111111111'),
+  });
+
+  // Check initial status
+  console.log('Checking initial wallet status...');
+  const initialStatus = await client.getStatus(investorWallet.publicKey);
+  console.log(`Wallet: ${investorWallet.publicKey.toString()}`);
+  console.log(`Registered: ${initialStatus.isRegistered}`);
+  console.log(`Compliance Score: ${initialStatus.complianceLevel}\n`);
+
+  // Prepare investor data
+  const investorData = {
+    kycLevel: KYCLevel.ENHANCED,
+    countryCode: 'US',
+    investorType: InvestorType.INDIVIDUAL,
+    accreditationStatus: AccreditationStatus.ACCREDITED,
+  };
+
+  console.log('Registering investor...');
+  console.log('Investor Data:', investorData);
+
+  try {
+    // Register investor
+    const signature = await client.register(
+      payer,
+      investorWallet.publicKey,
+      investorData
+    );
+
+    console.log(`\n✅ Registration successful!`);
+    console.log(`Transaction signature: ${signature}`);
+    console.log(`Explorer: https://explorer.solana.com/tx/${signature}?cluster=devnet\n`);
+
+    // Check updated status
+    console.log('Verifying registration...');
+    const updatedStatus = await client.getStatus(investorWallet.publicKey);
+    
+    console.log('\n=== Registration Details ===');
+    console.log(`Wallet: ${updatedStatus.record?.investorWallet.toString()}`);
+    console.log(`KYC Level: ${updatedStatus.record?.kycLevel} (${KYCLevel[updatedStatus.record?.kycLevel || 0]})`);
+    console.log(`Country: ${updatedStatus.record?.countryCode}`);
+    console.log(`Investor Type: ${InvestorType[updatedStatus.record?.investorType || 0]}`);
+    console.log(`Accreditation: ${AccreditationStatus[updatedStatus.record?.accreditationStatus || 0]}`);
+    console.log(`Verified: ${updatedStatus.isVerified}`);
+    console.log(`Frozen: ${updatedStatus.isFrozen}`);
+    console.log(`Compliance Score: ${updatedStatus.complianceLevel}`);
+    console.log(`Registration Date: ${updatedStatus.record?.registrationDate.toLocaleString()}`);
+
+  } catch (error) {
+    console.error('\n❌ Registration failed:');
+    console.error(error);
+  }
+
+  console.log('\n=== Example Complete ===');
+}
+
+main().catch(console.error);
+EOF
+```
+
+Example 2: examples/mint-compliant-token.ts
+
+```bash
+cat > examples/mint-compliant-token.ts << 'EOF'
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+  Transaction,
+} from '@solana/web3.js';
+import {
+  createInitializeMintInstruction,
+  createMintToInstruction,
+  createSetAuthorityInstruction,
+  getAssociatedTokenAddress,
+  createAssociatedTokenAccountInstruction,
+  TOKEN_2022_PROGRAM_ID,
+  ExtensionType,
+  createInitializeTransferHookInstruction,
+  createInitializePermanentDelegateInstruction,
+  getMintLen,
+  LENGTH_SIZE,
+} from '@solana/spl-token';
+import { ComplianceClient } from '../src';
+import { PDA } from '../src/pda';
+
+async function main() {
+  console.log('=== KYC Compliance SDK Example: Mint Compliant Token ===\n');
+
+  // Configuration
+  const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+  
+  // Generate keypairs for example
+  const payer = Keypair.generate();
+  const mintAuthority = Keypair.generate();
+  const mintKeypair = Keypair.generate();
+  
+  // Airdrop some SOL for testing
+  try {
+    console.log('Requesting airdrop...');
+    const airdropSignature = await connection.requestAirdrop(
+      payer.publicKey,
+      2_000_000_000 // 2 SOL
+    );
+    await connection.confirmTransaction(airdropSignature);
+    console.log('Airdrop successful!\n');
+  } catch (error) {
+    console.log('Airdrop failed, using existing wallet');
+  }
+
+  // Initialize compliance client
+  const programId = new PublicKey('KycCompliance111111111111111111111111111111111');
+  const client = new ComplianceClient({
+    connection,
+    programId,
+  });
+
+  // Get compliance PDAs
+  const pda = new PDA(programId);
+  const [transferHookPda] = await pda.getTransferHook();
+  const [permanentDelegatePda] = await pda.getPermanentDelegate();
+
+  console.log('Compliance Program ID:', programId.toString());
+  console.log('Transfer Hook PDA:', transferHookPda.toString());
+  console.log('Permanent Delegate PDA:', permanentDelegatePda.toString());
+  console.log('');
+
+  // Create a compliant token with Token 2022 extensions
+  console.log('Creating compliant token mint...');
+
+  // Calculate mint size with extensions
+  const mintLen = getMintLen([
+    ExtensionType.TransferHook,
+    ExtensionType.PermanentDelegate,
+  ]);
+
+  // Create mint account
+  const lamports = await connection.getMinimumBalanceForRentExemption(mintLen);
+  
+  const createMintAccountIx = await connection.createAccount({
+    fromPubkey: payer.publicKey,
+    newAccountPubkey: mintKeypair.publicKey,
+    space: mintLen,
+    lamports,
+    programId: TOKEN_2022_PROGRAM_ID,
+  });
+
+  // Initialize mint
+  const initializeMintIx = createInitializeMintInstruction(
+    mintKeypair.publicKey,
+    9, // Decimals
+    mintAuthority.publicKey, // Mint authority
+    null, // Freeze authority
+    TOKEN_2022_PROGRAM_ID
+  );
+
+  // Initialize transfer hook extension
+  const initializeTransferHookIx = createInitializeTransferHookInstruction(
+    mintKeypair.publicKey,
+    mintAuthority.publicKey,
+    transferHookPda, // Transfer hook program ID
+    TOKEN_2022_PROGRAM_ID
+  );
+
+  // Initialize permanent delegate extension
+  const initializePermanentDelegateIx = createInitializePermanentDelegateInstruction(
+    mintKeypair.publicKey,
+    mintAuthority.publicKey,
+    permanentDelegatePda, // Permanent delegate
+    TOKEN_2022_PROGRAM_ID
+  );
+
+  // Create transaction
+  const transaction = new Transaction();
+  transaction.add(createMintAccountIx);
+  transaction.add(initializeMintIx);
+  transaction.add(initializeTransferHookIx);
+  transaction.add(initializePermanentDelegateIx);
+
+  // Send transaction
+  try {
+    const signature = await sendAndConfirmTransaction(
+      connection,
+      transaction,
+      [payer, mintKeypair, mintAuthority],
+      { skipPreflight: false, preflightCommitment: 'confirmed' }
+    );
+
+    console.log('\n✅ Compliant token created successfully!');
+    console.log(`Token Mint: ${mintKeypair.publicKey.toString()}`);
+    console.log(`Transaction: https://explorer.solana.com/tx/${signature}?cluster=devnet`);
+    console.log('');
+
+    // Create associated token account for payer
+    console.log('Creating token account...');
+    const tokenAccount = await getAssociatedTokenAddress(
+      mintKeypair.publicKey,
+      payer.publicKey,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    );
+
+    const createTokenAccountIx = createAssociatedTokenAccountInstruction(
+      payer.publicKey,
+      tokenAccount,
+      payer.publicKey,
+      mintKeypair.publicKey,
+      TOKEN_2022_PROGRAM_ID
+    );
+
+    // Mint tokens
+    const mintTokensIx = createMintToInstruction(
+      mintKeypair.publicKey,
+      tokenAccount,
+      mintAuthority.publicKey,
+      100_000_000_000, // 100 tokens
+      [],
+      TOKEN_2022_PROGRAM_ID
+    );
+
+    const mintTransaction = new Transaction();
+    mintTransaction.add(createTokenAccountIx);
+    mintTransaction.add(mintTokensIx);
+
+    const mintSignature = await sendAndConfirmTransaction(
+      connection,
+      mintTransaction,
+      [payer, mintAuthority],
+      { skipPreflight: false, preflightCommitment: 'confirmed' }
+    );
+
+    console.log('\n✅ Tokens minted successfully!');
+    console.log(`Token Account: ${tokenAccount.toString()}`);
+    console.log(`Amount: 100 tokens`);
+    console.log(`Transaction: https://explorer.solana.com/tx/${mintSignature}?cluster=devnet`);
+
+  } catch (error) {
+    console.error('\n❌ Token creation failed:');
+    console.error(error);
+  }
+
+  console.log('\n=== Token Details ===');
+  console.log('This token includes:');
+  console.log('1. Transfer Hook: All transfers will be validated by the compliance program');
+  console.log('2. Permanent Delegate: Compliance program can freeze/unfreeze tokens');
+  console.log('');
+  console.log('Transfers will be blocked if:');
+  console.log('- Sender or receiver is not KYC verified');
+  console.log('- Wallet is frozen');
+  console.log('- Transfer violates compliance policy');
+  console.log('');
+  console.log('=== Example Complete ===');
+}
+
+main().catch(console.error);
+EOF
+```
+
+Example 3: examples/transfer-validation.ts
+
+```bash
+cat > examples/transfer-validation.ts << 'EOF'
+import { Connection, Keypair, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import { ComplianceClient } from '../src';
+import { KYCLevel, InvestorType, AccreditationStatus } from '../src/types';
+
+async function main() {
+  console.log('=== KYC Compliance SDK Example: Transfer Validation ===\n');
+
+  // Configuration
+  const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+  
+  // Generate wallets for example
+  const payer = Keypair.generate();
+  const aliceWallet = Keypair.generate();
+  const bobWallet = Keypair.generate();
+  const charlieWallet = Keypair.generate(); // Unregistered wallet
+
+  // Initialize compliance client
+  const client = new ComplianceClient({
+    connection,
+    programId: new PublicKey('KycCompliance111111111111111111111111111111111'),
+  });
+
+  console.log('Generated wallets:');
+  console.log(`Payer: ${payer.publicKey.toString()}`);
+  console.log(`Alice: ${aliceWallet.publicKey.toString()}`);
+  console.log(`Bob: ${bobWallet.publicKey.toString()}`);
+  console.log(`Charlie (unregistered): ${charlieWallet.publicKey.toString()}`);
+  console.log('');
+
+  // Simulate registration (in real scenario, you'd actually register)
+  console.log('=== Simulating Registered Investors ===\n');
+  
+  const aliceData = {
+    kycLevel: KYCLevel.ENHANCED,
+    countryCode: 'US',
+    investorType: InvestorType.INDIVIDUAL,
+    accreditationStatus: AccreditationStatus.ACCREDITED,
+  };
+
+  const bobData = {
+    kycLevel: KYCLevel.BASIC,
+    countryCode: 'GB',
+    investorType: InvestorType.INDIVIDUAL,
+    accreditationStatus: AccreditationStatus.NOT_ACCREDITED,
+  };
+
+  console.log('Alice (US, Enhanced KYC, Accredited):', aliceData);
+  console.log('Bob (UK, Basic KYC, Not Accredited):', bobData);
+  console.log('Charlie: Not registered\n');
+
+  // Test transfer scenarios
+  console.log('=== Testing Transfer Scenarios ===\n');
+
+  const testScenarios = [
+    {
+      name: 'Alice → Bob (Compliant)',
+      from: aliceWallet.publicKey,
+      to: bobWallet.publicKey,
+      amount: 500_000_000, // 0.5 SOL in lamports
+      fromData: aliceData,
+      toData: bobData,
+    },
+    {
+      name: 'Alice → Charlie (Anonymous receiver)',
+      from: aliceWallet.publicKey,
+      to: charlieWallet.publicKey,
+      amount: 100_000_000, // 0.1 SOL
+      fromData: aliceData,
+      toData: undefined,
+    },
+    {
+      name: 'Charlie → Alice (Anonymous sender)',
+      from: charlieWallet.publicKey,
+      to: aliceWallet.publicKey,
+      amount: 50_000_000, // 0.05 SOL
+      fromData: undefined,
+      toData: aliceData,
+    },
+    {
+      name: 'Alice → Bob (Large amount)',
+      from: aliceWallet.publicKey,
+      to: bobWallet.publicKey,
+      amount: 2_000_000_000, // 2 SOL - may exceed limit
+      fromData: aliceData,
+      toData: bobData,
+    },
+  ];
+
+  for (const scenario of testScenarios) {
+    console.log(`Scenario: ${scenario.name}`);
+    console.log(`From: ${scenario.from.toString()}`);
+    console.log(`To: ${scenario.to.toString()}`);
+    console.log(`Amount: ${scenario.amount.toLocaleString()} lamports`);
+    
+    try {
+      const result = await client.checkTransfer(
+        scenario.from,
+        scenario.to,
+        scenario.amount
+      );
+
+      console.log(`Result: ${result.isValid ? '✅ PASS' : '❌ FAIL'}`);
+      
+      if (result.errors.length > 0) {
+        console.log('Errors:');
+        result.errors.forEach(error => console.log(`  - ${error}`));
+      }
+      
+      if (result.warnings.length > 0) {
+        console.log('Warnings:');
+        result.warnings.forEach(warning => console.log(`  - ${warning}`));
+      }
+      
+      console.log('');
+    } catch (error) {
+      console.log(`Error: ${error.message}`);
+      console.log('');
+    }
+  }
+
+  // Get current policy
+  console.log('=== Current Compliance Policy ===\n');
+  try {
+    const policy = await client.getPolicy();
+    
+    console.log('Policy Details:');
+    console.log(`Require KYC for transfer: ${policy.requireKYCForTransfer}`);
+    console.log(`Allow anonymous sender: ${policy.allowAnonymousSender}`);
+    console.log(`Allow anonymous receiver: ${policy.allowAnonymousReceiver}`);
+    console.log(`Max transfer amount: ${policy.maxTransferAmount.toLocaleString()} lamports`);
+    console.log(`Minimum KYC level: ${policy.minKYCLevel} (${KYCLevel[policy.minKYCLevel]})`);
+    console.log(`Require accreditation: ${policy.requireAccreditation}`);
+    console.log(`Active: ${policy.isActive}`);
+    console.log('');
+    
+    console.log('Supported countries:', policy.supportedCountries.join(', '));
+    console.log('Restricted countries:', policy.restrictedCountries.join(', '));
+    
+  } catch (error) {
+    console.log(`Error fetching policy: ${error.message}`);
+  }
+
+  // Compliance scores
+  console.log('\n=== Compliance Scores ===\n');
+  
+  const wallets = [
+    { name: 'Alice', wallet: aliceWallet.publicKey, data: aliceData },
+    { name: 'Bob', wallet: bobWallet.publicKey, data: bobData },
+    { name: 'Charlie', wallet: charlieWallet.publicKey, data: undefined },
+  ];
+
+  for (const { name, wallet, data } of wallets) {
+    try {
+      const score = await client.getComplianceScore(wallet);
+      console.log(`${name}: ${score}/100`);
+      
+      if (data) {
+        console.log(`  KYC Level: ${data.kycLevel} (${KYCLevel[data.kycLevel]})`);
+        console.log(`  Country: ${data.countryCode}`);
+        console.log(`  Accreditation: ${AccreditationStatus[data.accreditationStatus]}`);
+      } else {
+        console.log(`  Status: Not registered`);
+      }
+      console.log('');
+    } catch (error) {
+      console.log(`${name}: Error - ${error.message}\n`);
+    }
+  }
+
+  console.log('=== Key Takeaways ===');
+  console.log('1. Registered investors can transfer to other registered investors');
+  console.log('2. Transfers to/from unregistered wallets may be blocked');
+  console.log('3. Large transfers may exceed policy limits');
+  console.log('4. Country restrictions apply');
+  console.log('5. KYC level requirements must be met');
+  console.log('');
+  console.log('=== Example Complete ===');
+}
+
+main().catch(console.error);
+EOF
+```
+
+Example 4: examples/admin-operations.ts
+
+```bash
+cat > examples/admin-operations.ts << 'EOF'
+import { Connection, Keypair, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import { ComplianceClient } from '../src';
+import { KYCLevel, InvestorType, AccreditationStatus } from '../src/types';
+
+async function main() {
+  console.log('=== KYC Compliance SDK Example: Admin Operations ===\n');
+
+  // Configuration
+  const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+  
+  // Generate keypairs for roles
+  const admin = Keypair.generate();
+  const newAdmin = Keypair.generate();
+  const investor = Keypair.generate();
+  const userToFreeze = Keypair.generate();
+
+  console.log('Role Assignments:');
+  console.log(`Current Admin: ${admin.publicKey.toString()}`);
+  console.log(`New Admin: ${newAdmin.publicKey.toString()}`);
+  console.log(`Investor: ${investor.publicKey.toString()}`);
+  console.log(`User to Freeze: ${userToFreeze.publicKey.toString()}`);
+  console.log('');
+
+  // Initialize compliance client
+  const client = new ComplianceClient({
+    connection,
+    programId: new PublicKey('KycCompliance111111111111111111111111111111111'),
+  });
+
+  // Note: In a real scenario, these operations would require
+  // the admin keypair to have authority over the program
+  
+  console.log('=== Admin Operation Scenarios ===\n');
+
+  // 1. Get current registry info
+  console.log('1. Checking registry status...');
+  try {
+    const registry = await client.getRegistry();
+    console.log(`Admin: ${registry.admin.toString()}`);
+    console.log(`Total investors: ${registry.investorCount}`);
+    console.log(`Total registered: ${registry.totalRegistered}`);
+    console.log(`Total revoked: ${registry.totalRevoked}`);
+    console.log('');
+  } catch (error) {
+    console.log(`Registry not initialized: ${error.message}\n`);
+  }
+
+  // 2. Update compliance policy
+  console.log('2. Updating compliance policy...');
+  const newPolicy = {
+    requireKYCForTransfer: true,
+    allowAnonymousSender: false,
+    allowAnonymousReceiver: false,
+    maxTransferAmount: 500_000_000, // 0.5 SOL
+    minKYCLevel: KYCLevel.BASIC,
+    supportedCountries: ['US', 'GB', 'DE', 'FR', 'JP'],
+    restrictedCountries: ['RU', 'KP', 'IR'],
+    isActive: true,
+    requireAccreditation: false,
+    maxWalletsPerInvestor: 3,
+  };
+
+  console.log('New Policy Settings:');
+  console.log(`- Max transfer: ${newPolicy.maxTransferAmount.toLocaleString()} lamports`);
+  console.log(`- Min KYC level: ${newPolicy.minKYCLevel}`);
+  console.log(`- Supported countries: ${newPolicy.supportedCountries.join(', ')}`);
+  console.log(`- Max wallets per investor: ${newPolicy.maxWalletsPerInvestor}`);
+  console.log('');
+
+  // In real scenario:
+  // await client.updatePolicy(admin, newPolicy);
+
+  // 3. Freeze a wallet
+  console.log('3. Freezing a wallet...');
+  console.log(`Wallet: ${userToFreeze.publicKey.toString()}`);
+  
+  // Check status before
+  console.log('Checking status before freeze...');
+  const beforeStatus = await client.getStatus(userToFreeze.publicKey);
+  console.log(`Frozen: ${beforeStatus.isFrozen}`);
+  console.log(`Compliance score: ${beforeStatus.complianceLevel}`);
+  console.log('');
+
+  // Freeze the wallet
+  console.log('Freezing wallet...');
+  // In real scenario:
+  // const freezeSignature = await client.freezeWallet(admin, userToFreeze.publicKey);
+  // console.log(`Freeze transaction: ${freezeSignature}`);
+  
+  console.log('(Simulated) Wallet frozen successfully');
+  console.log('');
+
+  // Check status after
+  console.log('Checking status after freeze...');
+  console.log('(Simulated) Frozen: true');
+  console.log('(Simulated) Compliance score: 0');
+  console.log('');
+
+  // 4. Unfreeze a wallet
+  console.log('4. Unfreezing a wallet...');
+  console.log('Unfreezing wallet...');
+  // In real scenario:
+  // const unfreezeSignature = await client.unfreezeWallet(admin, userToFreeze.publicKey);
+  // console.log(`Unfreeze transaction: ${unfreezeSignature}`);
+  
+  console.log('(Simulated) Wallet unfrozen successfully');
+  console.log('');
+
+  // 5. Revoke investor status
+  console.log('5. Revoking investor status...');
+  console.log(`Investor: ${investor.publicKey.toString()}`);
+  
+  // In real scenario:
+  // const revokeSignature = await client.revoke(admin, investor.publicKey);
+  // console.log(`Revoke transact

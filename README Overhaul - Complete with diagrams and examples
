@@ -1,0 +1,368 @@
+cat > README.md << 'EOF'
+# 🔐 Solana KYC Compliance SDK
+
+[![npm version](https://img.shields.io/npm/v/@gitdigital/solana-kyc-compliance-sdk)](https://www.npmjs.com/package/@gitdigital/solana-kyc-compliance-sdk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Solana](https://img.shields.io/badge/Solana-100%25-blue?logo=solana)](https://solana.com)
+[![Token Extensions](https://img.shields.io/badge/Token-Extensions-orange)](https://docs.solanalabs.com/token-extensions)
+
+A complete on-chain KYC/AML compliance solution for Solana with native Token Extensions integration. Build compliant DeFi applications, RWA tokenization platforms, and regulated financial products on Solana.
+
+## 🚀 Why On-Chain KYC?
+
+**Problem**: Traditional KYC/AML solutions are:
+- Off-chain silos with no programmability
+- Lack composability with DeFi protocols
+- Expensive and slow to integrate
+- Not transparent or auditable
+
+**Solution**: On-chain KYC enables:
+- **Programmable compliance** - Dynamic rules based on on-chain data
+- **DeFi composability** - Seamless integration with any protocol
+- **Real-time validation** - Instant transfer checks
+- **Transparent audit trails** - Immutable compliance records
+- **Cost reduction** - Eliminate redundant verifications
+
+## 🏗️ Architecture Overview
+
+### System Architecture
+```
+
+┌─────────────────────────────────────────────────────────────┐
+│Application Layer                        │
+│┌─────────────┐  ┌─────────────┐  ┌──────────────────┐    │
+││   DEX/AMM   │  │  Lending    │  │  Tokenization    │    │
+││             │  │  Platform   │  │  Platform        │    │
+│└──────┬──────┘  └──────┬──────┘  └──────────┬───────┘    │
+└─────────┼─────────────────┼────────────────────┼────────────┘
+│                 │                    │
+▼                 ▼                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│KYC Compliance SDK Layer                      │
+│┌─────────────────────────────────────────────────────┐    │
+││              TypeScript SDK                         │    │
+││  • getStatus() • register() • checkTransfer()       │    │
+││  • freezeWallet() • updatePolicy() • syncKYC()     │    │
+│└─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+│                 │                    │
+▼                 ▼                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│On-Chain Program Layer                         │
+│┌─────────────────────────────────────────────────────┐    │
+││         KYC Compliance Program (Rust)               │    │
+││                                                     │    │
+││  ┌─────────────┐   ┌─────────────┐   ┌──────────┐ │    │
+││  │  Registry   │   │   Policy    │   │ Investor │ │    │
+││  │    PDA      │   │    PDA      │   │  Record  │ │    │
+││  │             │   │             │   │   PDA    │ │    │
+││  └─────────────┘   └─────────────┘   └──────────┘ │    │
+│└─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+│
+▼
+┌─────────────────────────────────────────────────────────────┐
+│Token Extensions Layer                         │
+│┌─────────────────────────────────────────────────────┐    │
+││  Transfer Hook: Real-time validation                 │    │
+││  Permanent Delegate: Freeze/unfreeze authority       │    │
+││  Metadata: Compliance data on tokens                 │    │
+│└─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+
+```
+
+### Token Extensions Integration
+```
+
+Token Creation Flow:
+
+1. Create Token with Extensions
+   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+   │ Transfer    │    │ Permanent   │    │ Metadata    │
+   │ Hook        │◄───┤ Delegate    │◄───┤ Pointer     │
+   │ (Compliance │    │ (Freeze     │    │ (KYC Level, │
+   │  Program)   │    │  Authority) │    │  Country)   │
+   └─────────────┘    └─────────────┘    └─────────────┘
+
+Transfer Flow:
+
+1. User initiates transfer
+2. Token Program calls Transfer Hook
+3. Compliance Program validates:
+   · Sender KYC status
+   · Receiver KYC status
+   · Amount limits
+   · Country restrictions
+   · Accreditation requirements
+4. If valid → Transfer proceeds
+5. If invalid → Transfer blocked
+
+```
+
+### Compliance Flow Diagram
+```
+
+Registration:
+User──[Off-chain KYC]──► KYC Provider ──[Proof]──► SDK ──[Register]──► On-chain Record
+
+Transfer:
+Transfer Request──► Token Program ──► Transfer Hook ──► Compliance Check
+│
+┌──────[Valid]──────┴──────[Invalid]──────┐
+▼                                         ▼
+Transfer Executed                         Transfer Blocked
++ Compliance Event                         + Error Logged
+
+```
+
+## ⚡ Quick Start
+
+### Installation
+
+```bash
+npm install @gitdigital/solana-kyc-compliance-sdk
+# or
+yarn add @gitdigital/solana-kyc-compliance-sdk
+```
+
+Basic Usage
+
+```typescript
+import { ComplianceClient } from '@gitdigital/solana-kyc-compliance-sdk';
+import { Connection, Keypair, clusterApiUrl } from '@solana/web3.js';
+
+// Initialize
+const connection = new Connection(clusterApiUrl('devnet'));
+const client = new ComplianceClient({
+  connection,
+  programId: new PublicKey('YOUR_PROGRAM_ID'),
+});
+
+// Register investor
+const investorData = {
+  kycLevel: 2, // Enhanced verification
+  countryCode: 'US',
+  investorType: 0, // Individual
+  accreditationStatus: 1, // Accredited
+};
+
+const signature = await client.register(
+  payerKeypair,
+  investorWallet,
+  investorData
+);
+
+// Check transfer
+const result = await client.checkTransfer(
+  sourceWallet,
+  destinationWallet,
+  100_000_000 // 0.1 SOL
+);
+
+if (result.isValid) {
+  console.log('✅ Transfer compliant');
+} else {
+  console.log('❌ Transfer blocked:', result.errors);
+}
+```
+
+Create Compliant Token
+
+```typescript
+import { createInitializeTransferHookInstruction } from '@solana/spl-token';
+import { PDA } from '@gitdigital/solana-kyc-compliance-sdk';
+
+// Get compliance PDAs
+const pda = new PDA(programId);
+const [transferHookPda] = await pda.getTransferHook();
+const [permanentDelegatePda] = await pda.getPermanentDelegate();
+
+// Create token with compliance extensions
+const initializeTransferHookIx = createInitializeTransferHookInstruction(
+  mint,
+  authority,
+  transferHookPda, // Your compliance program
+  TOKEN_2022_PROGRAM_ID
+);
+
+const initializePermanentDelegateIx = createInitializePermanentDelegateInstruction(
+  mint,
+  authority,
+  permanentDelegatePda, // Freeze authority
+  TOKEN_2022_PROGRAM_ID
+);
+```
+
+🎯 Use Cases
+
+1. Regulated DeFi Platforms
+
+· KYC-gated liquidity pools
+· Compliance-aware lending protocols
+· Permissioned trading pairs
+
+2. Real World Asset (RWA) Tokenization
+
+· Securities tokens with investor verification
+· Real estate tokens with accreditation checks
+· Private equity tokens with transfer restrictions
+
+3. Institutional DeFi
+
+· Corporate treasury management
+· Hedge fund on-chain operations
+· Family office investment platforms
+
+4. Cross-border Payments
+
+· Compliant stablecoin transfers
+· Remittance platforms with AML checks
+· Business payments with KYC verification
+
+📊 Features
+
+Core Compliance
+
+· ✅ Multi-level KYC - Basic, Enhanced, Institutional
+· ✅ Country Restrictions - Whitelist/blacklist support
+· ✅ Accreditation Checks - Investor qualification
+· ✅ Transfer Limits - Amount-based controls
+· ✅ Real-time Validation - On-chain transfer checks
+· ✅ Freeze/Unfreeze - Emergency intervention
+
+Token Extensions
+
+· ✅ Transfer Hook - Native compliance validation
+· ✅ Permanent Delegate - Freeze authority
+· ✅ Metadata - On-token compliance data
+· ✅ Custom Extensions - Extensible architecture
+
+Developer Experience
+
+· ✅ TypeScript SDK - Full type safety
+· ✅ Comprehensive Examples - Production-ready code
+· ✅ Error Handling - Clear error messages
+· ✅ Batch Operations - Efficient bulk processing
+· ✅ Testing Suite - Complete test coverage
+
+🚀 Getting Started
+
+1. Deploy the Program
+
+```bash
+# Build and deploy
+npm run build:program
+solana program deploy dist/program/kyc_compliance.so
+
+# Initialize program
+ts-node deploy/deploy.ts
+```
+
+2. Run Examples
+
+```bash
+# Register an investor
+npm run example:register
+
+# Create compliant token
+npm run example:token
+
+# Test transfer validation
+npm run example:transfer
+
+# Admin operations
+npm run example:admin
+```
+
+3. Integrate into Your App
+
+```typescript
+// Example: DEX integration
+async function swapWithCompliance(
+  user: PublicKey,
+  amountIn: number,
+  amountOut: number
+) {
+  // Check user compliance
+  const status = await client.getStatus(user);
+  
+  if (!status.isRegistered || status.isFrozen) {
+    throw new Error('User not compliant');
+  }
+
+  // Check transfer would be compliant
+  const result = await client.checkTransfer(
+    user,
+    poolAddress,
+    amountIn
+  );
+
+  if (!result.isValid) {
+    throw new Error(`Transfer not compliant: ${result.errors.join(', ')}`);
+  }
+
+  // Execute compliant swap
+  return await executeSwap(user, amountIn, amountOut);
+}
+```
+
+🔧 Configuration
+
+Program IDs
+
+· Mainnet: TODO: Add mainnet program ID
+· Devnet: KycCompliance111111111111111111111111111111111
+· Localnet: KycCompliance111111111111111111111111111111111
+
+Default Policy
+
+```typescript
+{
+  requireKYCForTransfer: true,
+  allowAnonymousSender: false,
+  allowAnonymousReceiver: false,
+  maxTransferAmount: 1_000_000_000, // 1 SOL
+  minKYCLevel: 1, // Basic verification
+  supportedCountries: ['US', 'GB', 'DE', 'FR', 'JP', 'CA', 'AU', 'SG', 'CH', 'NL'],
+  restrictedCountries: ['RU', 'KP', 'IR', 'SY', 'CU'],
+  isActive: true,
+  requireAccreditation: false,
+  maxWalletsPerInvestor: 5,
+}
+```
+
+📚 Documentation
+
+· ARCHITECTURE.md - System design and data flow
+· COMPLIANCE.md - Regulatory alignment and disclaimers
+· DEVELOPER_GUIDE.md - Integration and extension guide
+· API Reference - Complete SDK documentation
+· Examples - Working code examples
+
+🤝 Contributing
+
+We welcome contributions! Please see CONTRIBUTING.md for details.
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for your changes
+4. Submit a pull request
+
+⚖️ License
+
+MIT License - see LICENSE for details.
+
+🆘 Support
+
+· GitHub Issues: Report bugs or request features
+· Documentation: Full API reference
+· Examples: Complete working examples
+· Community: Join our Discord
+
+---
+
+Built with ❤️ by the Gitdigital team for the Solana ecosystem
+
+Disclaimer: This is compliance infrastructure, not legal advice. Consult legal counsel for regulatory compliance.
+EOF

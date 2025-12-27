@@ -1,0 +1,495 @@
+cat > src/client.ts << 'EOF'
+import {
+  Connection,
+  PublicKey,
+  Keypair,
+  Commitment,
+} from '@solana/web3.js';
+import * as borsh from 'borsh';
+import {
+  ComplianceSDKConfig,
+  InvestorData,
+  InvestorRecord,
+  ComplianceRegistry,
+  PolicyConfig,
+  CompliancePolicy,
+  WalletStatus,
+  TransferValidationResult,
+  OffchainKYCResult,
+  TransferContext,
+  KYCLevel,
+  InvestorType,
+  AccreditationStatus,
+} from './types';
+import { PDA } from './pda';
+import { ComplianceInstructions } from './instructions';
+import { ComplianceTransactions } from './transactions';
+import { ComplianceUtils } from './utils';
+import {
+  ComplianceSDKError,
+  AlreadyRegisteredError,
+  NotRegisteredError,
+  mapProgramError,
+} from './errors';
+import { DEFAULT_PROGRAM_ID, DEFAULT_COMPLIANCE_POLICY } from './constants';
+
+/**
+ * Main Compliance Client class
+ * Provides a high-level API for interacting with the compliance program
+ */
+export class ComplianceClient {
+  private programId: PublicKey;
+  private connection: Connection;
+  private commitment: Commitment;
+  private pda: PDA;
+  private instructions: ComplianceInstructions;
+  private transactions: ComplianceTransactions;
+
+  constructor(config: ComplianceSDKConfig) {
+    this.programId = config.programId || DEFAULT_PROGRAM_ID;
+    this.connection = config.connection;
+    this.commitment = config.commitment || 'confirmed';
+    this.pda = new PDA(this.programId);
+    this.instructions = new ComplianceInstructions(this.programId, this.pda);
+    this.transactions = new ComplianceTransactions(
+      this.instructions,
+      this.connection
+    );
+  }
+
+  /**
+   * Get wallet status
+   */
+  async getStatus(wallet: PublicKey): Promise<WalletStatus> {
+    try {
+      const record = await this.getInvestorRecord(wallet);
+      return ComplianceUtils.formatWalletStatus(record);
+    } catch (error) {
+      if (error instanceof NotRegisteredError) {
+        return ComplianceUtils.formatWalletStatus(undefined);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Register a wallet with KYC data
+   */
+  async register(
+    payer: Keypair,
+    wallet: PublicKey,
+    metadata: InvestorData | OffchainKYCResult
+  ): Promise<string> {
+    try {
+      // Convert off-chain KYC result if needed
+      const investorData: InvestorData = 'provider' in metadata
+        ? ComplianceUtils.convertKYCResultToInvestorData(metadata)
+        : metadata;
+
+      // Validate country code
+      if (!ComplianceUtils.validateCountryCode(investorData.countryCode)) {
+        throw new Error(`Invalid country code: ${investorData.countryCode}`);
+      }
+
+      // Check if already registered
+      try {
+        const existingRecord = await this.getInvestorRecord(wallet);
+        if (existingRecord) {
+          throw new AlreadyRegisteredError();
+        }
+      } catch (error) {
+        // Not registered, continue
+        if (!(error instanceof NotRegisteredError)) {
+          throw error;
+        }
+      }
+
+      return await this.transactions.registerInvestor(
+        payer,
+        wallet,
+        investorData
+      );
+    } catch (error) {
+      throw mapProgramError(error);
+    }
+  }
+
+  /**
+   * Revoke a wallet's KYC status
+   */
+  async revoke(admin: Keypair, wallet: PublicKey): Promise<string> {
+    try {
+      // Check if registered
+      await this.getInvestorRecord(wallet); // Will throw if not registered
+
+      return await this.transactions.revokeInvestor(admin, wallet);
+    } catch (error) {
+      throw mapProgramError(error);
+    }
+  }
+
+  /**
+   * Check if a transfer would be compliant
+   */
+  async checkTransfer(
+    from: PublicKey,
+    to: PublicKey,
+    amount: number
+  ): Promise<TransferValidationResult> {
+    try {
+      const policy = await this.getPolicy();
+      
+      let sourceRecord: InvestorRecord | undefined;
+      let destRecord: InvestorRecord | undefined;
+
+      try {
+        sourceRecord = await this.getInvestorRecord(from);
+      } catch (error) {
+        if (!(error instanceof NotRegisteredError)) throw error;
+      }
+
+      try {
+        destRecord = await this.getInvestorRecord(to);
+      } catch (error) {
+        if (!(error instanceof NotRegisteredError)) throw error;
+      }
+
+      return ComplianceUtils.validateTransfer(
+        sourceRecord,
+        destRecord,
+        amount,
+        policy
+      );
+    } catch (error) {
+      throw mapProgramError(error);
+    }
+  }
+
+  /**
+   * Sync off-chain KYC results to on-chain
+   */
+  async syncOffchainKYCResult(
+    payer: Keypair,
+    kycResult: OffchainKYCResult
+  ): Promise<string> {
+    try {
+      // Check if already registered
+      let existingRecord: InvestorRecord | undefined;
+      try {
+        existingRecord = await this.getInvestorRecord(kycResult.wallet);
+      } catch (error) {
+        // Not registered, will register new
+        if (!(error instanceof NotRegisteredError)) {
+          throw error;
+        }
+      }
+
+      if (existingRecord) {
+        // Update existing record by revoking and re-registering
+        // Note: In production, you might want an update instruction
+        await this.transactions.revokeInvestor(payer, kycResult.wallet);
+      }
+
+      const investorData = ComplianceUtils.convertKYCResultToInvestorData(kycResult);
+      return await this.transactions.registerInvestor(
+        payer,
+        kycResult.wallet,
+        investorData
+      );
+    } catch (error) {
+      throw mapProgramError(error);
+    }
+  }
+
+  /**
+   * Get investor record from chain
+   */
+  async getInvestorRecord(wallet: PublicKey): Promise<InvestorRecord> {
+    try {
+      const [investorPda] = await this.pda.getInvestorRecord(wallet);
+      
+      const accountInfo = await this.connection.getAccountInfo(
+        investorPda,
+        this.commitment
+      );
+
+      if (!accountInfo) {
+        throw new NotRegisteredError();
+      }
+
+      // Deserialize the account data
+      // Note: This assumes the Rust program's serialization format
+      // You'll need to implement proper deserialization based on your program
+      const data = accountInfo.data;
+      
+      // Example deserialization - adjust based on your program's layout
+      const investorWallet = new PublicKey(data.slice(0, 32));
+      const bump = data[32];
+      const kycLevel = data[33];
+      const countryCode = data.slice(34, 36).toString();
+      const isVerified = data[36] === 1;
+      const isFrozen = data[37] === 1;
+      
+      // Convert timestamps from i64 (8 bytes each)
+      const registrationDate = new Date(
+        Number(data.readBigInt64LE(38)) * 1000
+      );
+      const lastUpdated = new Date(
+        Number(data.readBigInt64LE(46)) * 1000
+      );
+      
+      const totalTransfers = Number(data.readBigUInt64LE(54));
+      const totalVolume = Number(data.readBigUInt64LE(62));
+      const investorType = data[70];
+      const accreditationStatus = data[71];
+      const walletCount = data.readUInt32LE(72);
+
+      return {
+        investorWallet,
+        kycLevel,
+        countryCode,
+        isVerified,
+        isFrozen,
+        registrationDate,
+        lastUpdated,
+        totalTransfers,
+        totalVolume,
+        investorType,
+        accreditationStatus,
+        walletCount,
+      };
+    } catch (error) {
+      if (error instanceof NotRegisteredError) {
+        throw error;
+      }
+      throw new ComplianceSDKError(`Failed to fetch investor record: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get compliance registry
+   */
+  async getRegistry(): Promise<ComplianceRegistry> {
+    try {
+      const [registryPda] = await this.pda.getComplianceRegistry();
+      
+      const accountInfo = await this.connection.getAccountInfo(
+        registryPda,
+        this.commitment
+      );
+
+      if (!accountInfo) {
+        throw new Error('Compliance registry not initialized');
+      }
+
+      const data = accountInfo.data;
+      
+      // Deserialize based on your program's layout
+      const admin = new PublicKey(data.slice(0, 32));
+      const bump = data[32];
+      const investorCount = Number(data.readBigUInt64LE(33));
+      const totalRegistered = Number(data.readBigUInt64LE(41));
+      const totalRevoked = Number(data.readBigUInt64LE(49));
+      const version = data[57];
+
+      return {
+        admin,
+        investorCount,
+        totalRegistered,
+        totalRevoked,
+        version,
+      };
+    } catch (error) {
+      throw new ComplianceSDKError(`Failed to fetch registry: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get policy configuration
+   */
+  async getPolicy(): Promise<CompliancePolicy> {
+    try {
+      const [policyPda] = await this.pda.getPolicyConfig();
+      
+      const accountInfo = await this.connection.getAccountInfo(
+        policyPda,
+        this.commitment
+      );
+
+      if (!accountInfo) {
+        // Return default policy if not initialized
+        return DEFAULT_COMPLIANCE_POLICY;
+      }
+
+      const data = accountInfo.data;
+      
+      // Skip admin and bump (33 bytes)
+      const policyOffset = 33;
+      
+      // Deserialize policy - adjust based on your program's layout
+      const requireKYCForTransfer = data[policyOffset] === 1;
+      const allowAnonymousSender = data[policyOffset + 1] === 1;
+      const allowAnonymousReceiver = data[policyOffset + 2] === 1;
+      const maxTransferAmount = Number(data.readBigUInt64LE(policyOffset + 3));
+      const minKYCLevel = data[policyOffset + 11];
+      
+      // For string arrays, you'd need proper deserialization
+      // This is simplified - implement based on your program
+      const supportedCountries: string[] = [];
+      const restrictedCountries: string[] = [];
+      
+      const isActive = data[policyOffset + 12] === 1;
+      const requireAccreditation = data[policyOffset + 13] === 1;
+      const maxWalletsPerInvestor = data.readUInt32LE(policyOffset + 14);
+
+      return {
+        requireKYCForTransfer,
+        allowAnonymousSender,
+        allowAnonymousReceiver,
+        maxTransferAmount,
+        minKYCLevel,
+        supportedCountries,
+        restrictedCountries,
+        isActive,
+        requireAccreditation,
+        maxWalletsPerInvestor,
+      };
+    } catch (error) {
+      throw new ComplianceSDKError(`Failed to fetch policy: ${error.message}`);
+    }
+  }
+
+  /**
+   * Update compliance policy (admin only)
+   */
+  async updatePolicy(admin: Keypair, policy: CompliancePolicy): Promise<string> {
+    return await this.transactions.updatePolicy(admin, policy);
+  }
+
+  /**
+   * Freeze a wallet (admin only)
+   */
+  async freezeWallet(admin: Keypair, wallet: PublicKey): Promise<string> {
+    return await this.transactions.freezeWallet(admin, wallet, true);
+  }
+
+  /**
+   * Unfreeze a wallet (admin only)
+   */
+  async unfreezeWallet(admin: Keypair, wallet: PublicKey): Promise<string> {
+    return await this.transactions.freezeWallet(admin, wallet, false);
+  }
+
+  /**
+   * Transfer admin authority
+   */
+  async setAdmin(
+    currentAdmin: Keypair,
+    newAdmin: PublicKey
+  ): Promise<string> {
+    return await this.transactions.setAdmin(currentAdmin, newAdmin);
+  }
+
+  /**
+   * Get all PDAs for the program
+   */
+  async getProgramPDAs(wallet?: PublicKey) {
+    return await this.pda.getAllPDAs(wallet);
+  }
+
+  /**
+   * Get compliance score for a wallet
+   */
+  async getComplianceScore(wallet: PublicKey): Promise<number> {
+    try {
+      const record = await this.getInvestorRecord(wallet);
+      return ComplianceUtils.calculateComplianceScore(record);
+    } catch (error) {
+      if (error instanceof NotRegisteredError) {
+        return 0;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Batch register multiple wallets
+   */
+  async batchRegister(
+    payer: Keypair,
+    registrations: Array<{
+      wallet: PublicKey;
+      metadata: InvestorData;
+    }>
+  ): Promise<string[]> {
+    const signatures: string[] = [];
+    
+    for (const registration of registrations) {
+      try {
+        const signature = await this.register(
+          payer,
+          registration.wallet,
+          registration.metadata
+        );
+        signatures.push(signature);
+        
+        // Small delay between transactions
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error(`Failed to register ${registration.wallet.toString()}:`, error);
+        // Continue with next registration
+      }
+    }
+    
+    return signatures;
+  }
+
+  /**
+   * Check multiple transfers
+   */
+  async batchCheckTransfers(
+    transfers: Array<{
+      from: PublicKey;
+      to: PublicKey;
+      amount: number;
+    }>
+  ): Promise<TransferValidationResult[]> {
+    const results: TransferValidationResult[] = [];
+    
+    for (const transfer of transfers) {
+      try {
+        const result = await this.checkTransfer(
+          transfer.from,
+          transfer.to,
+          transfer.amount
+        );
+        results.push(result);
+      } catch (error) {
+        console.error(`Failed to check transfer:`, error);
+        results.push({
+          isValid: false,
+          errors: [`Error: ${error.message}`],
+          warnings: [],
+          policy: DEFAULT_COMPLIANCE_POLICY,
+        });
+      }
+    }
+    
+    return results;
+  }
+
+  /**
+   * Get program ID
+   */
+  getProgramId(): PublicKey {
+    return this.programId;
+  }
+
+  /**
+   * Get connection
+   */
+  getConnection(): Connection {
+    return this.connection;
+  }
+}
+EOF
