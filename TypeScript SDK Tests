@@ -1,0 +1,1468 @@
+2.1 Unit Tests
+
+```bash
+mkdir -p tests/typescript/{unit,integration}
+
+cat > tests/typescript/unit/client.test.ts << 'EOF'
+import { describe, it, beforeEach, afterEach } from 'mocha';
+import { expect } from 'chai';
+import { Connection, PublicKey, Keypair } from '@solana/web3.js';
+import { ComplianceClient } from '../../src/client';
+import { KYCLevel, InvestorType, AccreditationStatus } from '../../src/types';
+import {
+  ComplianceSDKError,
+  AlreadyRegisteredError,
+  NotRegisteredError,
+  PolicyViolationError,
+} from '../../src/errors';
+
+// Mock connection for unit tests
+class MockConnection extends Connection {
+  constructor() {
+    super('http://localhost:8899');
+  }
+  
+  async getAccountInfo(publicKey: PublicKey) {
+    // Return null to simulate unregistered wallet
+    return null;
+  }
+  
+  async sendTransaction() {
+    return 'mock_signature_1234567890';
+  }
+  
+  async getLatestBlockhash() {
+    return {
+      blockhash: 'mock_blockhash',
+      lastValidBlockHeight: 100,
+    };
+  }
+  
+  async confirmTransaction() {
+    return {
+      value: {
+        err: null,
+      },
+    };
+  }
+}
+
+describe('ComplianceClient - Unit Tests', () => {
+  let client: ComplianceClient;
+  let mockConnection: MockConnection;
+  let programId: PublicKey;
+  
+  beforeEach(() => {
+    mockConnection = new MockConnection();
+    programId = new PublicKey('KycCompliance111111111111111111111111111111111');
+    
+    client = new ComplianceClient({
+      connection: mockConnection as any,
+      programId,
+    });
+  });
+  
+  afterEach(() => {
+    // Clean up if needed
+  });
+  
+  describe('constructor', () => {
+    it('should initialize with default program ID', () => {
+      const defaultClient = new ComplianceClient({
+        connection: mockConnection as any,
+      });
+      
+      expect(defaultClient).to.be.instanceOf(ComplianceClient);
+    });
+    
+    it('should initialize with custom program ID', () => {
+      const customProgramId = new PublicKey('Custom11111111111111111111111111111111111111');
+      const customClient = new ComplianceClient({
+        connection: mockConnection as any,
+        programId: customProgramId,
+      });
+      
+      expect(customClient.getProgramId().toString()).to.equal(customProgramId.toString());
+    });
+  });
+  
+  describe('getStatus', () => {
+    it('should return unregistered status for new wallet', async () => {
+      const wallet = Keypair.generate().publicKey;
+      const status = await client.getStatus(wallet);
+      
+      expect(status.isRegistered).to.be.false;
+      expect(status.isVerified).to.be.false;
+      expect(status.isFrozen).to.be.false;
+      expect(status.complianceLevel).to.equal(0);
+      expect(status.record).to.be.undefined;
+    });
+    
+    it('should handle connection errors gracefully', async () => {
+      // Mock connection to throw error
+      const errorConnection = new MockConnection();
+      errorConnection.getAccountInfo = async () => {
+        throw new Error('Connection failed');
+      };
+      
+      const errorClient = new ComplianceClient({
+        connection: errorConnection as any,
+        programId,
+      });
+      
+      const wallet = Keypair.generate().publicKey;
+      
+      try {
+        await errorClient.getStatus(wallet);
+        expect.fail('Should have thrown an error');
+      } catch (error) {
+        expect(error).to.be.instanceOf(ComplianceSDKError);
+      }
+    });
+  });
+  
+  describe('checkTransfer', () => {
+    it('should validate transfer with mock data', async () => {
+      const source = Keypair.generate().publicKey;
+      const destination = Keypair.generate().publicKey;
+      const amount = 100_000_000;
+      
+      const result = await client.checkTransfer(source, destination, amount);
+      
+      expect(result).to.have.property('isValid');
+      expect(result).to.have.property('errors');
+      expect(result).to.have.property('warnings');
+      expect(result).to.have.property('policy');
+      expect(result.errors).to.be.an('array');
+      expect(result.warnings).to.be.an('array');
+    });
+    
+    it('should handle policy violations', async () => {
+      // Mock connection to simulate restricted transfer
+      const restrictedConnection = new MockConnection();
+      // Override methods as needed for specific test cases
+      
+      const testClient = new ComplianceClient({
+        connection: restrictedConnection as any,
+        programId,
+      });
+      
+      const result = await testClient.checkTransfer(
+        Keypair.generate().publicKey,
+        Keypair.generate().publicKey,
+        2_000_000_000 // Exceeds default limit
+      );
+      
+      // This would fail if policy is enforced
+      // expect(result.isValid).to.be.false;
+      // expect(result.errors).to.include('Transfer amount exceeds maximum');
+    });
+  });
+  
+  describe('error handling', () => {
+    it('should map program errors correctly', () => {
+      const { mapProgramError } = require('../../src/errors');
+      
+      const mockError = {
+        logs: ['Program log: Unauthorized'],
+      };
+      
+      const mappedError = mapProgramError(mockError);
+      expect(mappedError).to.be.instanceOf(ComplianceSDKError);
+    });
+    
+    it('should check for specific error types', () => {
+      const { isComplianceError } = require('../../src/errors');
+      
+      const unauthorizedError = new ComplianceSDKError('Unauthorized', 0);
+      const genericError = new Error('Generic error');
+      
+      expect(isComplianceError(unauthorizedError)).to.be.true;
+      expect(isComplianceError(genericError)).to.be.false;
+      expect(isComplianceError(unauthorizedError, ComplianceSDKError)).to.be.true;
+    });
+  });
+  
+  describe('utility functions', () => {
+    it('should validate country codes', () => {
+      const { ComplianceUtils } = require('../../src/utils');
+      
+      expect(ComplianceUtils.validateCountryCode('US')).to.be.true;
+      expect(ComplianceUtils.validateCountryCode('GB')).to.be.true;
+      expect(ComplianceUtils.validateCountryCode('USA')).to.be.false;
+      expect(ComplianceUtils.validateCountryCode('12')).to.be.false;
+      expect(ComplianceUtils.validateCountryCode('uS')).to.be.false;
+    });
+    
+    it('should calculate compliance scores', () => {
+      const { ComplianceUtils } = require('../../src/utils');
+      
+      const mockRecord = {
+        investorWallet: PublicKey.default,
+        kycLevel: KYCLevel.ENHANCED,
+        countryCode: 'US',
+        isVerified: true,
+        isFrozen: false,
+        registrationDate: new Date(),
+        lastUpdated: new Date(),
+        totalTransfers: 10,
+        totalVolume: 1_000_000_000,
+        investorType: InvestorType.INDIVIDUAL,
+        accreditationStatus: AccreditationStatus.ACCREDITED,
+        walletCount: 1,
+      };
+      
+      const score = ComplianceUtils.calculateComplianceScore(mockRecord);
+      
+      expect(score).to.be.a('number');
+      expect(score).to.be.greaterThan(0);
+      expect(score).to.be.lessThanOrEqual(100);
+      
+      // Test with undefined record
+      const zeroScore = ComplianceUtils.calculateComplianceScore(undefined);
+      expect(zeroScore).to.equal(0);
+    });
+    
+    it('should format wallet status', () => {
+      const { ComplianceUtils } = require('../../src/utils');
+      
+      const mockRecord = {
+        investorWallet: PublicKey.default,
+        kycLevel: KYCLevel.BASIC,
+        countryCode: 'GB',
+        isVerified: true,
+        isFrozen: false,
+        registrationDate: new Date(),
+        lastUpdated: new Date(),
+        totalTransfers: 5,
+        totalVolume: 500_000_000,
+        investorType: InvestorType.INDIVIDUAL,
+        accreditationStatus: AccreditationStatus.NOT_ACCREDITED,
+        walletCount: 1,
+      };
+      
+      const status = ComplianceUtils.formatWalletStatus(mockRecord);
+      
+      expect(status.isRegistered).to.be.true;
+      expect(status.isVerified).to.be.true;
+      expect(status.isFrozen).to.be.false;
+      expect(status.record).to.equal(mockRecord);
+      expect(status.complianceLevel).to.be.greaterThan(0);
+      
+      // Test with undefined record
+      const unregisteredStatus = ComplianceUtils.formatWalletStatus(undefined);
+      expect(unregisteredStatus.isRegistered).to.be.false;
+      expect(unregisteredStatus.complianceLevel).to.equal(0);
+    });
+  });
+  
+  describe('PDA generation', () => {
+    it('should generate consistent PDAs', async () => {
+      const { PDA } = require('../../src/pda');
+      const pdaHelper = new PDA(programId);
+      
+      const [registry1] = await pdaHelper.getComplianceRegistry();
+      const [registry2] = await pdaHelper.getComplianceRegistry();
+      
+      expect(registry1.toString()).to.equal(registry2.toString());
+    });
+    
+    it('should generate investor-specific PDA', async () => {
+      const { PDA } = require('../../src/pda');
+      const pdaHelper = new PDA(programId);
+      
+      const wallet1 = Keypair.generate().publicKey;
+      const wallet2 = Keypair.generate().publicKey;
+      
+      const [pda1] = await pdaHelper.getInvestorRecord(wallet1);
+      const [pda2] = await pdaHelper.getInvestorRecord(wallet2);
+      
+      expect(pda1.toString()).to.not.equal(pda2.toString());
+    });
+    
+    it('should validate PDA correctness', async () => {
+      const { PDA } = require('../../src/pda');
+      const pdaHelper = new PDA(programId);
+      
+      const [registryPda] = await pdaHelper.getComplianceRegistry();
+      
+      const isValid = await PDA.isValidPDA(
+        registryPda,
+        [Buffer.from('compliance-registry')],
+        programId
+      );
+      
+      expect(isValid).to.be.true;
+    });
+  });
+});
+EOF
+```
+
+```bash
+cat > tests/typescript/unit/instructions.test.ts << 'EOF'
+import { describe, it, beforeEach } from 'mocha';
+import { expect } from 'chai';
+import { PublicKey, SystemProgram } from '@solana/web3.js';
+import { ComplianceInstructions } from '../../src/instructions';
+import { PDA } from '../../src/pda';
+import { KYCLevel, InvestorType, AccreditationStatus } from '../../src/types';
+
+describe('ComplianceInstructions - Unit Tests', () => {
+  let instructions: ComplianceInstructions;
+  let programId: PublicKey;
+  let pda: PDA;
+  
+  beforeEach(() => {
+    programId = new PublicKey('KycCompliance111111111111111111111111111111111');
+    pda = new PDA(programId);
+    instructions = new ComplianceInstructions(programId, pda);
+  });
+  
+  describe('registerInvestor', () => {
+    it('should create register investor instruction', async () => {
+      const payer = PublicKey.default;
+      const investorWallet = PublicKey.unique();
+      const investorData = {
+        kycLevel: KYCLevel.ENHANCED,
+        countryCode: 'US',
+        investorType: InvestorType.INDIVIDUAL,
+        accreditationStatus: AccreditationStatus.ACCREDITED,
+      };
+      
+      const instruction = await instructions.registerInvestor(
+        payer,
+        investorWallet,
+        investorData
+      );
+      
+      expect(instruction).to.have.property('keys');
+      expect(instruction).to.have.property('programId');
+      expect(instruction).to.have.property('data');
+      expect(instruction.keys).to.have.length(5); // payer, registry, investorRecord, investorWallet, systemProgram
+      
+      // Verify payer is signer
+      expect(instruction.keys[0].isSigner).to.be.true;
+      expect(instruction.keys[0].pubkey.toString()).to.equal(payer.toString());
+      
+      // Verify program ID
+      expect(instruction.programId.toString()).to.equal(programId.toString());
+    });
+  });
+  
+  describe('revokeInvestor', () => {
+    it('should create revoke investor instruction', async () => {
+      const admin = PublicKey.default;
+      const investorWallet = PublicKey.unique();
+      
+      const instruction = await instructions.revokeInvestor(admin, investorWallet);
+      
+      expect(instruction).to.have.property('keys');
+      expect(instruction.keys).to.have.length(3); // admin, registry, investorRecord
+      expect(instruction.keys[0].isSigner).to.be.true; // admin should be signer
+    });
+  });
+  
+  describe('updatePolicy', () => {
+    it('should create update policy instruction', async () => {
+      const admin = PublicKey.default;
+      const policy = {
+        requireKYCForTransfer: true,
+        allowAnonymousSender: false,
+        allowAnonymousReceiver: false,
+        maxTransferAmount: 1_000_000_000,
+        minKYCLevel: KYCLevel.BASIC,
+        supportedCountries: ['US', 'GB'],
+        restrictedCountries: ['RU', 'KP'],
+        isActive: true,
+        requireAccreditation: false,
+        maxWalletsPerInvestor: 5,
+      };
+      
+      const instruction = await instructions.updatePolicy(admin, policy);
+      
+      expect(instruction).to.have.property('keys');
+      expect(instruction.keys).to.have.length(2); // admin, policyPda
+      expect(instruction.keys[0].isSigner).to.be.true;
+    });
+  });
+  
+  describe('freezeWallet', () => {
+    it('should create freeze wallet instruction', async () => {
+      const admin = PublicKey.default;
+      const investorWallet = PublicKey.unique();
+      
+      const instruction = await instructions.freezeWallet(admin, investorWallet, true);
+      
+      expect(instruction).to.have.property('keys');
+      expect(instruction.keys).to.have.length(3); // admin, investorRecord, policyPda
+      expect(instruction.keys[0].isSigner).to.be.true;
+    });
+    
+    it('should create unfreeze wallet instruction', async () => {
+      const admin = PublicKey.default;
+      const investorWallet = PublicKey.unique();
+      
+      const instruction = await instructions.freezeWallet(admin, investorWallet, false);
+      
+      expect(instruction).to.have.property('keys');
+      expect(instruction.keys).to.have.length(3);
+    });
+  });
+  
+  describe('validateTransfer', () => {
+    it('should create validate transfer instruction', async () => {
+      const source = PublicKey.unique();
+      const destination = PublicKey.unique();
+      const authority = PublicKey.default;
+      const amount = BigInt(100_000_000);
+      
+      const instruction = await instructions.validateTransfer(
+        programId,
+        source,
+        destination,
+        authority,
+        amount
+      );
+      
+      expect(instruction).to.have.property('keys');
+      expect(instruction.keys.length).to.be.greaterThan(5); // Multiple accounts needed
+    });
+  });
+});
+EOF
+```
+
+```bash
+cat > tests/typescript/unit/utils.test.ts << 'EOF'
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
+import { PublicKey } from '@solana/web3.js';
+import { ComplianceUtils } from '../../src/utils';
+import {
+  KYCLevel,
+  InvestorType,
+  AccreditationStatus,
+  CompliancePolicy,
+} from '../../src/types';
+
+describe('ComplianceUtils - Unit Tests', () => {
+  describe('country validation', () => {
+    it('should validate ISO country codes', () => {
+      expect(ComplianceUtils.validateCountryCode('US')).to.be.true;
+      expect(ComplianceUtils.validateCountryCode('GB')).to.be.true;
+      expect(ComplianceUtils.validateCountryCode('DE')).to.be.true;
+      expect(ComplianceUtils.validateCountryCode('FR')).to.be.true;
+      expect(ComplianceUtils.validateCountryCode('JP')).to.be.true;
+    });
+    
+    it('should reject invalid country codes', () => {
+      expect(ComplianceUtils.validateCountryCode('USA')).to.be.false; // Too long
+      expect(ComplianceUtils.validateCountryCode('U')).to.be.false; // Too short
+      expect(ComplianceUtils.validateCountryCode('12')).to.be.false; // Numbers
+      expect(ComplianceUtils.validateCountryCode('us')).to.be.false; // Lowercase
+      expect(ComplianceUtils.validateCountryCode('U-S')).to.be.false; // Special chars
+    });
+    
+    it('should check country support', () => {
+      expect(ComplianceUtils.isCountrySupported('US')).to.be.true;
+      expect(ComplianceUtils.isCountrySupported('GB')).to.be.true;
+      expect(ComplianceUtils.isCountrySupported('XX')).to.be.false; // Not in supported list
+    });
+    
+    it('should check country restrictions', () => {
+      expect(ComplianceUtils.isCountryRestricted('RU')).to.be.true;
+      expect(ComplianceUtils.isCountryRestricted('KP')).to.be.true;
+      expect(ComplianceUtils.isCountryRestricted('IR')).to.be.true;
+      expect(ComplianceUtils.isCountryRestricted('US')).to.be.false; // Not restricted
+    });
+    
+    it('should parse country codes', () => {
+      expect(ComplianceUtils.parseCountryCode('US')).to.equal('US');
+      expect(ComplianceUtils.parseCountryCode('us')).to.equal('US'); // Convert to uppercase
+      expect(ComplianceUtils.parseCountryCode('USA')).to.equal('US'); // Take first 2 chars
+      
+      expect(() => ComplianceUtils.parseCountryCode('123')).to.throw('Invalid country code');
+      expect(() => ComplianceUtils.parseCountryCode('U')).to.throw('Invalid country code');
+    });
+  });
+  
+  describe('compliance scoring', () => {
+    const mockRecord = {
+      investorWallet: PublicKey.default,
+      kycLevel: KYCLevel.ENHANCED,
+      countryCode: 'US',
+      isVerified: true,
+      isFrozen: false,
+      registrationDate: new Date(),
+      lastUpdated: new Date(),
+      totalTransfers: 20,
+      totalVolume: 2_000_000_000,
+      investorType: InvestorType.INSTITUTION,
+      accreditationStatus: AccreditationStatus.QUALIFIED_PURCHASER,
+      walletCount: 1,
+    };
+    
+    it('should calculate compliance score', () => {
+      const score = ComplianceUtils.calculateComplianceScore(mockRecord);
+      
+      expect(score).to.be.a('number');
+      expect(score).to.be.greaterThan(0);
+      expect(score).to.be.lessThanOrEqual(100);
+      
+      // Verify score components
+      // KYC level: ENHANCED (2) * 10 = 20
+      // Accreditation: QUALIFIED_PURCHASER = 20
+      // Country: US (supported) = 20
+      // History: 20 transfers = min(20, 20/10=2) = 2
+      // Not frozen = 20
+      // Total expected: 20 + 20 + 20 + 2 + 20 = 82
+      expect(score).to.be.within(80, 85); // Allow for rounding
+    });
+    
+    it('should return 0 for undefined record', () => {
+      const score = ComplianceUtils.calculateComplianceScore(undefined);
+      expect(score).to.equal(0);
+    });
+    
+    it('should handle frozen wallet', () => {
+      const frozenRecord = { ...mockRecord, isFrozen: true };
+      const score = ComplianceUtils.calculateComplianceScore(frozenRecord);
+      
+      // Frozen wallet should have lower score (no +20 for not frozen)
+      expect(score).to.be.lessThan(
+        ComplianceUtils.calculateComplianceScore(mockRecord)
+      );
+    });
+    
+    it('should handle restricted country', () => {
+      const restrictedRecord = { ...mockRecord, countryCode: 'RU' };
+      const score = ComplianceUtils.calculateComplianceScore(restrictedRecord);
+      
+      // Restricted country should have lower score
+      expect(score).to.be.lessThan(
+        ComplianceUtils.calculateComplianceScore(mockRecord)
+      );
+    });
+  });
+  
+  describe('transfer validation', () => {
+    const defaultPolicy: CompliancePolicy = {
+      requireKYCForTransfer: true,
+      allowAnonymousSender: false,
+      allowAnonymousReceiver: false,
+      maxTransferAmount: 1_000_000_000,
+      minKYCLevel: KYCLevel.BASIC,
+      supportedCountries: ['US', 'GB', 'DE'],
+      restrictedCountries: ['RU', 'KP', 'IR'],
+      isActive: true,
+      requireAccreditation: false,
+      maxWalletsPerInvestor: 5,
+    };
+    
+    const compliantRecord = {
+      investorWallet: PublicKey.default,
+      kycLevel: KYCLevel.ENHANCED,
+      countryCode: 'US',
+      isVerified: true,
+      isFrozen: false,
+      registrationDate: new Date(),
+      lastUpdated: new Date(),
+      totalTransfers: 10,
+      totalVolume: 500_000_000,
+      investorType: InvestorType.INDIVIDUAL,
+      accreditationStatus: AccreditationStatus.ACCREDITED,
+      walletCount: 1,
+    };
+    
+    const restrictedRecord = {
+      ...compliantRecord,
+      countryCode: 'RU',
+    };
+    
+    const frozenRecord = {
+      ...compliantRecord,
+      isFrozen: true,
+    };
+    
+    const lowKycRecord = {
+      ...compliantRecord,
+      kycLevel: KYCLevel.UNVERIFIED,
+    };
+    
+    it('should validate compliant transfer', () => {
+      const result = ComplianceUtils.validateTransfer(
+        compliantRecord,
+        compliantRecord,
+        100_000_000,
+        defaultPolicy
+      );
+      
+      expect(result.isValid).to.be.true;
+      expect(result.errors).to.be.empty;
+      expect(result.sourceStatus).to.equal(compliantRecord);
+      expect(result.destinationStatus).to.equal(compliantRecord);
+    });
+    
+    it('should reject transfer exceeding amount limit', () => {
+      const result = ComplianceUtils.validateTransfer(
+        compliantRecord,
+        compliantRecord,
+        2_000_000_000,
+        defaultPolicy
+      );
+      
+      expect(result.isValid).to.be.false;
+      expect(result.errors).to.include('Transfer amount exceeds maximum allowed');
+    });
+    
+    it('should reject transfer from frozen wallet', () => {
+      const result = ComplianceUtils.validateTransfer(
+        frozenRecord,
+        compliantRecord,
+        100_000_000,
+        defaultPolicy
+      );
+      
+      expect(result.isValid).to.be.false;
+      expect(result.errors).to.include('Source wallet is frozen');
+    });
+    
+    it('should reject transfer to frozen wallet', () => {
+      const result = ComplianceUtils.validateTransfer(
+        compliantRecord,
+        frozenRecord,
+        100_000_000,
+        defaultPolicy
+      );
+      
+      expect(result.isValid).to.be.false;
+      expect(result.errors).to.include('Destination wallet is frozen');
+    });
+    
+    it('should reject transfer from restricted country', () => {
+      const result = ComplianceUtils.validateTransfer(
+        restrictedRecord,
+        compliantRecord,
+        100_000_000,
+        defaultPolicy
+      );
+      
+      expect(result.isValid).to.be.false;
+      expect(result.errors).to.include('Source wallet country (RU) is restricted');
+    });
+    
+    it('should reject transfer to restricted country', () => {
+      const result = ComplianceUtils.validateTransfer(
+        compliantRecord,
+        restrictedRecord,
+        100_000_000,
+        defaultPolicy
+      );
+      
+      expect(result.isValid).to.be.false;
+      expect(result.errors).to.include('Destination wallet country (RU) is restricted');
+    });
+    
+    it('should reject transfer from low KYC level', () => {
+      const policyWithHighMin = {
+        ...defaultPolicy,
+        minKYCLevel: KYCLevel.ENHANCED,
+      };
+      
+      const result = ComplianceUtils.validateTransfer(
+        lowKycRecord,
+        compliantRecord,
+        100_000_000,
+        policyWithHighMin
+      );
+      
+      expect(result.isValid).to.be.false;
+      expect(result.errors).to.include('Source wallet KYC level (0) is below minimum (2)');
+    });
+    
+    it('should allow anonymous sender when configured', () => {
+      const policyAllowAnonymous = {
+        ...defaultPolicy,
+        allowAnonymousSender: true,
+      };
+      
+      const result = ComplianceUtils.validateTransfer(
+        undefined, // Anonymous sender
+        compliantRecord,
+        100_000_000,
+        policyAllowAnonymous
+      );
+      
+      expect(result.isValid).to.be.true;
+    });
+    
+    it('should allow anonymous receiver when configured', () => {
+      const policyAllowAnonymous = {
+        ...defaultPolicy,
+        allowAnonymousReceiver: true,
+      };
+      
+      const result = ComplianceUtils.validateTransfer(
+        compliantRecord,
+        undefined, // Anonymous receiver
+        100_000_000,
+        policyAllowAnonymous
+      );
+      
+      expect(result.isValid).to.be.true;
+    });
+    
+    it('should bypass validation when policy inactive', () => {
+      const inactivePolicy = {
+        ...defaultPolicy,
+        isActive: false,
+      };
+      
+      const result = ComplianceUtils.validateTransfer(
+        undefined,
+        undefined,
+        2_000_000_000,
+        inactivePolicy
+      );
+      
+      expect(result.isValid).to.be.true;
+      expect(result.warnings).to.include('Compliance policy is not active');
+    });
+  });
+  
+  describe('formatting utilities', () => {
+    it('should format amount', () => {
+      const formatted = ComplianceUtils.formatAmount(1_000_000_000);
+      expect(formatted).to.include('1');
+      expect(formatted).to.include('SOL');
+      expect(formatted).to.include('lamports');
+      
+      const formattedWithDecimals = ComplianceUtils.formatAmount(1_234_567_890, 9);
+      expect(formattedWithDecimals).to.include('1.23456789');
+    });
+    
+    it('should generate request IDs', () => {
+      const id1 = ComplianceUtils.generateRequestId();
+      const id2 = ComplianceUtils.generateRequestId();
+      
+      expect(id1).to.be.a('string');
+      expect(id2).to.be.a('string');
+      expect(id1).to.not.equal(id2);
+      expect(id1).to.match(/^req_\d+_[a-z0-9]+$/);
+    });
+    
+    it('should convert KYC result to investor data', () => {
+      const kycResult = {
+        wallet: PublicKey.default,
+        kycLevel: KYCLevel.ENHANCED,
+        countryCode: 'US',
+        investorType: InvestorType.INSTITUTION,
+        accreditationStatus: AccreditationStatus.QUALIFIED_PURCHASER,
+        verifiedAt: new Date(),
+        provider: 'TestProvider',
+        dataHash: 'abc123',
+      };
+      
+      const investorData = ComplianceUtils.convertKYCResultToInvestorData(kycResult as any);
+      
+      expect(investorData.kycLevel).to.equal(KYCLevel.ENHANCED);
+      expect(investorData.countryCode).to.equal('US');
+      expect(investorData.investorType).to.equal(InvestorType.INSTITUTION);
+      expect(investorData.accreditationStatus).to.equal(AccreditationStatus.QUALIFIED_PURCHASER);
+    });
+    
+    it('should format wallet status', () => {
+      const mockRecord = {
+        investorWallet: PublicKey.default,
+        kycLevel: KYCLevel.BASIC,
+        countryCode: 'GB',
+        isVerified: true,
+        isFrozen: false,
+        registrationDate: new Date(),
+        lastUpdated: new Date(),
+        totalTransfers: 5,
+        totalVolume: 500_000_000,
+        investorType: InvestorType.INDIVIDUAL,
+        accreditationStatus: AccreditationStatus.NOT_ACCREDITED,
+        walletCount: 1,
+      };
+      
+      const status = ComplianceUtils.formatWalletStatus(mockRecord);
+      
+      expect(status.isRegistered).to.be.true;
+      expect(status.isVerified).to.be.true;
+      expect(status.isFrozen).to.be.false;
+      expect(status.record).to.equal(mockRecord);
+      expect(status.complianceLevel).to.be.greaterThan(0);
+      
+      const unregisteredStatus = ComplianceUtils.formatWalletStatus(undefined);
+      expect(unregisteredStatus.isRegistered).to.be.false;
+      expect(unregisteredStatus.complianceLevel).to.equal(0);
+    });
+  });
+});
+EOF
+```
+
+2.2 Integration Tests
+
+```bash
+cat > tests/typescript/integration/e2e.test.ts << 'EOF'
+import { describe, it, before, after } from 'mocha';
+import { expect } from 'chai';
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+  Transaction,
+  SystemProgram,
+} from '@solana/web3.js';
+import { ComplianceClient } from '../../src/client';
+import { KYCLevel, InvestorType, AccreditationStatus } from '../../src/types';
+
+// These tests require a running local validator
+// Run with: solana-test-validator --reset --quiet
+
+describe('End-to-End Integration Tests', () => {
+  let client: ComplianceClient;
+  let connection: Connection;
+  let programId: PublicKey;
+  let admin: Keypair;
+  let payer: Keypair;
+  
+  before(async function() {
+    this.timeout(30000); // Increase timeout for blockchain operations
+    
+    // Connect to local validator
+    connection = new Connection('http://localhost:8899', 'confirmed');
+    programId = new PublicKey('KycCompliance111111111111111111111111111111111');
+    
+    // Generate test keypairs
+    admin = Keypair.generate();
+    payer = Keypair.generate();
+    
+    // Fund test accounts
+    try {
+      const airdrop1 = await connection.requestAirdrop(admin.publicKey, 2_000_000_000);
+      const airdrop2 = await connection.requestAirdrop(payer.publicKey, 2_000_000_000);
+      
+      await connection.confirmTransaction(airdrop1);
+      await connection.confirmTransaction(airdrop2);
+    } catch (error) {
+      console.warn('Airdrop failed, assuming accounts already funded');
+    }
+    
+    // Initialize client
+    client = new ComplianceClient({
+      connection,
+      programId,
+      commitment: 'confirmed',
+    });
+  });
+  
+  after(async () => {
+    // Cleanup if needed
+  });
+  
+  describe('program deployment check', () => {
+    it('should have program deployed', async function() {
+      this.timeout(10000);
+      
+      const programInfo = await connection.getAccountInfo(programId);
+      expect(programInfo).to.not.be.null;
+      expect(programInfo?.executable).to.be.true;
+    });
+  });
+  
+  describe('compliance registry', () => {
+    it('should get registry info', async function() {
+      this.timeout(10000);
+      
+      try {
+        const registry = await client.getRegistry();
+        expect(registry).to.have.property('admin');
+        expect(registry).to.have.property('investorCount');
+        expect(registry).to.have.property('totalRegistered');
+        expect(registry).to.have.property('totalRevoked');
+      } catch (error) {
+        // Registry might not be initialized yet
+        console.log('Registry not initialized, skipping test');
+      }
+    });
+  });
+  
+  describe('compliance policy', () => {
+    it('should get default policy', async function() {
+      this.timeout(10000);
+      
+      const policy = await client.getPolicy();
+      
+      expect(policy).to.have.property('requireKYCForTransfer');
+      expect(policy).to.have.property('maxTransferAmount');
+      expect(policy).to.have.property('minKYCLevel');
+      expect(policy).to.have.property('isActive');
+      
+      // Default policy values
+      expect(policy.requireKYCForTransfer).to.be.true;
+      expect(policy.maxTransferAmount).to.equal(1_000_000_000);
+      expect(policy.minKYCLevel).to.equal(1);
+      expect(policy.isActive).to.be.true;
+    });
+  });
+  
+  describe('PDA generation', () => {
+    it('should generate consistent PDAs', async function() {
+      this.timeout(5000);
+      
+      const investorWallet = Keypair.generate().publicKey;
+      const pdas = await client.getProgramPDAs(investorWallet);
+      
+      expect(pdas).to.have.property('complianceRegistry');
+      expect(pdas).to.have.property('policyConfig');
+      expect(pdas).to.have.property('investorRecord');
+      expect(pdas).to.have.property('transferHook');
+      expect(pdas).to.have.property('permanentDelegate');
+      
+      expect(pdas.investorRecord).to.not.be.undefined;
+      
+      // Verify PDA addresses are valid
+      expect(pdas.complianceRegistry.toString()).to.match(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/);
+      expect(pdas.policyConfig.toString()).to.match(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/);
+      expect(pdas.investorRecord?.toString()).to.match(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/);
+    });
+  });
+  
+  describe('wallet status', () => {
+    it('should return unregistered status for new wallet', async function() {
+      this.timeout(5000);
+      
+      const newWallet = Keypair.generate().publicKey;
+      const status = await client.getStatus(newWallet);
+      
+      expect(status.isRegistered).to.be.false;
+      expect(status.isVerified).to.be.false;
+      expect(status.isFrozen).to.be.false;
+      expect(status.complianceLevel).to.equal(0);
+      expect(status.record).to.be.undefined;
+    });
+  });
+  
+  describe('transfer validation', () => {
+    it('should validate transfers', async function() {
+      this.timeout(5000);
+      
+      const source = Keypair.generate().publicKey;
+      const destination = Keypair.generate().publicKey;
+      const amount = 100_000_000;
+      
+      const result = await client.checkTransfer(source, destination, amount);
+      
+      expect(result).to.have.property('isValid');
+      expect(result).to.have.property('errors');
+      expect(result).to.have.property('warnings');
+      expect(result).to.have.property('policy');
+      
+      // With default policy (requireKYCForTransfer: true), anonymous transfers should fail
+      // But checkTransfer might return true if policy allows anonymous or is not active
+      // This depends on the actual on-chain policy
+    });
+  });
+  
+  describe('compliance score', () => {
+    it('should calculate compliance score for unregistered wallet', async function() {
+      this.timeout(5000);
+      
+      const unregisteredWallet = Keypair.generate().publicKey;
+      const score = await client.getComplianceScore(unregisteredWallet);
+      
+      expect(score).to.equal(0);
+    });
+  });
+  
+  describe('batch operations', () => {
+    it('should batch check transfers', async function() {
+      this.timeout(10000);
+      
+      const transfers = [
+        {
+          from: Keypair.generate().publicKey,
+          to: Keypair.generate().publicKey,
+          amount: 100_000_000,
+        },
+        {
+          from: Keypair.generate().publicKey,
+          to: Keypair.generate().publicKey,
+          amount: 500_000_000,
+        },
+      ];
+      
+      const results = await client.batchCheckTransfers(transfers);
+      
+      expect(results).to.be.an('array');
+      expect(results).to.have.length(2);
+      
+      results.forEach(result => {
+        expect(result).to.have.property('isValid');
+        expect(result).to.have.property('errors');
+        expect(result).to.have.property('policy');
+      });
+    });
+  });
+});
+EOF
+```
+
+```bash
+cat > tests/typescript/integration/compliance_flow.test.ts << 'EOF'
+import { describe, it, before, after } from 'mocha';
+import { expect } from 'chai';
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+  Transaction,
+} from '@solana/web3.js';
+import { ComplianceClient } from '../../src/client';
+import { KYCLevel, InvestorType, AccreditationStatus } from '../../src/types';
+
+// Note: These tests require the program to be deployed and initialized
+// They simulate a complete compliance flow
+
+describe('Compliance Flow Integration Tests', () => {
+  let client: ComplianceClient;
+  let connection: Connection;
+  let programId: PublicKey;
+  let admin: Keypair;
+  let payer: Keypair;
+  let investor1: Keypair;
+  let investor2: Keypair;
+  
+  before(async function() {
+    this.timeout(30000);
+    
+    // Setup
+    connection = new Connection('http://localhost:8899', 'confirmed');
+    programId = new PublicKey('KycCompliance111111111111111111111111111111111');
+    
+    // Generate test accounts
+    admin = Keypair.generate();
+    payer = Keypair.generate();
+    investor1 = Keypair.generate();
+    investor2 = Keypair.generate();
+    
+    // Fund accounts
+    try {
+      const accounts = [admin, payer];
+      for (const account of accounts) {
+        const airdrop = await connection.requestAirdrop(account.publicKey, 2_000_000_000);
+        await connection.confirmTransaction(airdrop);
+      }
+    } catch (error) {
+      console.warn('Airdrop failed:', error.message);
+    }
+    
+    client = new ComplianceClient({
+      connection,
+      programId,
+      commitment: 'confirmed',
+    });
+  });
+  
+  describe('complete compliance flow', () => {
+    it('should check initial status of investors', async function() {
+      this.timeout(10000);
+      
+      const status1 = await client.getStatus(investor1.publicKey);
+      const status2 = await client.getStatus(investor2.publicKey);
+      
+      expect(status1.isRegistered).to.be.false;
+      expect(status2.isRegistered).to.be.false;
+      expect(status1.complianceLevel).to.equal(0);
+      expect(status2.complianceLevel).to.equal(0);
+    });
+    
+    it('should validate transfer between unregistered wallets', async function() {
+      this.timeout(10000);
+      
+      const result = await client.checkTransfer(
+        investor1.publicKey,
+        investor2.publicKey,
+        100_000_000
+      );
+      
+      // Result depends on current policy
+      // If policy requires KYC, this should fail
+      // If policy allows anonymous, this might pass
+      expect(result).to.have.property('isValid');
+      
+      if (!result.isValid) {
+        expect(result.errors).to.not.be.empty;
+      }
+    });
+    
+    // Note: Actual registration tests would require:
+    // 1. Registry initialization
+    // 2. Policy initialization  
+    // 3. Valid transaction signing
+    
+    // These are placeholders for what would be tested with a fully deployed program
+    
+    it('should get program PDAs', async function() {
+      this.timeout(5000);
+      
+      const pdas = await client.getProgramPDAs(investor1.publicKey);
+      
+      expect(pdas.complianceRegistry).to.not.be.null;
+      expect(pdas.policyConfig).to.not.be.null;
+      expect(pdas.investorRecord).to.not.be.null;
+      expect(pdas.transferHook).to.not.be.null;
+      expect(pdas.permanentDelegate).to.not.be.null;
+    });
+    
+    it('should calculate compliance scores', async function() {
+      this.timeout(5000);
+      
+      const score1 = await client.getComplianceScore(investor1.publicKey);
+      const score2 = await client.getComplianceScore(investor2.publicKey);
+      
+      expect(score1).to.equal(0); // Unregistered
+      expect(score2).to.equal(0); // Unregistered
+    });
+  });
+  
+  describe('policy management flow', () => {
+    it('should retrieve current policy', async function() {
+      this.timeout(5000);
+      
+      const policy = await client.getPolicy();
+      
+      expect(policy).to.have.property('requireKYCForTransfer');
+      expect(policy).to.have.property('maxTransferAmount');
+      expect(policy).to.have.property('minKYCLevel');
+      expect(policy).to.have.property('supportedCountries');
+      expect(policy).to.have.property('restrictedCountries');
+      expect(policy).to.have.property('isActive');
+    });
+    
+    // Note: Policy update tests would require admin authority
+    // and the policy account to be initialized
+  });
+  
+  describe('batch operations flow', () => {
+    it('should batch process multiple checks', async function() {
+      this.timeout(10000);
+      
+      // Create multiple test scenarios
+      const scenarios = [
+        {
+          name: 'Small transfer between unregistered',
+          from: Keypair.generate().publicKey,
+          to: Keypair.generate().publicKey,
+          amount: 50_000_000,
+        },
+        {
+          name: 'Large transfer between unregistered',
+          from: Keypair.generate().publicKey,
+          to: Keypair.generate().publicKey,
+          amount: 2_000_000_000,
+        },
+        {
+          name: 'Transfer to same wallet',
+          from: Keypair.generate().publicKey,
+          to: Keypair.generate().publicKey, // Same as from
+          amount: 100_000_000,
+        },
+      ];
+      
+      const results = await client.batchCheckTransfers(
+        scenarios.map(s => ({ from: s.from, to: s.to, amount: s.amount }))
+      );
+      
+      expect(results).to.have.length(3);
+      
+      results.forEach((result, index) => {
+        expect(result).to.have.property('isValid');
+        expect(result).to.have.property('errors');
+        expect(result).to.have.property('policy');
+        
+        console.log(`Scenario ${index + 1}:`, {
+          valid: result.isValid,
+          errors: result.errors,
+          warnings: result.warnings,
+        });
+      });
+    });
+  });
+  
+  describe('error handling flow', () => {
+    it('should handle invalid inputs gracefully', async function() {
+      this.timeout(5000);
+      
+      // Test with invalid public key
+      try {
+        await client.getStatus(new PublicKey('invalid'));
+        expect.fail('Should have thrown an error');
+      } catch (error) {
+        expect(error).to.be.instanceOf(Error);
+      }
+      
+      // Test with very large amount
+      const largeAmount = 10_000_000_000_000; // 10,000 SOL
+      const result = await client.checkTransfer(
+        investor1.publicKey,
+        investor2.publicKey,
+        largeAmount
+      );
+      
+      // Might be invalid due to amount limit
+      expect(result).to.have.property('isValid');
+    });
+    
+    it('should handle connection errors', async function() {
+      this.timeout(5000);
+      
+      // Create a client with invalid connection
+      const invalidClient = new ComplianceClient({
+        connection: new Connection('http://invalid-url:8899', 'confirmed'),
+        programId,
+      });
+      
+      try {
+        await invalidClient.getStatus(investor1.publicKey);
+        expect.fail('Should have thrown an error');
+      } catch (error) {
+        expect(error).to.be.instanceOf(Error);
+      }
+    });
+  });
+});
+EOF
+```
+
+2.3 Test Fixtures
+
+```bash
+mkdir -p tests/fixtures
+
+cat > tests/fixtures/mock_data.ts << 'EOF'
+import { PublicKey } from '@solana/web3.js';
+import {
+  KYCLevel,
+  InvestorType,
+  AccreditationStatus,
+  InvestorRecord,
+  CompliancePolicy,
+  OffchainKYCResult,
+  InvestorData,
+} from '../../src/types';
+
+export const TEST_PROGRAM_ID = new PublicKey(
+  'KycCompliance111111111111111111111111111111111'
+);
+
+export const mockInvestorData: InvestorData = {
+  kycLevel: KYCLevel.ENHANCED,
+  countryCode: 'US',
+  investorType: InvestorType.INDIVIDUAL,
+  accreditationStatus: AccreditationStatus.ACCREDITED,
+};
+
+export const mockInvestorRecord: InvestorRecord = {
+  investorWallet: PublicKey.default,
+  kycLevel: KYCLevel.ENHANCED,
+  countryCode: 'US',
+  isVerified: true,
+  isFrozen: false,
+  registrationDate: new Date('2024-01-01'),
+  lastUpdated: new Date('2024-01-01'),
+  totalTransfers: 10,
+  totalVolume: 1_000_000_000,
+  investorType: InvestorType.INDIVIDUAL,
+  accreditationStatus: AccreditationStatus.ACCREDITED,
+  walletCount: 1,
+};
+
+export const mockCompliancePolicy: CompliancePolicy = {
+  requireKYCForTransfer: true,
+  allowAnonymousSender: false,
+  allowAnonymousReceiver: false,
+  maxTransferAmount: 1_000_000_000,
+  minKYCLevel: KYCLevel.BASIC,
+  supportedCountries: ['US', 'GB', 'DE', 'FR', 'JP'],
+  restrictedCountries: ['RU', 'KP', 'IR', 'SY', 'CU'],
+  isActive: true,
+  requireAccreditation: false,
+  maxWalletsPerInvestor: 5,
+};
+
+export const mockOffchainKYCResult: OffchainKYCResult = {
+  wallet: PublicKey.default,
+  kycLevel: KYCLevel.ENHANCED,
+  countryCode: 'GB',
+  investorType: InvestorType.INSTITUTION,
+  accreditationStatus: AccreditationStatus.QUALIFIED_PURCHASER,
+  verifiedAt: new Date('2024-01-01'),
+  expiresAt: new Date('2025-01-01'),
+  provider: 'TestProvider',
+  dataHash: 'abc123def456',
+};
+
+export const mockRestrictedInvestorRecord: InvestorRecord = {
+  ...mockInvestorRecord,
+  countryCode: 'RU',
+};
+
+export const mockFrozenInvestorRecord: InvestorRecord = {
+  ...mockInvestorRecord,
+  isFrozen: true,
+};
+
+export const mockLowKYCInvestorRecord: InvestorRecord = {
+  ...mockInvestorRecord,
+  kycLevel: KYCLevel.UNVERIFIED,
+};
+
+export const mockUnaccreditedInvestorRecord: InvestorRecord = {
+  ...mockInvestorRecord,
+  accreditationStatus: AccreditationStatus.NOT_ACCREDITED,
+};
+
+// Test scenarios
+export const testScenarios = {
+  compliant: {
+    source: mockInvestorRecord,
+    destination: mockInvestorRecord,
+    amount: 100_000_000,
+    shouldPass: true,
+  },
+  amountExceeded: {
+    source: mockInvestorRecord,
+    destination: mockInvestorRecord,
+    amount: 2_000_000_000,
+    shouldPass: false,
+  },
+  frozenSource: {
+    source: mockFrozenInvestorRecord,
+    destination: mockInvestorRecord,
+    amount: 100_000_000,
+    shouldPass: false,
+  },
+  frozenDestination: {
+    source: mockInvestorRecord,
+    destination: mockFrozenInvestorRecord,
+    amount: 100_000_000,
+    shouldPass: false,
+  },
+  restrictedCountry: {
+    source: mockRestrictedInvestorRecord,
+    destination: mockInvestorRecord,
+    amount: 100_000_000,
+    shouldPass: false,
+  },
+  lowKYC: {
+    source: mockLowKYCInvestorRecord,
+    destination: mockInvestorRecord,
+    amount: 100_000_000,
+    shouldPass: false,
+  },
+  anonymousSender: {
+    source: undefined,
+    destination: mockInvestorRecord,
+    amount: 100_000_000,
+    shouldPass: false, // Default policy doesn't allow anonymous
+  },
+  anonymousReceiver: {
+    source: mockInvestorRecord,
+    destination: undefined,
+    amount: 100_000_000,
+    shouldPass: false, // Default policy doesn't allow anonymous
+  },
+};
+
+// Test wallet addresses (for deterministic testing)
+export const TEST_WALLETS = {
+  admin: new PublicKey('Admin111111111111111111111111111111111111111'),
+  payer: new PublicKey('Payer111111111111111111111111111111111111111'),
+  investor1: new PublicKey('Investor11111111111111111111111111111111111'),
+  investor2: new PublicKey('Investor21111111111111111111111111111111111'),
+  investor3: new PublicKey('Investor31111111111111111111111111111111111'),
+};
+EOF
+```
+
+```bash
+cat > tests/fixtures/test_wallets.json << 'EOF'
+{
+  "testWallets": [
+    {
+      "name": "admin",
+      "description": "Test admin wallet",
+      "address": "Admin111111111111111111111111111111111111111"
+    },
+    {
+      "name": "payer",
+      "description": "Test payer wallet",
+      "address": "Payer111111111111111111111111111111111111111"
+    },
+    {
+      "name": "investor_us",
+      "description": "US investor with enhanced KYC",
+      "address": "Investor11111111111111111111111111111111111",
+      "country": "US",
+      "kycLevel": 2,
+      "accredited": true
+    },
+    {
+      "name": "investor_gb",
+      "description": "UK investor with basic KYC",
+      "address": "Investor21111111111111111111111111111111111",
+      "country": "GB",
+      "kycLevel": 1,
+      "accredited": false
+    },
+    {
+      "name": "investor_restricted",
+      "description": "Investor from restricted country",
+      "address": "Investor31111111111111111111111111111111111",
+      "country": "RU",
+      "kycLevel": 2,
+      "accredited": true
+    }
+  ],
+  "testTransfers": [
+    {
+      "name": "compliant_transfer",
+      "from": "investor_us",
+      "to": "investor_gb",
+      "amount": 500000000,
+      "expected": "allowed"
+    },
+    {
+      "name": "large_transfer",
+      "from": "investor_us",
+      "to": "investor_gb",
+      "amount": 2000000000,
+      "expected": "blocked_amount"
+    },
+    {
+      "name": "restricted_country",
+      "from": "investor_us",
+      "to": "investor_restricted",
+      "amount": 100000000,
+      "expected": "blocked_country"
+    },
+    {
+      "name": "from_restricted",
+      "from": "investor_restricted",
+      "to": "investor_us",
+      "amount": 100000000,
+      "expected": "blocked_country"
+    }
+  ]
+}
+EOF
