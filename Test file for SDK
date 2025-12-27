@@ -1,0 +1,150 @@
+cat > tests/sdk.test.ts << 'EOF'
+import { describe, it, beforeEach } from 'mocha';
+import { expect } from 'chai';
+import {
+  Connection,
+  PublicKey,
+  Keypair,
+  clusterApiUrl,
+} from '@solana/web3.js';
+import { ComplianceClient } from '../src';
+import {
+  KYCLevel,
+  InvestorType,
+  AccreditationStatus,
+} from '../src/types';
+
+describe('Compliance SDK', () => {
+  let client: ComplianceClient;
+  let connection: Connection;
+  let testWallet: PublicKey;
+
+  beforeEach(() => {
+    // Mock connection for testing
+    connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+    testWallet = Keypair.generate().publicKey;
+
+    client = new ComplianceClient({
+      connection,
+      programId: new PublicKey('KycCompliance111111111111111111111111111111111'),
+    });
+  });
+
+  describe('Client initialization', () => {
+    it('should initialize with default program ID', () => {
+      const defaultClient = new ComplianceClient({
+        connection,
+      });
+      expect(defaultClient).to.be.instanceOf(ComplianceClient);
+    });
+
+    it('should initialize with custom program ID', () => {
+      const customProgramId = new PublicKey('Custom11111111111111111111111111111111111111');
+      const customClient = new ComplianceClient({
+        connection,
+        programId: customProgramId,
+      });
+      expect(customClient.getProgramId().toString()).to.equal(customProgramId.toString());
+    });
+  });
+
+  describe('Wallet status', () => {
+    it('should return unregistered status for new wallet', async () => {
+      const status = await client.getStatus(testWallet);
+      
+      expect(status.isRegistered).to.be.false;
+      expect(status.isVerified).to.be.false;
+      expect(status.isFrozen).to.be.false;
+      expect(status.complianceLevel).to.equal(0);
+    });
+  });
+
+  describe('Transfer validation', () => {
+    it('should validate transfer between two wallets', async () => {
+      const fromWallet = Keypair.generate().publicKey;
+      const toWallet = Keypair.generate().publicKey;
+      const amount = 100_000_000; // 0.1 SOL
+
+      const result = await client.checkTransfer(fromWallet, toWallet, amount);
+      
+      expect(result).to.have.property('isValid');
+      expect(result).to.have.property('errors');
+      expect(result).to.have.property('warnings');
+      expect(result).to.have.property('policy');
+    });
+  });
+
+  describe('Compliance utilities', () => {
+    it('should validate country codes', () => {
+      const { ComplianceUtils } = require('../src/utils');
+      
+      expect(ComplianceUtils.validateCountryCode('US')).to.be.true;
+      expect(ComplianceUtils.validateCountryCode('GB')).to.be.true;
+      expect(ComplianceUtils.validateCountryCode('USA')).to.be.false;
+      expect(ComplianceUtils.validateCountryCode('us')).to.be.false;
+      expect(ComplianceUtils.validateCountryCode('12')).to.be.false;
+    });
+
+    it('should calculate compliance score', () => {
+      const { ComplianceUtils } = require('../src/utils');
+      
+      const mockRecord = {
+        investorWallet: testWallet,
+        kycLevel: KYCLevel.ENHANCED,
+        countryCode: 'US',
+        isVerified: true,
+        isFrozen: false,
+        registrationDate: new Date(),
+        lastUpdated: new Date(),
+        totalTransfers: 10,
+        totalVolume: 1_000_000_000,
+        investorType: InvestorType.INDIVIDUAL,
+        accreditationStatus: AccreditationStatus.ACCREDITED,
+        walletCount: 1,
+      };
+
+      const score = ComplianceUtils.calculateComplianceScore(mockRecord);
+      
+      expect(score).to.be.a('number');
+      expect(score).to.be.greaterThan(0);
+      expect(score).to.be.lessThanOrEqual(100);
+    });
+  });
+
+  describe('Error handling', () => {
+    it('should map program errors', () => {
+      const { mapProgramError, UnauthorizedError, AlreadyRegisteredError } = require('../src/errors');
+      
+      const unauthorizedError = { logs: ['Program log: Unauthorized'] };
+      const mappedError = mapProgramError(unauthorizedError);
+      
+      expect(mappedError).to.be.instanceOf(UnauthorizedError);
+    });
+  });
+
+  describe('PDA generation', () => {
+    it('should generate consistent PDAs', async () => {
+      const { PDA } = require('../src/pda');
+      const pdaHelper = new PDA(client.getProgramId());
+      
+      const [registry1] = await pdaHelper.getComplianceRegistry();
+      const [registry2] = await pdaHelper.getComplianceRegistry();
+      
+      expect(registry1.toString()).to.equal(registry2.toString());
+    });
+
+    it('should generate investor-specific PDA', async () => {
+      const { PDA } = require('../src/pda');
+      const pdaHelper = new PDA(client.getProgramId());
+      
+      const wallet1 = Keypair.generate().publicKey;
+      const wallet2 = Keypair.generate().publicKey;
+      
+      const [pda1] = await pdaHelper.getInvestorRecord(wallet1);
+      const [pda2] = await pdaHelper.getInvestorRecord(wallet2);
+      
+      expect(pda1.toString()).to.not.equal(pda2.toString());
+    });
+  });
+});
+EOF
