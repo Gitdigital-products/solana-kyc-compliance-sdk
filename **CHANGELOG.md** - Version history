@@ -1,0 +1,359 @@
+cat > CHANGELOG.md << 'EOF'
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Initial release preparation
+- Complete Rust on-chain program
+- TypeScript SDK with full API
+- Comprehensive documentation
+- Example implementations
+- Test suite
+
+### Changed
+- N/A (initial release)
+
+### Fixed
+- N/A (initial release)
+
+## [0.1.0] - 2024-01-01
+
+### Added
+- Initial public release
+- Core compliance program with all instructions
+- Complete TypeScript SDK
+- Token Extensions integration
+- Documentation and examples
+- Test coverage
+
+### Features
+- Investor registration and management
+- Compliance policy configuration
+- Transfer validation via Token Extensions
+- Wallet freezing/unfreezing
+- Admin controls and multi-sig support
+- Country restrictions and KYC levels
+- Batch operations and utilities
+
+### Security
+- PDA-based account security
+- Input validation and error handling
+- Admin authorization checks
+- No upgrade backdoors
+
+---
+
+## Versioning Scheme
+
+- **MAJOR** version for incompatible API changes
+- **MINOR** version for added functionality (backwards compatible)
+- **PATCH** version for bug fixes
+
+## Deprecation Policy
+
+Features will be marked as deprecated for one MINOR version before removal.
+
+## Migration Guides
+
+Major version updates may include migration guides in the documentation.
+
+## Release Cadence
+
+- **Patch releases**: As needed for bug fixes
+- **Minor releases**: Every 4-6 weeks for new features
+- **Major releases**: As needed for breaking changes
+EOF
+```
+
+7. SECURITY.md - Security policy
+
+```bash
+cat > SECURITY.md << 'EOF'
+# 🔒 Security Policy
+
+## Supported Versions
+
+| Version | Supported          |
+| ------- | ------------------ |
+| 1.x.x   | :white_check_mark: |
+| < 1.0   | :x:                |
+
+## Reporting a Vulnerability
+
+### Private Disclosure Process
+We take security seriously. If you discover a security vulnerability, please follow these steps:
+
+1. **DO NOT** disclose the vulnerability publicly
+2. **DO NOT** create a GitHub issue
+3. **Email** security@gitdigital.com with:
+   - Description of the vulnerability
+   - Steps to reproduce
+   - Potential impact
+   - Suggested fix (if any)
+   - Your contact information
+
+### What to Include
+```markdown
+Subject: Security Vulnerability Report - Solana KYC Compliance SDK
+
+- Vulnerability Type: (e.g., Access Control, Input Validation)
+- Component: (e.g., Rust Program, TypeScript SDK)
+- Version: (e.g., 1.0.0)
+- Description: Detailed explanation
+- Reproduction Steps: Step-by-step instructions
+- Impact: Potential damage/exploitation
+- Suggested Fix: If you have one
+- Contact: Your email/telegram
+```
+
+Response Timeline
+
+· 24 hours: Initial acknowledgement
+· 3 days: Initial assessment
+· 7 days: Detailed analysis
+· 14 days: Patch development
+· 30 days: Disclosure and release
+
+Security Email
+
+security@gitdigital.com
+
+· PGP Key: [Available on request]
+· Response Time: Within 24 hours
+
+Security Best Practices
+
+For Developers
+
+1. Key Management
+   ```bash
+   # Use hardware wallets for admin keys
+   # Implement multi-sig for critical operations
+   # Never commit private keys to repositories
+   ```
+2. Code Security
+   ```typescript
+   // Validate all inputs
+   // Use PDAs for account security
+   // Implement proper access controls
+   // Follow the principle of least privilege
+   ```
+3. Dependencies
+   ```bash
+   # Regularly update dependencies
+   # Audit third-party packages
+   # Use lock files (package-lock.json, Cargo.lock)
+   ```
+
+For Users
+
+1. Administration
+   · Use multi-sig wallets for admin authority
+   · Regularly rotate admin keys
+   · Monitor for suspicious activity
+   · Keep backups of critical data
+2. Integration
+   · Validate all on-chain data
+   · Implement rate limiting
+   · Monitor transaction failures
+   · Keep audit logs
+3. Operations
+   · Regular security audits
+   · Incident response plan
+   · Employee security training
+   · Compliance with regulations
+
+Security Features
+
+Built-in Security
+
+1. PDA-based Accounts
+   · All critical accounts are PDAs
+   · No arbitrary account creation
+   · Deterministic address generation
+2. Access Control
+   · Admin-only functions protected
+   · Multi-sig support
+   · Role-based permissions
+3. Input Validation
+   · All inputs validated on-chain
+   · Size limits and format checks
+   · Malicious input rejection
+
+Token Extensions Security
+
+1. Transfer Hook
+   · Only called by Token Program
+   · Validated execution context
+   · No mint authority exposure
+2. Permanent Delegate
+   · Controlled by admin PDA
+   · Freeze/unfreeze only by admin
+   · No token minting capability
+
+Security Audit
+
+Audit Status
+
+· Internal Review: Complete
+· External Audit: Planned Q2 2024
+· Formal Verification: Future
+
+Audit Scope
+
+1. Rust Program
+   · Instruction logic
+   · Account validation
+   · Error handling
+   · Arithmetic safety
+2. TypeScript SDK
+   · Transaction building
+   · PDA generation
+   · Error mapping
+   · Integration safety
+3. Token Extensions
+   · Hook integration
+   · Delegate authority
+   · Cross-program invocation
+
+Audit Reports
+
+Audit reports will be published in the audits/ directory upon completion.
+
+Bug Bounty Program
+
+Scope
+
+Critical and high-severity vulnerabilities in:
+
+· On-chain program logic
+· SDK security vulnerabilities
+· Token extensions integration
+· Access control bypasses
+
+Out of Scope
+
+· UI/UX issues
+· Feature requests
+· Documentation errors
+· Low-impact informational issues
+
+Rewards
+
+· Critical: $10,000 - $50,000
+· High: $5,000 - $10,000
+· Medium: $1,000 - $5,000
+· Low: $100 - $1,000
+
+Eligibility
+
+· First reporter of unique vulnerability
+· Not employed by Gitdigital
+· Follow responsible disclosure
+· Provide clear reproduction steps
+
+Incident Response
+
+Response Plan
+
+1. Identification
+   · Monitor for unusual activity
+   · Review error reports
+   · Check security channels
+2. Containment
+   · Temporary disable affected features
+   · Implement emergency fixes
+   · Communicate with stakeholders
+3. Eradication
+   · Root cause analysis
+   · Permanent fix development
+   · Security improvements
+4. Recovery
+   · Deploy fixes
+   · Restore services
+   · Post-mortem analysis
+
+Communication
+
+· Internal: Immediate team notification
+· Users: Transparent updates
+· Public: Coordinated disclosure
+· Regulators: Required reporting
+
+Security Updates
+
+Update Channels
+
+· GitHub Releases: Security patches
+· Security Advisories: GitHub security tab
+· Email List: Security announcements
+· Documentation: Updated guides
+
+Update Policy
+
+· Critical: Immediate patch release
+· High: Within 7 days
+· Medium: Next scheduled release
+· Low: Future release
+
+Third-party Security
+
+Dependencies
+
+We monitor security of:
+
+· @solana/web3.js
+· @solana/spl-token
+· borsh
+· anchor
+· Rust crates
+
+Integration Partners
+
+· KYC providers
+· Oracle services
+· Wallet providers
+· Audit firms
+
+Responsible Disclosure
+
+Our Commitment
+
+We will:
+
+· Acknowledge receipt promptly
+· Work quickly on a fix
+· Credit reporters (if desired)
+· Disclose after patching
+
+Your Commitment
+
+Please:
+
+· Allow reasonable time for fixes
+· Not exploit the vulnerability
+· Not affect other users
+· Keep details confidential until disclosure
+
+Contact
+
+Security Team
+
+· Email: security@gitdigital.com
+· PGP: Available on request
+· Response: Within 24 hours
+
+Emergency Contact
+
+For urgent security issues outside business hours.
+
+---
+
+Security is a shared responsibility. Thank you for helping keep the ecosystem safe.
+EOF
