@@ -1,0 +1,359 @@
+cat > COMPLIANCE.md << 'EOF'
+# ⚖️ Compliance Documentation
+
+## Regulatory Alignment
+
+### Overview
+This SDK provides **compliance infrastructure**, not legal compliance. It is a tool that can help applications implement compliance controls, but does not guarantee regulatory compliance by itself.
+
+### Supported Regulations
+The SDK can help implement controls for:
+
+#### 1. **KYC (Know Your Customer)**
+- **Purpose**: Verify customer identity
+- **Implementation**: Multi-level verification system
+- **Alignment**: FATF Recommendation 10, EU AMLD 6, US BSA
+
+#### 2. **AML (Anti-Money Laundering)**
+- **Purpose**: Prevent money laundering
+- **Implementation**: Transaction monitoring, country restrictions
+- **Alignment**: FATF Recommendations, FinCEN guidelines
+
+#### 3. **Investor Accreditation**
+- **Purpose**: Verify investor qualifications
+- **Implementation**: Accreditation status tracking
+- **Alignment**: SEC Regulation D, MiFID II
+
+#### 4. **Sanctions Screening**
+- **Purpose**: Block sanctioned jurisdictions
+- **Implementation**: Country restrictions, wallet freezing
+- **Alignment**: OFAC, UN sanctions, EU restrictive measures
+
+### Regional Considerations
+
+#### United States
+- **SEC**: Regulation D for private placements
+- **FinCEN**: Travel Rule for transactions >$3,000
+- **OFAC**: Sanctioned countries and entities
+- **State laws**: Varying money transmitter licenses
+
+#### European Union
+- **AMLD6**: Enhanced due diligence requirements
+- **MiCA**: Markets in Crypto-Assets regulation
+- **GDPR**: Data privacy considerations
+- **Travel Rule**: EU implementation of FATF Rule 16
+
+#### United Kingdom
+- **MLRs**: Money Laundering Regulations
+- **FCA**: Financial Conduct Authority rules
+- **Travel Rule**: UK implementation requirements
+
+#### Asia-Pacific
+- **Singapore**: MAS Payment Services Act
+- **Hong Kong**: SFC licensing requirements
+- **Japan**: PSA and FSA regulations
+- **Australia**: AUSTRAC reporting requirements
+
+## What This SDK Does
+
+### 1. **Provides Compliance Infrastructure**
+- On-chain identity registry
+- Configurable compliance policies
+- Real-time transaction validation
+- Admin controls for intervention
+
+### 2. **Enables Regulatory Controls**
+- KYC level enforcement
+- Country restrictions
+- Transfer amount limits
+- Accreditation requirements
+- Wallet freezing capability
+
+### 3. **Creates Audit Trails**
+- Immutable registration records
+- Transparent policy changes
+- Visible freeze/unfreeze actions
+- Complete transaction validation history
+
+### 4. **Facilitates Integration**
+- Standardized compliance interface
+- Token Extensions compatibility
+- Developer-friendly SDK
+- Production-ready examples
+
+## What This SDK Does NOT Do
+
+### 1. **Legal Compliance Guarantee**
+- ❌ **Not legal advice** - Consult legal counsel
+- ❌ **Not jurisdiction-specific** - Global framework only
+- ❌ **Not automatically compliant** - Requires configuration
+- ❌ **Not a substitute for legal review** - Supplemental tool only
+
+### 2. **Identity Verification**
+- ❌ **Not a KYC provider** - Integrates with providers
+- ❌ **Not identity storage** - Stores verification results only
+- ❌ **Not biometric verification** - No facial recognition
+- ❌ **Not document verification** - No ID document processing
+
+### 3. **AML Monitoring**
+- ❌ **Not transaction monitoring** - Basic rule enforcement only
+- ❌ **Not suspicious activity reporting** - No SAR filing
+- ❌ **Not risk scoring** - No complex risk algorithms
+- ❌ **Not watchlist screening** - No real-time list checking
+
+### 4. **Regulatory Reporting**
+- ❌ **Not automated reporting** - No regulatory filings
+- ❌ **Not tax reporting** - No 1099 or equivalent
+- ❌ **Not audit reporting** - No formatted audit trails
+- ❌ **Not compliance certification** - No attestations
+
+## Implementation Requirements
+
+### Minimum Viable Compliance
+
+#### 1. **For Basic Compliance**
+```typescript
+const basicPolicy = {
+  requireKYCForTransfer: true,
+  allowAnonymousSender: false,
+  allowAnonymousReceiver: false,
+  maxTransferAmount: 1_000_000_000, // 1 SOL
+  minKYCLevel: 1, // Basic verification
+  supportedCountries: ['US', 'GB', 'DE', 'FR', 'JP'],
+  restrictedCountries: ['RU', 'KP', 'IR', 'SY', 'CU'],
+  isActive: true,
+  requireAccreditation: false,
+  maxWalletsPerInvestor: 5,
+};
+```
+
+2. For Enhanced Compliance
+
+```typescript
+const enhancedPolicy = {
+  requireKYCForTransfer: true,
+  allowAnonymousSender: false,
+  allowAnonymousReceiver: false,
+  maxTransferAmount: 10_000_000_000, // 10 SOL
+  minKYCLevel: 2, // Enhanced verification
+  supportedCountries: ['US', 'GB', 'DE', 'FR', 'JP', 'CA', 'AU', 'SG'],
+  restrictedCountries: HIGH_RISK_COUNTRIES, // All high-risk
+  isActive: true,
+  requireAccreditation: true, // For larger amounts
+  maxWalletsPerInvestor: 3,
+};
+```
+
+3. For Institutional Compliance
+
+```typescript
+const institutionalPolicy = {
+  requireKYCForTransfer: true,
+  allowAnonymousSender: false,
+  allowAnonymousReceiver: false,
+  maxTransferAmount: 100_000_000_000, // 100 SOL
+  minKYCLevel: 3, // Institutional verification
+  supportedCountries: ['US', 'GB', 'DE'], // Limited jurisdictions
+  restrictedCountries: ALL_RESTRICTED_COUNTRIES,
+  isActive: true,
+  requireAccreditation: true,
+  maxWalletsPerInvestor: 1, // Single wallet per entity
+};
+```
+
+Required External Systems
+
+1. KYC Provider Integration
+
+```typescript
+// Example integration flow
+async function completeKYC(userWallet: PublicKey) {
+  // 1. Redirect to KYC provider
+  const kycUrl = await kycProvider.initiateVerification(userWallet);
+  
+  // 2. Wait for completion (webhook or polling)
+  const result = await waitForKYCResult(userWallet);
+  
+  // 3. Validate and register
+  if (result.status === 'approved') {
+    await client.register(payer, userWallet, {
+      kycLevel: mapLevel(result.level),
+      countryCode: result.country,
+      investorType: mapType(result.investorType),
+      accreditationStatus: mapAccreditation(result.accredited),
+    });
+  }
+}
+```
+
+2. AML/Sanctions Screening
+
+```typescript
+// Example sanctions check
+async function checkSanctions(wallet: PublicKey, country: string) {
+  // Check wallet against sanctions lists
+  const isSanctioned = await sanctionsProvider.checkWallet(wallet);
+  
+  // Check country against restrictions
+  const isRestricted = RESTRICTED_COUNTRIES.includes(country);
+  
+  if (isSanctioned || isRestricted) {
+    throw new Error('Sanctions violation detected');
+  }
+}
+```
+
+3. Accreditation Verification
+
+```typescript
+// Example accreditation check
+async function verifyAccreditation(userWallet: PublicKey, income: number, netWorth: number) {
+  // SEC Regulation D criteria
+  const isAccredited = income >= 200_000 || netWorth >= 1_000_000;
+  
+  // Additional checks for qualified purchasers
+  const isQualifiedPurchaser = netWorth >= 5_000_000;
+  
+  return {
+    accredited: isAccredited,
+    qualifiedPurchaser: isQualifiedPurchaser,
+  };
+}
+```
+
+Legal Disclaimers
+
+IMPORTANT NOTICE
+
+THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+1. No Legal Advice
+
+This SDK is a technical tool, not legal advice. You must:
+
+· Consult with qualified legal counsel
+· Understand applicable regulations
+· Implement appropriate controls
+· Maintain proper documentation
+
+2. Jurisdictional Compliance
+
+Compliance requirements vary by jurisdiction. You must:
+
+· Identify all applicable jurisdictions
+· Understand local requirements
+· Implement jurisdiction-specific controls
+· Monitor regulatory changes
+
+3. Regulatory Risk
+
+Using this SDK does not eliminate regulatory risk. You remain responsible for:
+
+· Proper implementation
+· Ongoing monitoring
+· Regulatory reporting
+· Enforcement actions
+
+4. No Liability
+
+The developers and contributors are not liable for:
+
+· Regulatory violations
+· Financial losses
+· Legal penalties
+· Compliance failures
+
+5. Security Responsibility
+
+You are responsible for:
+
+· Secure key management
+· System security
+· Data protection
+· Access controls
+
+Compliance Checklist
+
+✅ Pre-Implementation
+
+· Consult legal counsel
+· Identify applicable regulations
+· Determine compliance requirements
+· Select KYC/AML providers
+· Establish policies and procedures
+
+✅ Implementation
+
+· Integrate KYC provider
+· Configure compliance policies
+· Implement transaction monitoring
+· Set up admin controls
+· Establish audit trails
+
+✅ Ongoing Compliance
+
+· Regular policy reviews
+· Transaction monitoring
+· Suspicious activity reporting
+· Record keeping
+· Staff training
+
+✅ Technical Controls
+
+· Multi-sig for admin functions
+· Regular security audits
+· Backup and recovery
+· Incident response plan
+· Change management
+
+Regulatory Resources
+
+United States
+
+· FinCEN: BSA Requirements
+· SEC: Regulation D
+· OFAC: Sanctions Lists
+
+European Union
+
+· EU Commission: AMLD6
+· EBA: Guidelines
+
+International
+
+· FATF: Virtual Assets Guidance
+· IMF: Crypto Assets Policy
+
+Support & Updates
+
+Compliance Updates
+
+This SDK will be updated to address:
+
+· New regulatory requirements
+· Emerging compliance standards
+· Security enhancements
+· Technical improvements
+
+Professional Services
+
+For professional compliance assistance:
+
+· Legal counsel specializing in crypto
+· Compliance consulting firms
+· Regulatory technology providers
+· Audit and assurance services
+
+Community Resources
+
+· GitHub Discussions for technical questions
+· Documentation updates
+· Example implementations
+· Integration guides
+
+---
+
+Remember: Compliance is an ongoing process, not a one-time implementation. Regular review and updates are essential for maintaining compliance as regulations evolve and your business grows.
+
+Last Updated: $(date +%Y-%m-%d)
+EOF
