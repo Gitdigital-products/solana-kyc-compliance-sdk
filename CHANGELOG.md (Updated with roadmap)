@@ -1,0 +1,107 @@
+cat > CHANGELOG.md << 'EOF'
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Complete open source governance setup
+- Issue and PR templates
+- Support documentation
+- Security policy
+- Code of conduct
+- Contribution guidelines
+- Roadmap planning
+
+### Changed
+- Updated SECURITY.md with bug bounty program
+- Enhanced documentation structure
+- Improved test coverage
+
+### Fixed
+- Minor documentation typos
+- Test configuration issues
+
+## [0.1.0] - 2024-01-01
+
+### Added
+- Initial public release
+- Core compliance program with all instructions
+- Complete TypeScript SDK
+- Token Extensions integration
+- Comprehensive documentation and examples
+- Test suite with CI/CD
+- Basic open source files
+
+### Features
+- Investor registration and management
+- Compliance policy configuration
+- Transfer validation via Token Extensions
+- Wallet freezing/unfreezing
+- Admin controls and multi-sig support
+- Country restrictions and KYC levels
+- Batch operations and utilities
+
+### Security
+- PDA-based account security
+- Input validation and error handling
+- Admin authorization checks
+- No upgrade backdoors
+
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for detailed future plans.
+
+### Upcoming Releases
+
+#### v1.0.0 (Q1 2024)
+- Security audit completion
+- Production deployment guides
+- Performance optimization
+- Enhanced error handling
+
+#### v1.1.0 (Q2 2024)
+- Dynamic policy engine
+- Time-based restrictions
+- Enhanced reporting
+- Audit trail improvements
+
+#### v1.2.0 (Q3 2024)
+- Advanced token extensions
+- UI component library
+- Plugin system
+- Enhanced developer tools
+
+#### v2.0.0 (Q4 2024)
+- Cross-chain compliance
+- Privacy features (ZK proofs)
+- AI-powered monitoring
+- Mobile SDK
+
+---
+
+## Versioning Scheme
+
+- **MAJOR** version for incompatible API changes
+- **MINOR** version for added functionality (backwards compatible)
+- **PATCH** version for bug fixes
+
+## Deprecation Policy
+
+Features will be marked as deprecated for one MINOR version before removal.
+Migration guides will be provided for breaking changes.
+
+## Release Cadence
+
+- **Patch releases**: As needed for bug fixes (weekly)
+- **Minor releases**: New features (monthly)
+- **Major releases**: Breaking changes (quarterly)
+
+## Migration Guides
+
+Major version updates include migration guides in the documentation.
+EOF
