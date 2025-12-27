@@ -1,0 +1,31 @@
+solana-kyc-compliance-sdk/
+├── tests/
+│   ├── rust/
+│   │   ├── unit/
+│   │   │   ├── instructions/
+│   │   │   ├── state/
+│   │   │   └── processor/
+│   │   └── integration/
+│   │       ├── local_validator/
+│   │       └── token_extensions/
+│   ├── typescript/
+│   │   ├── unit/
+│   │   │   ├── client.test.ts
+│   │   │   ├── instructions.test.ts
+│   │   │   └── utils.test.ts
+│   │   └── integration/
+│   │       ├── e2e.test.ts
+│   │       └── compliance_flow.test.ts
+│   └── fixtures/
+│       ├── mock_data.ts
+│       └── test_wallets.json
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       ├── rust-tests.yml
+│       ├── ts-tests.yml
+│       └── coverage.yml
+└── scripts/
+    ├── test-local.sh
+    ├── coverage.sh
+    └── benchmark.sh
