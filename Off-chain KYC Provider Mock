@@ -1,0 +1,888 @@
+3.1 KYC Provider Mock Structure
+
+```bash
+mkdir -p ecosystem/kyc-provider-mock/src
+```
+
+```bash
+cat > ecosystem/kyc-provider-mock/README.md << 'EOF'
+# 🔐 Off-chain KYC Provider Mock
+
+A mock KYC provider service that simulates real-world KYC verification processes and integrates with the Solana KYC Compliance SDK.
+
+## Features
+
+- ✅ **REST API**: Complete RESTful API for KYC operations
+- ✅ **Webhook Support**: Real-time webhook notifications
+- ✅ **Verification Simulator**: Simulates document verification, facial recognition, etc.
+- ✅ **Integration SDK**: Easy integration with compliance program
+- ✅ **Admin Dashboard**: Manage verification requests
+- ✅ **Audit Logging**: Complete audit trail of all verifications
+
+## Architecture
+
+```
+
+┌─────────────────────────────────────────────┐
+│KYC Provider Mock                  │
+│┌─────────────┐  ┌─────────────┐          │
+││   REST API  │  │  Webhooks   │          │
+││   • POST /  │  │   • Events  │          │
+││     verify  │  │   • Updates │          │
+││   • GET /   │  │   • Alerts  │          │
+││     status  │  │             │          │
+│└──────┬──────┘  └──────┬──────┘          │
+││                │                  │
+│▼                ▼                  │
+│┌─────────────────────────────────────┐   │
+││       Verification Engine           │   │
+││  • Document Analysis                │   │
+││  • Facial Recognition               │   │
+││  • Liveness Detection               │   │
+││  • Risk Assessment                  │   │
+│└─────────────────────────────────────┘   │
+││                │                  │
+│▼                ▼                  │
+│┌─────────────┐  ┌─────────────┐          │
+││  Database   │  │  Audit Logs │          │
+││   • Users   │  │   • Events  │          │
+││   • Docs    │  │   • Changes │          │
+││   • Results │  │             │          │
+│└─────────────┘  └─────────────┘          │
+└─────────────────────────────────────────────┘
+│
+▼
+┌─────────────────────────┐
+│  Solana Compliance SDK  │
+│  • Register Investor    │
+│  • Update Status        │
+│  • Sync Results         │
+└─────────────────────────┘
+
+```
+
+## Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Start server
+npm start
+
+# Or start with development mode
+npm run dev
+```
+
+API Reference
+
+Authentication
+
+All endpoints require API key authentication:
+
+```bash
+curl -H "X-API-Key: your-api-key" https://api.example.com/verify
+```
+
+Endpoints
+
+1. Initiate Verification
+
+```bash
+POST /api/v1/verify
+Content-Type: application/json
+
+{
+  "wallet": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+  "userData": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john@example.com",
+    "country": "US",
+    "dateOfBirth": "1990-01-01"
+  },
+  "documents": [
+    {
+      "type": "passport",
+      "country": "US",
+      "number": "123456789"
+    }
+  ],
+  "callbackUrl": "https://your-app.com/webhook/kyc"
+}
+```
+
+Response:
+
+```json
+{
+  "verificationId": "ver_abc123",
+  "status": "pending",
+  "redirectUrl": "https://kyc-provider.com/verify/ver_abc123",
+  "estimatedCompletion": "2024-01-01T12:00:00Z"
+}
+```
+
+2. Check Verification Status
+
+```bash
+GET /api/v1/verify/{verificationId}
+```
+
+Response:
+
+```json
+{
+  "verificationId": "ver_abc123",
+  "status": "approved",
+  "kycLevel": 2,
+  "details": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "country": "US",
+    "verificationDate": "2024-01-01T12:00:00Z"
+  },
+  "onchainData": {
+    "kycLevel": 2,
+    "countryCode": "US",
+    "investorType": 0,
+    "accreditationStatus": 1
+  }
+}
+```
+
+3. Webhook Events
+
+Webhook payload:
+
+```json
+{
+  "event": "verification.completed",
+  "verificationId": "ver_abc123",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "data": {
+    "status": "approved",
+    "kycLevel": 2,
+    "onchainData": {
+      "kycLevel": 2,
+      "countryCode": "US",
+      "investorType": 0,
+      "accreditationStatus": 1
+    }
+  },
+  "signature": "abc123..." // HMAC signature
+}
+```
+
+Integration Examples
+
+1. Basic Integration
+
+```typescript
+import { KYCProvider } from './kyc-provider';
+
+const provider = new KYCProvider({
+  apiKey: 'your-api-key',
+  baseUrl: 'https://api.kyc-provider.com',
+});
+
+// Initiate verification
+const verification = await provider.initiateVerification({
+  wallet: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
+  userData: {
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john@example.com',
+    country: 'US',
+  },
+});
+
+// Redirect user to verification page
+redirect(verification.redirectUrl);
+
+// Later, check status
+const status = await provider.getVerificationStatus(verification.verificationId);
+```
+
+2. Webhook Integration
+
+```typescript
+import express from 'express';
+import { KYCWebhookHandler } from './kyc-webhook';
+
+const app = express();
+app.use(express.json());
+
+const webhookHandler = new KYCWebhookHandler({
+  webhookSecret: 'your-webhook-secret',
+  complianceClient: complianceClient,
+});
+
+app.post('/webhook/kyc', async (req, res) => {
+  try {
+    const event = await webhookHandler.handleWebhook(req);
+    
+    if (event.type === 'verification.completed') {
+      // Register investor on-chain
+      await complianceClient.register(
+        payer,
+        new PublicKey(event.data.wallet),
+        event.data.onchainData
+      );
+      
+      console.log(`✅ Investor ${event.data.wallet} registered on-chain`);
+    }
+    
+    res.json({ received: true });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+```
+
+3. React Component
+
+```typescript
+import { KYCVerificationComponent } from './kyc-component';
+
+function App() {
+  return (
+    <div>
+      <KYCVerificationComponent
+        apiKey="your-api-key"
+        wallet={userWallet}
+        onComplete={(result) => {
+          console.log('KYC completed:', result);
+          // Update UI or trigger on-chain registration
+        }}
+        onError={(error) => {
+          console.error('KYC error:', error);
+        }}
+      />
+    </div>
+  );
+}
+```
+
+Verification Levels
+
+Level 1: Basic Verification
+
+· Email verification
+· Phone verification
+· Basic identity check
+
+Level 2: Enhanced Verification
+
+· Government ID verification
+· Facial recognition
+· Liveness detection
+· Address verification
+
+Level 3: Institutional Verification
+
+· Corporate documents
+· Ultimate beneficial ownership (UBO)
+· Enhanced due diligence (EDD)
+· Sanctions screening
+
+Configuration
+
+Environment Variables
+
+```bash
+# Server
+PORT=3000
+NODE_ENV=production
+
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/kyc_db
+
+# Security
+API_KEY_SECRET=your-secret-key
+WEBHOOK_SECRET=your-webhook-secret
+JWT_SECRET=your-jwt-secret
+
+# Integration
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+COMPLIANCE_PROGRAM_ID=KycCompliance111111111111111111111111111111111
+ADMIN_KEYPAIR_PATH=/path/to/admin.json
+```
+
+Database Schema
+
+```sql
+CREATE TABLE verifications (
+  id SERIAL PRIMARY KEY,
+  verification_id VARCHAR(255) UNIQUE NOT NULL,
+  wallet_address VARCHAR(255) NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  kyc_level INTEGER,
+  user_data JSONB,
+  documents JSONB,
+  results JSONB,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_verifications_wallet ON verifications(wallet_address);
+CREATE INDEX idx_verifications_status ON verifications(status);
+```
+
+Testing
+
+Mock Data Generation
+
+```typescript
+// Generate test verification
+const mockVerification = await generateMockVerification({
+  wallet: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
+  successRate: 0.95, // 95% success rate for testing
+  delay: 5000, // Simulate 5-second processing
+});
+```
+
+Test Scenarios
+
+```bash
+# Run tests
+npm test
+
+# Test specific scenarios
+npm run test:scenario -- --scenario="kyc-approval"
+npm run test:scenario -- --scenario="kyc-rejection"
+npm run test:scenario -- --scenario="webhook-integration"
+```
+
+Deployment
+
+Docker Deployment
+
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+EXPOSE 3000
+CMD ["node", "dist/server.js"]
+```
+
+```bash
+# Build and run
+docker build -t kyc-provider-mock .
+docker run -p 3000:3000 kyc-provider-mock
+```
+
+Kubernetes Deployment
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyc-provider
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kyc-provider
+  template:
+    metadata:
+      labels:
+        app: kyc-provider
+    spec:
+      containers:
+      - name: kyc-provider
+        image: kyc-provider-mock:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: kyc-secrets
+              key: database-url
+```
+
+Security & Compliance
+
+Data Protection
+
+· All data encrypted at rest
+· HTTPS enforced
+· API rate limiting
+· IP whitelisting
+
+Compliance Features
+
+· Audit trail of all operations
+· Data retention policies
+· Right to erasure (GDPR)
+· Export capabilities
+
+Monitoring
+
+· Real-time monitoring dashboard
+· Alert system for suspicious activity
+· Performance metrics
+· Error tracking
+
+Support
+
+· Documentation: GitHub Wiki
+· Issues: GitHub Issues
+· Discord: Community Support
+
+License
+
+MIT
+EOF
+
+```
+
+```bash
+cat > ecosystem/kyc-provider-mock/package.json << 'EOF'
+{
+  "name": "@gitdigital/kyc-provider-mock",
+  "version": "1.0.0",
+  "description": "Mock KYC Provider Service for Testing and Development",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "test": "jest",
+    "test:integration": "jest --config jest.integration.config.js",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "seed": "ts-node scripts/seed-database.ts"
+  },
+  "dependencies": {
+    "@gitdigital/solana-kyc-compliance-sdk": "file:../../",
+    "@solana/web3.js": "^1.87.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "express-rate-limit": "^6.10.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3",
+    "typeorm": "^0.3.17",
+    "winston": "^3.10.0",
+    "joi": "^17.9.2",
+    "uuid": "^9.0.0",
+    "axios": "^1.5.0",
+    "swagger-ui-express": "^5.0.0",
+    "compression": "^1.7.4",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.7",
+    "@types/express": "^4.17.17",
+    "@types/cors": "^2.8.13",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/bcrypt": "^5.0.0",
+    "@types/uuid": "^9.0.2",
+    "@types/jest": "^29.5.5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "supertest": "^6.3.3",
+    "@types/supertest": "^2.0.12",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "keywords": [
+    "kyc",
+    "identity",
+    "verification",
+    "compliance",
+    "solana",
+    "mock",
+    "testing"
+  ],
+  "author": "Gitdigital",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}
+EOF
+```
+
+```bash
+cat > ecosystem/kyc-provider-mock/src/server.ts << 'EOF'
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import compression from 'compression';
+import { Server } from 'socket.io';
+import http from 'http';
+import dotenv from 'dotenv';
+import winston from 'winston';
+import { KYCAPI } from './api';
+import { VerificationEngine } from './verification';
+import { WebhookManager } from './webhook';
+
+dotenv.config();
+
+// Configure logging
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      ),
+    }),
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' }),
+  ],
+});
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN || '*',
+  },
+});
+
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(compression());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+});
+app.use('/api/', limiter);
+
+// Request logging middleware
+app.use((req, res, next) => {
+  logger.info({
+    method: req.method,
+    url: req.url,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+  });
+  next();
+});
+
+// Initialize services
+const verificationEngine = new VerificationEngine(logger);
+const webhookManager = new WebhookManager(logger);
+const kycAPI = new KYCAPI(verificationEngine, webhookManager, logger);
+
+// API Routes
+app.use('/api/v1', kycAPI.router);
+
+// WebSocket for real-time updates
+io.on('connection', (socket) => {
+  logger.info('Client connected via WebSocket');
+  
+  socket.on('subscribe', (verificationId: string) => {
+    socket.join(`verification:${verificationId}`);
+    logger.info(`Client subscribed to verification: ${verificationId}`);
+  });
+  
+  socket.on('disconnect', () => {
+    logger.info('Client disconnected');
+  });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0',
+    services: {
+      api: 'running',
+      verification: 'running',
+      webhooks: 'running',
+    },
+  });
+});
+
+// API documentation
+app.get('/api-docs', (req, res) => {
+  res.json({
+    endpoints: {
+      'POST /api/v1/verify': 'Initiate KYC verification',
+      'GET /api/v1/verify/:id': 'Get verification status',
+      'GET /api/v1/verifications': 'List verifications (admin)',
+      'POST /api/v1/webhook/test': 'Test webhook integration',
+    },
+    webhookEvents: [
+      'verification.initiated',
+      'verification.completed',
+      'verification.approved',
+      'verification.rejected',
+      'verification.expired',
+    ],
+  });
+});
+
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  logger.error({
+    error: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method,
+  });
+  
+  res.status(err.status || 500).json({
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not found',
+    message: `Cannot ${req.method} ${req.url}`,
+  });
+});
+
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
+
+server.listen(PORT as number, HOST, () => {
+  logger.info(`KYC Provider Mock server running on http://${HOST}:${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`API Documentation: http://${HOST}:${PORT}/api-docs`);
+  logger.info(`Health check: http://${HOST}:${PORT}/health`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
+});
+
+export { app, server, io };
+EOF
+```
+
+```bash
+cat > ecosystem/kyc-provider-mock/src/api.ts << 'EOF'
+import express, { Router } from 'express';
+import Joi from 'joi';
+import { v4 as uuidv4 } from 'uuid';
+import { VerificationEngine } from './verification';
+import { WebhookManager } from './webhook';
+import winston from 'winston';
+import { PublicKey } from '@solana/web3.js';
+
+export interface VerificationRequest {
+  wallet: string;
+  userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    country: string;
+    dateOfBirth?: string;
+    phone?: string;
+  };
+  documents?: Array<{
+    type: string;
+    country: string;
+    number: string;
+    images?: string[]; // Base64 encoded images
+  }>;
+  callbackUrl?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface VerificationResponse {
+  verificationId: string;
+  status: 'pending' | 'processing' | 'approved' | 'rejected' | 'expired';
+  kycLevel?: number;
+  redirectUrl?: string;
+  estimatedCompletion?: string;
+  details?: any;
+  onchainData?: {
+    kycLevel: number;
+    countryCode: string;
+    investorType: number;
+    accreditationStatus: number;
+  };
+}
+
+export class KYCAPI {
+  public router: Router;
+  
+  constructor(
+    private verificationEngine: VerificationEngine,
+    private webhookManager: WebhookManager,
+    private logger: winston.Logger
+  ) {
+    this.router = Router();
+    this.setupRoutes();
+  }
+  
+  private setupRoutes(): void {
+    // API key middleware
+    this.router.use(this.authenticate.bind(this));
+    
+    // Initiate verification
+    this.router.post('/verify', this.initiateVerification.bind(this));
+    
+    // Get verification status
+    this.router.get('/verify/:id', this.getVerificationStatus.bind(this));
+    
+    // List verifications (admin only)
+    this.router.get('/verifications', this.listVerifications.bind(this));
+    
+    // Webhook test endpoint
+    this.router.post('/webhook/test', this.testWebhook.bind(this));
+    
+    // Generate on-chain data
+    this.router.post('/generate-onchain-data', this.generateOnchainData.bind(this));
+  }
+  
+  private authenticate(req: express.Request, res: express.Response, next: express.NextFunction): void {
+    const apiKey = req.headers['x-api-key'] as string;
+    
+    if (!apiKey) {
+      res.status(401).json({ error: 'API key required' });
+      return;
+    }
+    
+    // In production, validate against database
+    // For mock, accept any non-empty key
+    if (apiKey.trim() === '') {
+      res.status(401).json({ error: 'Invalid API key' });
+      return;
+    }
+    
+    // Store API key in request for logging
+    (req as any).apiKey = apiKey;
+    next();
+  }
+  
+  private async initiateVerification(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      // Validate request
+      const schema = Joi.object({
+        wallet: Joi.string().required(),
+        userData: Joi.object({
+          firstName: Joi.string().required(),
+          lastName: Joi.string().required(),
+          email: Joi.string().email().required(),
+          country: Joi.string().length(2).required(),
+          dateOfBirth: Joi.string().isoDate().optional(),
+          phone: Joi.string().optional(),
+        }).required(),
+        documents: Joi.array().items(
+          Joi.object({
+            type: Joi.string().valid('passport', 'driver_license', 'national_id').required(),
+            country: Joi.string().length(2).required(),
+            number: Joi.string().required(),
+            images: Joi.array().items(Joi.string()).optional(),
+          })
+        ).optional(),
+        callbackUrl: Joi.string().uri().optional(),
+        metadata: Joi.object().optional(),
+      });
+      
+      const { error, value } = schema.validate(req.body);
+      if (error) {
+        res.status(400).json({ error: error.details[0].message });
+        return;
+      }
+      
+      const request: VerificationRequest = value;
+      
+      // Validate wallet address
+      try {
+        new PublicKey(request.wallet);
+      } catch {
+        res.status(400).json({ error: 'Invalid wallet address' });
+        return;
+      }
+      
+      // Generate verification ID
+      const verificationId = `ver_${uuidv4().replace(/-/g, '')}`;
+      
+      // Create verification
+      const verification = await this.verificationEngine.createVerification(
+        verificationId,
+        request
+      );
+      
+      // Log the request
+      this.logger.info('Verification initiated', {
+        verificationId,
+        wallet: request.wallet,
+        country: request.userData.country,
+        apiKey: (req as any).apiKey,
+      });
+      
+      // Start verification process (async)
+      setTimeout(async () => {
+        try {
+          const result = await this.verificationEngine.processVerification(verificationId);
+          
+          // Send webhook if callback URL provided
+          if (request.callbackUrl) {
+            await this.webhookManager.sendWebhook(request.callbackUrl, {
+              event: 'verification.completed',
+              verificationId,
+              timestamp: new Date().toISOString(),
+              data: result,
+            });
+          }
+        } catch (error) {
+          this.logger.error('Verification processing failed', {
+            verificationId,
+            error: error.message,
+          });
+        }
+      }, 1000); // Simulate processing delay
+      
+      // Return initial response
+      const response: VerificationResponse = {
+        verificationId,
+        status: 'pending',
+        redirectUrl: `${process.env.BASE_URL || 'http://localhost:3000'}/verify/${verificationId}`,
+        estimatedCompletion: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 minutes
+      };
+      
+      res.status(201).json(response);
+      
+    } catch (error) {
+      this.logger.error('Initiate verification failed', {
+        error: error.message,
+        stack: error
