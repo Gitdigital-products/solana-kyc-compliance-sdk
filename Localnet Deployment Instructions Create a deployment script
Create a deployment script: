@@ -1,0 +1,16 @@
+#!/bin/bash
+# deploy-localnet.sh
+
+# Build the program
+echo "Building KYC Compliance program..."
+cargo build-bpf --manifest-path=programs/kyc-compliance/Cargo.toml --bpf-out-dir=dist/program
+
+# Deploy to localnet
+echo "Deploying to localnet..."
+solana program deploy dist/program/kyc_compliance.so \
+    --url localhost \
+    --keypair ~/.config/solana/id.json
+
+# Run deployment script
+echo "Initializing program state..."
+ts-node deploy/deploy.ts
