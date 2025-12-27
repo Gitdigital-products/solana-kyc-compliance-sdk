@@ -1,0 +1,114 @@
+cat > src/errors.ts << 'EOF'
+import { SendTransactionError } from '@solana/web3.js';
+
+/**
+ * Custom SDK errors
+ */
+export class ComplianceSDKError extends Error {
+  constructor(message: string, public code?: number) {
+    super(message);
+    this.name = 'ComplianceSDKError';
+  }
+}
+
+export class UnauthorizedError extends ComplianceSDKError {
+  constructor(message = 'Unauthorized access') {
+    super(message, 0);
+    this.name = 'UnauthorizedError';
+  }
+}
+
+export class AlreadyRegisteredError extends ComplianceSDKError {
+  constructor(message = 'Wallet already registered') {
+    super(message, 1);
+    this.name = 'AlreadyRegisteredError';
+  }
+}
+
+export class NotRegisteredError extends ComplianceSDKError {
+  constructor(message = 'Wallet not registered') {
+    super(message, 2);
+    this.name = 'NotRegisteredError';
+  }
+}
+
+export class PolicyViolationError extends ComplianceSDKError {
+  constructor(message = 'Transaction violates compliance policy') {
+    super(message, 3);
+    this.name = 'PolicyViolationError';
+  }
+}
+
+export class WalletFrozenError extends ComplianceSDKError {
+  constructor(message = 'Wallet is frozen') {
+    super(message, 8);
+    this.name = 'WalletFrozenError';
+  }
+}
+
+export class TransferValidationError extends ComplianceSDKError {
+  constructor(
+    message = 'Transfer validation failed',
+    public validationErrors: string[] = []
+  ) {
+    super(message, 7);
+    this.name = 'TransferValidationError';
+  }
+}
+
+export class InvalidCountryCodeError extends ComplianceSDKError {
+  constructor(message = 'Invalid country code') {
+    super(message, 10);
+    this.name = 'InvalidCountryCodeError';
+  }
+}
+
+export class KYCLevelTooLowError extends ComplianceSDKError {
+  constructor(message = 'KYC level too low for this operation') {
+    super(message, 11);
+    this.name = 'KYCLevelTooLowError';
+  }
+}
+
+/**
+ * Map on-chain error codes to SDK errors
+ */
+export function mapProgramError(error: any): ComplianceSDKError {
+  if (error instanceof SendTransactionError) {
+    const logs = error.logs?.join('\n') || '';
+    
+    // Check for custom program errors
+    if (logs.includes('Unauthorized')) {
+      return new UnauthorizedError();
+    } else if (logs.includes('Already Registered')) {
+      return new AlreadyRegisteredError();
+    } else if (logs.includes('Not Registered')) {
+      return new NotRegisteredError();
+    } else if (logs.includes('Policy Violation')) {
+      return new PolicyViolationError();
+    } else if (logs.includes('Wallet Frozen')) {
+      return new WalletFrozenError();
+    } else if (logs.includes('Invalid Country Code')) {
+      return new InvalidCountryCodeError();
+    } else if (logs.includes('KYC Level Too Low')) {
+      return new KYCLevelTooLowError();
+    }
+  }
+  
+  // Return generic error
+  return new ComplianceSDKError(error.message || 'Unknown error');
+}
+
+/**
+ * Check if error is a specific compliance error
+ */
+export function isComplianceError(error: any, errorType?: typeof ComplianceSDKError): boolean {
+  if (!error) return false;
+  
+  if (errorType) {
+    return error instanceof errorType;
+  }
+  
+  return error instanceof ComplianceSDKError;
+}
+EOF
