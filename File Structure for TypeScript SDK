@@ -1,0 +1,19 @@
+solana-kyc-compliance-sdk/
+├── src/
+│   ├── index.ts                 # Main SDK export
+│   ├── client.ts               # ComplianceClient class
+│   ├── instructions.ts         # Instruction builders
+│   ├── transactions.ts         # Transaction helpers
+│   ├── pda.ts                  # PDA helpers
+│   ├── errors.ts               # Error mapping
+│   ├── types.ts               # TypeScript types
+│   ├── constants.ts           # Constants and config
+│   └── utils.ts               # Utility functions
+├── examples/
+│   ├── register-investor.ts
+│   ├── mint-compliant-token.ts
+│   ├── transfer-validation.ts
+│   └── admin-operations.ts
+├── tests/
+│   └── sdk.test.ts
+└── tsconfig.json
