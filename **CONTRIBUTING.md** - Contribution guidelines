@@ -1,0 +1,334 @@
+cat > CONTRIBUTING.md << 'EOF'
+# 🤝 Contributing Guide
+
+Thank you for your interest in contributing to the Solana KYC Compliance SDK! This document provides guidelines and instructions for contributors.
+
+## Code of Conduct
+
+Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Getting Started
+
+### 1. Fork the Repository
+```bash
+# Fork on GitHub, then clone your fork
+git clone https://github.com/YOUR_USERNAME/solana-kyc-compliance-sdk.git
+cd solana-kyc-compliance-sdk
+```
+
+2. Set Up Development Environment
+
+```bash
+# Install dependencies
+npm install
+
+# Build the project
+npm run build:sdk
+npm run build:program
+
+# Run tests
+npm test
+```
+
+3. Create a Branch
+
+```bash
+git checkout -b feature/your-feature-name
+# or
+git checkout -b fix/issue-description
+```
+
+Development Workflow
+
+1. Rust Program Development
+
+```bash
+# Build and test Rust program
+cd programs/kyc-compliance
+cargo build
+cargo test
+
+# Build for Solana
+cargo build-bpf
+
+# Format code
+cargo fmt
+```
+
+2. TypeScript SDK Development
+
+```bash
+# Build SDK
+npm run build:sdk
+
+# Run TypeScript compiler in watch mode
+npx tsc --watch
+
+# Run tests
+npm test
+npm run test:sdk
+```
+
+3. Running Examples
+
+```bash
+# Test your changes with examples
+npm run example:register
+npm run example:token
+npm run example:transfer
+npm run example:admin
+```
+
+Contribution Areas
+
+High Priority
+
+1. Security fixes - Critical security vulnerabilities
+2. Bug fixes - Functionality that doesn't work as documented
+3. Performance improvements - Significant performance enhancements
+4. Documentation - Improved docs, examples, guides
+
+Medium Priority
+
+1. New features - Well-designed new functionality
+2. Test coverage - Additional tests and edge cases
+3. Code quality - Refactoring and improvements
+4. Developer experience - Better DX, error messages, etc.
+
+Low Priority
+
+1. Cosmetic changes - Code formatting, naming, etc.
+2. Minor enhancements - Small improvements
+3. Experimental features - Proof-of-concept features
+
+Pull Request Process
+
+1. Before Submitting
+
+· Run npm test and ensure all tests pass
+· Run cargo test for Rust changes
+· Update documentation if needed
+· Add tests for new functionality
+· Ensure code follows style guidelines
+
+2. PR Description Template
+
+```markdown
+## Description
+Brief description of the changes
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+- [ ] Other (please describe)
+
+## Testing
+- [ ] Added/updated tests
+- [ ] All tests pass
+- [ ] Manual testing performed
+
+## Checklist
+- [ ] Code follows style guidelines
+- [ ] Comments added where needed
+- [ ] Documentation updated
+- [ ] No new warnings
+
+## Related Issues
+Fixes # (issue number)
+```
+
+3. Code Review Process
+
+4. Automated Checks - CI runs tests and linting
+5. Maintainer Review - At least one maintainer reviews
+6. Address Feedback - Make requested changes
+7. Merge Approval - Maintainer approves and merges
+
+Code Style Guidelines
+
+Rust Code
+
+```rust
+// Use Rust 2021 edition features
+// Follow clippy recommendations
+// Use meaningful variable names
+// Add doc comments for public items
+
+/// Register a new investor
+/// 
+/// # Arguments
+/// * `investor_data` - Investor information
+/// 
+/// # Returns
+/// Transaction signature
+pub async fn register_investor(
+    investor_data: InvestorData
+) -> Result<String, ComplianceError> {
+    // Implementation
+}
+```
+
+TypeScript Code
+
+```typescript
+// Use TypeScript strict mode
+// Follow ESLint rules
+// Use interfaces over types when possible
+// Add JSDoc comments for public methods
+
+/**
+ * Get wallet compliance status
+ * @param wallet - Wallet public key
+ * @returns Wallet status and compliance data
+ */
+async getStatus(wallet: PublicKey): Promise<WalletStatus> {
+  // Implementation
+}
+```
+
+Documentation
+
+· Use Markdown for documentation
+· Include code examples
+· Update README.md if API changes
+· Add JSDoc for all public methods
+
+Testing Guidelines
+
+Unit Tests
+
+```typescript
+// tests/unit/client.test.ts
+describe('ComplianceClient', () => {
+  it('should register investor', async () => {
+    // Test implementation
+  });
+});
+```
+
+Integration Tests
+
+```typescript
+// tests/integration/registration.test.ts
+describe('Registration Integration', () => {
+  before(async () => {
+    // Setup test environment
+  });
+  
+  it('should register and verify on-chain', async () => {
+    // Test with actual blockchain
+  });
+});
+```
+
+Test Coverage
+
+· Aim for 80%+ test coverage
+· Test edge cases and error conditions
+· Mock external dependencies
+· Test both success and failure paths
+
+Security Considerations
+
+Critical Areas
+
+1. Admin functions - Multi-sig, authorization
+2. PDA generation - Correct seeds and bumps
+3. Input validation - Validate all inputs
+4. Error handling - Don't expose sensitive info
+
+Security Checklist
+
+· No hardcoded private keys
+· Input validation on all endpoints
+· Proper error messages (no info leakage)
+· Rate limiting where appropriate
+· Audit trail for admin actions
+
+Release Process
+
+Versioning
+
+We follow Semantic Versioning:
+
+· MAJOR - Breaking changes
+· MINOR - New features (backwards compatible)
+· PATCH - Bug fixes
+
+Release Steps
+
+1. Prepare Release Branch
+   ```bash
+   git checkout -b release/v1.2.0
+   ```
+2. Update Version
+   ```bash
+   # Update package.json
+   npm version 1.2.0
+   
+   # Update Cargo.toml
+   cargo set-version 1.2.0
+   ```
+3. Update Changelog
+   ```bash
+   # Add to CHANGELOG.md
+   # Include all changes since last release
+   ```
+4. Create Pull Request
+   ```bash
+   git push origin release/v1.2.0
+   # Create PR for review
+   ```
+5. Merge and Tag
+   ```bash
+   git tag v1.2.0
+   git push --tags
+   ```
+6. Publish to NPM
+   ```bash
+   npm publish
+   ```
+
+Community
+
+Communication Channels
+
+· GitHub Issues - Bug reports and feature requests
+· GitHub Discussions - Questions and discussions
+· Discord - Real-time chat and support
+
+Recognition
+
+Contributors will be:
+
+· Listed in CONTRIBUTORS.md
+· Acknowledged in release notes
+· Given credit for their work
+
+Getting Help
+
+Common Issues
+
+1. Build failures - Check Node.js and Rust versions
+2. Test failures - Ensure local validator is running
+3. Deployment issues - Check Solana CLI configuration
+
+Asking Questions
+
+When asking for help, include:
+
+1. What you're trying to do
+2. What you've tried
+3. Error messages
+4. Environment details
+
+License
+
+By contributing, you agree that your contributions will be licensed under the project's MIT License.
+
+---
+
+Thank you for contributing to making on-chain compliance better for everyone! 🚀
+EOF

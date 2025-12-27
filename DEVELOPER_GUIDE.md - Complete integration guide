@@ -1,0 +1,1013 @@
+cat > DEVELOPER_GUIDE.md << 'EOF'
+# 👨💻 Developer Guide
+
+## Getting Started
+
+### Prerequisites
+
+#### 1. System Requirements
+```bash
+# Node.js and npm
+node --version  # >= 18.0.0
+npm --version   # >= 8.0.0
+
+# Rust and Solana CLI
+rustc --version # >= 1.65.0
+solana --version # >= 1.17.0
+
+# Optional: Anchor Framework
+anchor --version # >= 0.29.0
+```
+
+2. Environment Setup
+
+```bash
+# Clone repository
+git clone https://github.com/Gitdigital-products/solana-kyc-compliance-sdk.git
+cd solana-kyc-compliance-sdk
+
+# Install dependencies
+npm install
+
+# Install Rust dependencies
+cargo build
+
+# Configure Solana CLI
+solana config set --url localhost
+solana-keygen new
+```
+
+Quick Test
+
+```bash
+# Start local validator
+solana-test-validator --reset --quiet &
+
+# Build and deploy
+npm run build:program
+solana program deploy dist/program/kyc_compliance.so
+
+# Run basic test
+npm run example:register
+```
+
+How to Integrate
+
+Integration Patterns
+
+1. Direct SDK Integration (Recommended)
+
+```typescript
+import { ComplianceClient } from '@gitdigital/solana-kyc-compliance-sdk';
+import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
+
+class MyDeFiApp {
+  private complianceClient: ComplianceClient;
+  
+  constructor(programId: PublicKey, connection: Connection) {
+    this.complianceClient = new ComplianceClient({
+      connection,
+      programId,
+      commitment: 'confirmed',
+    });
+  }
+  
+  async registerUser(payer: Keypair, userWallet: PublicKey, kycData: any) {
+    // Map your KYC data to SDK format
+    const investorData = {
+      kycLevel: this.mapKYCLevel(kycData.level),
+      countryCode: kycData.country,
+      investorType: this.mapInvestorType(kycData.type),
+      accreditationStatus: this.mapAccreditation(kycData.accredited),
+    };
+    
+    // Register on-chain
+    return await this.complianceClient.register(
+      payer,
+      userWallet,
+      investorData
+    );
+  }
+  
+  async checkSwapCompliance(user: PublicKey, amount: number) {
+    const status = await this.complianceClient.getStatus(user);
+    
+    if (!status.isRegistered || status.isFrozen) {
+      throw new Error('User not compliant');
+    }
+    
+    // Additional checks based on your business logic
+    if (amount > 10_000_000_000 && status.record?.accreditationStatus === 0) {
+      throw new Error('Large transfers require accreditation');
+    }
+    
+    return status;
+  }
+}
+```
+
+2. Middleware Integration
+
+```typescript
+// Compliance middleware for Express/Next.js
+import { Request, Response, NextFunction } from 'express';
+import { ComplianceClient } from '@gitdigital/solana-kyc-compliance-sdk';
+
+export function complianceMiddleware(complianceClient: ComplianceClient) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userWallet = new PublicKey(req.user.wallet);
+      const status = await complianceClient.getStatus(userWallet);
+      
+      if (!status.isRegistered) {
+        return res.status(403).json({ error: 'KYC required' });
+      }
+      
+      if (status.isFrozen) {
+        return res.status(403).json({ error: 'Account frozen' });
+      }
+      
+      // Attach compliance data to request
+      req.compliance = {
+        status,
+        canTransfer: status.complianceLevel >= 50,
+        limits: {
+          daily: status.record?.kycLevel === 3 ? 100_000_000_000 : 10_000_000_000,
+          perTransaction: 1_000_000_000,
+        },
+      };
+      
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+
+// Usage in Express app
+app.use('/api/defi', complianceMiddleware(client), defiRouter);
+```
+
+3. React Hook Integration
+
+```typescript
+// useCompliance.ts - React hook for compliance checks
+import { useState, useEffect } from 'react';
+import { PublicKey } from '@solana/web3.js';
+import { ComplianceClient, WalletStatus } from '@gitdigital/solana-kyc-compliance-sdk';
+
+export function useCompliance(
+  wallet: PublicKey | null,
+  client: ComplianceClient
+) {
+  const [status, setStatus] = useState<WalletStatus | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (!wallet) {
+      setStatus(null);
+      return;
+    }
+    
+    const checkStatus = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const walletStatus = await client.getStatus(wallet);
+        setStatus(walletStatus);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setStatus(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkStatus();
+    
+    // Poll every 30 seconds for updates
+    const interval = setInterval(checkStatus, 30000);
+    return () => clearInterval(interval);
+  }, [wallet, client]);
+  
+  const register = async (payer: Keypair, kycData: any) => {
+    if (!wallet) throw new Error('No wallet connected');
+    
+    setLoading(true);
+    try {
+      const signature = await client.register(payer, wallet, kycData);
+      await checkStatus(); // Refresh status
+      return signature;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return {
+    status,
+    loading,
+    error,
+    register,
+    refresh: () => wallet && client.getStatus(wallet).then(setStatus),
+  };
+}
+```
+
+4. Web3.js Plugin Integration
+
+```typescript
+// web3.js compliance plugin
+import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+import { ComplianceClient } from '@gitdigital/solana-kyc-compliance-sdk';
+
+export class CompliancePlugin {
+  constructor(
+    private connection: Connection,
+    private programId: PublicKey
+  ) {
+    this.client = new ComplianceClient({ connection, programId });
+  }
+  
+  async validateTransaction(tx: Transaction, user: PublicKey) {
+    // Check user status
+    const status = await this.client.getStatus(user);
+    
+    if (!status.isRegistered) {
+      throw new Error('User must complete KYC');
+    }
+    
+    if (status.isFrozen) {
+      throw new Error('Account is frozen');
+    }
+    
+    // Analyze transaction for compliance
+    const instructions = tx.instructions;
+    for (const ix of instructions) {
+      // Check if this is a token transfer
+      if (this.isTokenTransfer(ix)) {
+        const { source, destination, amount } = this.parseTransfer(ix);
+        
+        const result = await this.client.checkTransfer(
+          source,
+          destination,
+          amount
+        );
+        
+        if (!result.isValid) {
+          throw new Error(`Transfer not compliant: ${result.errors.join(', ')}`);
+        }
+      }
+    }
+    
+    return { valid: true, complianceLevel: status.complianceLevel };
+  }
+  
+  private isTokenTransfer(ix: any): boolean {
+    // Implement token transfer detection
+    return ix.programId.equals(TOKEN_PROGRAM_ID);
+  }
+  
+  private parseTransfer(ix: any) {
+    // Implement transfer parsing
+    return { source: new PublicKey(ix.keys[0]), destination: new PublicKey(ix.keys[1]), amount: 0 };
+  }
+}
+
+// Usage
+const connection = new Connection(clusterApiUrl('mainnet-beta'));
+const plugin = new CompliancePlugin(connection, programId);
+const isValid = await plugin.validateTransaction(tx, userWallet);
+```
+
+How to Deploy
+
+1. Local Development Deployment
+
+```bash
+# Start local validator with token extensions
+solana-test-validator \
+  --bpf-program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb token_program.so \
+  --reset \
+  --quiet &
+
+# Build program
+npm run build:program
+
+# Deploy program
+solana program deploy dist/program/kyc_compliance.so \
+  --program-id programs/kyc-compliance/src/lib.rs
+
+# Initialize program
+ts-node deploy/deploy.ts
+```
+
+2. Devnet Deployment
+
+```bash
+# Switch to devnet
+solana config set --url devnet
+
+# Airdrop SOL
+solana airdrop 5
+
+# Build and deploy
+npm run build:program
+solana program deploy dist/program/kyc_compliance.so \
+  --program-id KycCompliance111111111111111111111111111111111
+
+# Verify deployment
+solana program show KycCompliance111111111111111111111111111111111
+```
+
+3. Mainnet Deployment
+
+```bash
+# IMPORTANT: Mainnet deployment checklist
+# [ ] Complete security audit
+# [ ] Test thoroughly on devnet
+# [ ] Establish admin multi-sig
+# [ ] Create emergency procedures
+# [ ] Document deployment process
+
+# Switch to mainnet
+solana config set --url mainnet-beta
+
+# Deploy with upgrade authority
+solana program deploy dist/program/kyc_compliance.so \
+  --program-id [YOUR_MAINNET_PROGRAM_ID] \
+  --keypair ~/.config/solana/mainnet-admin.json \
+  --max-ledger-usage 500000
+```
+
+4. Docker Deployment
+
+```dockerfile
+# Dockerfile
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build:sdk
+RUN npm run build:program
+
+FROM alpine:latest
+RUN apk add --no-cache nodejs
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY package*.json ./
+EXPOSE 3000
+CMD ["node", "dist/deploy/deploy.js"]
+```
+
+```bash
+# Build and run
+docker build -t kyc-compliance-sdk .
+docker run -p 3000:3000 kyc-compliance-sdk
+```
+
+How to Test Locally
+
+1. Unit Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run specific test file
+npm test -- tests/sdk.test.ts
+
+# Run with coverage
+npx nyc mocha -r ts-node/register tests/**/*.test.ts
+```
+
+2. Integration Tests
+
+```typescript
+// tests/integration.test.ts
+import { describe, it, before, after } from 'mocha';
+import { expect } from 'chai';
+import { ComplianceClient } from '../src';
+import { Connection, Keypair, clusterApiUrl } from '@solana/web3.js';
+
+describe('Integration Tests', () => {
+  let client: ComplianceClient;
+  let connection: Connection;
+  let testWallet: Keypair;
+  
+  before(async () => {
+    // Start local validator
+    // Deploy program
+    // Initialize client
+  });
+  
+  it('should register and verify investor', async () => {
+    const signature = await client.register(
+      payer,
+      testWallet.publicKey,
+      {
+        kycLevel: 2,
+        countryCode: 'US',
+        investorType: 0,
+        accreditationStatus: 1,
+      }
+    );
+    
+    expect(signature).to.be.a('string');
+    
+    const status = await client.getStatus(testWallet.publicKey);
+    expect(status.isRegistered).to.be.true;
+    expect(status.record?.countryCode).to.equal('US');
+  });
+  
+  it('should validate compliant transfer', async () => {
+    const result = await client.checkTransfer(
+      wallet1,
+      wallet2,
+      100_000_000
+    );
+    
+    expect(result.isValid).to.be.true;
+  });
+  
+  it('should block non-compliant transfer', async () => {
+    const result = await client.checkTransfer(
+      unregisteredWallet,
+      wallet2,
+      100_000_000
+    );
+    
+    expect(result.isValid).to.be.false;
+    expect(result.errors).to.include('Anonymous sender not allowed');
+  });
+});
+```
+
+3. End-to-End Testing
+
+```bash
+# Run example scripts
+npm run example:register
+npm run example:token
+npm run example:transfer
+npm run example:admin
+
+# Test with simulated users
+ts-node tests/e2e/simulated-users.ts
+```
+
+4. Load Testing
+
+```typescript
+// tests/load.test.ts
+import { performance } from 'perf_hooks';
+
+describe('Load Tests', () => {
+  it('should handle concurrent registrations', async () => {
+    const wallets = Array(100).fill(0).map(() => Keypair.generate());
+    const start = performance.now();
+    
+    const promises = wallets.map((wallet, i) => 
+      client.register(payer, wallet.publicKey, {
+        kycLevel: 1,
+        countryCode: 'US',
+        investorType: 0,
+        accreditationStatus: 0,
+      }).catch(() => null)
+    );
+    
+    const results = await Promise.all(promises);
+    const end = performance.now();
+    
+    const successful = results.filter(r => r !== null).length;
+    console.log(`Registered ${successful}/100 wallets in ${end - start}ms`);
+    
+    expect(successful).to.be.greaterThan(90); // Allow 10% failure rate
+  });
+});
+```
+
+How to Extend Policies
+
+1. Custom Policy Rules
+
+```typescript
+// Extended compliance client with custom rules
+class ExtendedComplianceClient extends ComplianceClient {
+  constructor(config: ComplianceSDKConfig) {
+    super(config);
+  }
+  
+  async checkTransferWithCustomRules(
+    from: PublicKey,
+    to: PublicKey,
+    amount: number,
+    customRules: CustomRule[]
+  ): Promise<ExtendedValidationResult> {
+    // Get base validation
+    const baseResult = await this.checkTransfer(from, to, amount);
+    
+    // Apply custom rules
+    const customErrors: string[] = [];
+    const customWarnings: string[] = [];
+    
+    for (const rule of customRules) {
+      const result = await this.evaluateCustomRule(rule, from, to, amount);
+      if (!result.valid) {
+        customErrors.push(result.message);
+      }
+    }
+    
+    return {
+      ...baseResult,
+      customErrors,
+      customWarnings,
+      isValid: baseResult.isValid && customErrors.length === 0,
+    };
+  }
+  
+  private async evaluateCustomRule(
+    rule: CustomRule,
+    from: PublicKey,
+    to: PublicKey,
+    amount: number
+  ): Promise<{ valid: boolean; message: string }> {
+    switch (rule.type) {
+      case 'TIME_BASED':
+        const now = new Date();
+        if (now.getHours() >= rule.startHour && now.getHours() < rule.endHour) {
+          return { valid: amount <= rule.maxAmount, message: 'Time-based limit exceeded' };
+        }
+        break;
+        
+      case 'VOLUME_BASED':
+        const record = await this.getInvestorRecord(from);
+        const dailyVolume = await this.getDailyVolume(from);
+        if (dailyVolume + amount > rule.dailyLimit) {
+          return { valid: false, message: 'Daily volume limit exceeded' };
+        }
+        break;
+        
+      case 'TOKEN_SPECIFIC':
+        const tokenHolding = await this.getTokenBalance(from, rule.tokenMint);
+        if (tokenHolding < rule.minHolding) {
+          return { valid: false, message: 'Insufficient token holdings' };
+        }
+        break;
+    }
+    
+    return { valid: true, message: '' };
+  }
+}
+```
+
+2. Custom Instruction Creation
+
+```typescript
+// Create custom compliance instructions
+import { ComplianceInstructions } from '../src/instructions';
+
+class CustomComplianceInstructions extends ComplianceInstructions {
+  async createWhitelistTransferInstruction(
+    admin: PublicKey,
+    source: PublicKey,
+    destination: PublicKey,
+    amount: bigint,
+    expiry: bigint
+  ): Promise<TransactionInstruction> {
+    // Custom instruction for whitelisted transfers
+    const instructionData = this.packWhitelistTransferData(amount, expiry);
+    
+    return new TransactionInstruction({
+      keys: [
+        { pubkey: admin, isSigner: true, isWritable: false },
+        { pubkey: source, isSigner: false, isWritable: false },
+        { pubkey: destination, isSigner: false, isWritable: false },
+        { pubkey: await this.getPolicyPda(), isSigner: false, isWritable: false },
+      ],
+      programId: this.programId,
+      data: instructionData,
+    });
+  }
+  
+  private packWhitelistTransferData(amount: bigint, expiry: bigint): Buffer {
+    // Custom serialization for whitelist transfer
+    const buffer = Buffer.alloc(1 + 8 + 8);
+    buffer.writeUInt8(9, 0); // Custom instruction tag
+    buffer.writeBigUInt64LE(amount, 1);
+    buffer.writeBigUInt64LE(expiry, 9);
+    return buffer;
+  }
+}
+```
+
+3. Policy Extension Example: Time-Based Rules
+
+```typescript
+// Time-based compliance extension
+interface TimePolicy {
+  businessHoursOnly: boolean;
+  businessStartHour: number; // 0-23
+  businessEndHour: number;   // 0-23
+  weekendAllowed: boolean;
+  holidaySchedule: Date[];
+}
+
+class TimeComplianceExtension {
+  constructor(private timePolicy: TimePolicy) {}
+  
+  async validateTransferTime(
+    timestamp: Date,
+    amount: number
+  ): Promise<{ valid: boolean; reason?: string }> {
+    const hour = timestamp.getHours();
+    const day = timestamp.getDay(); // 0 = Sunday
+    
+    // Check business hours
+    if (this.timePolicy.businessHoursOnly) {
+      if (hour < this.timePolicy.businessStartHour || hour >= this.timePolicy.businessEndHour) {
+        return { valid: false, reason: 'Outside business hours' };
+      }
+    }
+    
+    // Check weekends
+    if (!this.timePolicy.weekendAllowed && (day === 0 || day === 6)) {
+      return { valid: false, reason: 'Weekend transfers not allowed' };
+    }
+    
+    // Check holidays
+    if (this.isHoliday(timestamp)) {
+      return { valid: false, reason: 'Holiday transfers not allowed' };
+    }
+    
+    // Large transfers only during core hours
+    if (amount > 100_000_000_000 && (hour < 9 || hour >= 17)) {
+      return { valid: false, reason: 'Large transfers only 9AM-5PM' };
+    }
+    
+    return { valid: true };
+  }
+  
+  private isHoliday(date: Date): boolean {
+    return this.timePolicy.holidaySchedule.some(holiday =>
+      holiday.getDate() === date.getDate() &&
+      holiday.getMonth() === date.getMonth()
+    );
+  }
+}
+```
+
+4. Extending the Rust Program
+
+If you need to modify the on-chain program:
+
+```rust
+// programs/kyc-compliance/src/instruction.rs
+#[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
+pub enum ComplianceInstruction {
+    // Existing instructions...
+    
+    /// Custom: Whitelist transfer (bypasses some checks)
+    /// Accounts expected:
+    /// 0. [signer] Admin
+    /// 1. [] Source wallet
+    /// 2. [] Destination wallet
+    /// 3. [] Policy Config PDA
+    WhitelistTransfer {
+        amount: u64,
+        expiry_timestamp: i64,
+    },
+    
+    /// Custom: Set investor tier
+    /// Accounts expected:
+    /// 0. [signer] Admin
+    /// 1. [writable] Investor Record PDA
+    SetInvestorTier {
+        tier: u8,
+        perks: Vec<InvestorPerk>,
+    },
+}
+
+// programs/kyc-compliance/src/state.rs
+#[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
+pub struct InvestorPerk {
+    pub perk_type: u8, // 0=higher limits, 1=fee discount, 2=priority
+    pub value: u64,
+    pub expires_at: i64,
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
+pub struct InvestorRecord {
+    // Existing fields...
+    pub tier: u8,
+    pub perks: Vec<InvestorPerk>,
+    pub total_fees_paid: u64,
+    pub loyalty_score: u32,
+}
+```
+
+Advanced Configuration
+
+1. Multi-Cluster Setup
+
+```typescript
+// Multi-cluster compliance client
+class MultiClusterComplianceClient {
+  private clients: Map<string, ComplianceClient> = new Map();
+  
+  constructor(clusters: Array<{ name: string; url: string; programId: PublicKey }>) {
+    for (const cluster of clusters) {
+      const connection = new Connection(cluster.url, 'confirmed');
+      this.clients.set(cluster.name, new ComplianceClient({
+        connection,
+        programId: cluster.programId,
+      }));
+    }
+  }
+  
+  async getStatus(wallet: PublicKey, cluster: string = 'mainnet'): Promise<WalletStatus> {
+    const client = this.clients.get(cluster);
+    if (!client) throw new Error(`Cluster ${cluster} not configured`);
+    
+    return await client.getStatus(wallet);
+  }
+  
+  async registerAllClusters(
+    payer: Keypair,
+    wallet: PublicKey,
+    investorData: InvestorData,
+    clusters: string[] = ['devnet', 'mainnet']
+  ): Promise<Record<string, string>> {
+    const results: Record<string, string> = {};
+    
+    for (const cluster of clusters) {
+      try {
+        const client = this.clients.get(cluster);
+        if (!client) continue;
+        
+        const signature = await client.register(payer, wallet, investorData);
+        results[cluster] = signature;
+      } catch (error) {
+        console.error(`Failed to register on ${cluster}:`, error);
+        results[cluster] = 'failed';
+      }
+    }
+    
+    return results;
+  }
+}
+```
+
+2. Caching Layer
+
+```typescript
+// Cached compliance client
+import { LRUCache } from 'lru-cache';
+
+class CachedComplianceClient extends ComplianceClient {
+  private statusCache = new LRUCache<string, WalletStatus>({
+    max: 1000,
+    ttl: 60 * 1000, // 1 minute
+  });
+  
+  private policyCache = new LRUCache<string, CompliancePolicy>({
+    max: 10,
+    ttl: 5 * 60 * 1000, // 5 minutes
+  });
+  
+  async getStatus(wallet: PublicKey): Promise<WalletStatus> {
+    const cacheKey = wallet.toString();
+    const cached = this.statusCache.get(cacheKey);
+    
+    if (cached) {
+      return cached;
+    }
+    
+    const status = await super.getStatus(wallet);
+    this.statusCache.set(cacheKey, status);
+    return status;
+  }
+  
+  async getPolicy(): Promise<CompliancePolicy> {
+    const cacheKey = 'policy';
+    const cached = this.policyCache.get(cacheKey);
+    
+    if (cached) {
+      return cached;
+    }
+    
+    const policy = await super.getPolicy();
+    this.policyCache.set(cacheKey, policy);
+    return policy;
+  }
+  
+  invalidateCache(wallet?: PublicKey) {
+    if (wallet) {
+      this.statusCache.delete(wallet.toString());
+    } else {
+      this.statusCache.clear();
+      this.policyCache.clear();
+    }
+  }
+}
+```
+
+Troubleshooting
+
+Common Issues
+
+1. Transaction Timeout
+
+```typescript
+// Increase timeout and retry
+const transaction = await client.register(payer, wallet, data);
+await client.waitForConfirmation(transaction, 60000); // 60 second timeout
+```
+
+2. RPC Rate Limiting
+
+```typescript
+// Implement rate limiting
+import pLimit from 'p-limit';
+
+const limit = pLimit(10); // 10 concurrent requests
+
+async function batchRegister(wallets: PublicKey[]) {
+  const results = await Promise.all(
+    wallets.map(wallet => limit(() => client.register(payer, wallet, data)))
+  );
+  return results;
+}
+```
+
+3. Program ID Mismatch
+
+```bash
+# Check program ID
+solana program show KycCompliance111111111111111111111111111111111
+
+# Verify PDA generation
+ts-node scripts/verify-pdas.ts
+```
+
+4. Insufficient Funds
+
+```bash
+# Check balance
+solana balance
+
+# Request airdrop (devnet only)
+solana airdrop 2
+```
+
+Performance Optimization
+
+1. Batch Operations
+
+```typescript
+// Batch register investors
+const batchSize = 10;
+const batches = [];
+for (let i = 0; i < investors.length; i += batchSize) {
+  batches.push(investors.slice(i, i + batchSize));
+}
+
+for (const batch of batches) {
+  const signatures = await client.batchRegister(payer, batch);
+  await Promise.all(signatures.map(sig => client.waitForConfirmation(sig)));
+}
+```
+
+2. Parallel Processing
+
+```typescript
+// Parallel status checks
+async function checkMultipleWallets(wallets: PublicKey[]) {
+  const promises = wallets.map(wallet => client.getStatus(wallet));
+  const results = await Promise.allSettled(promises);
+  
+  return results.map((result, i) => ({
+    wallet: wallets[i],
+    status: result.status === 'fulfilled' ? result.value : null,
+    error: result.status === 'rejected' ? result.reason : null,
+  }));
+}
+```
+
+3. Connection Pooling
+
+```typescript
+// Reuse connections
+import { ConnectionPool } from './connection-pool';
+
+const pool = new ConnectionPool(clusterApiUrl('mainnet-beta'), 5);
+const client = new ComplianceClient({
+  getConnection: () => pool.getConnection(),
+  programId,
+});
+```
+
+Best Practices
+
+1. Error Handling
+
+```typescript
+try {
+  await client.register(payer, wallet, data);
+} catch (error) {
+  if (error instanceof AlreadyRegisteredError) {
+    // Handle already registered
+    console.log('Wallet already registered');
+  } else if (error instanceof UnauthorizedError) {
+    // Handle unauthorized
+    console.log('Admin authorization required');
+  } else {
+    // Log and rethrow
+    console.error('Unexpected error:', error);
+    throw error;
+  }
+}
+```
+
+2. Logging
+
+```typescript
+import winston from 'winston';
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  transports: [
+    new winston.transports.File({ filename: 'compliance.log' }),
+  ],
+});
+
+class LoggedComplianceClient extends ComplianceClient {
+  async register(payer: Keypair, wallet: PublicKey, data: InvestorData) {
+    logger.info('Registering investor', { wallet: wallet.toString() });
+    
+    try {
+      const signature = await super.register(payer, wallet, data);
+      logger.info('Registration successful', { signature });
+      return signature;
+    } catch (error) {
+      logger.error('Registration failed', { 
+        wallet: wallet.toString(), 
+        error: error.message 
+      });
+      throw error;
+    }
+  }
+}
+```
+
+3. Monitoring
+
+```typescript
+// Prometheus metrics
+import client from 'prom-client';
+
+const register = new client.Registry();
+const registrationCounter = new client.Counter({
+  name: 'compliance_registrations_total',
+  help: 'Total investor registrations',
+  labelNames: ['status'],
+});
+
+register.registerMetric(registrationCounter);
+
+// Track registrations
+try {
+  await client.register(payer, wallet, data);
+  registrationCounter.inc({ status: 'success' });
+} catch (error) {
+  registrationCounter.inc({ status: 'error' });
+}
+```
+
+Support & Resources
+
+Getting Help
+
+· GitHub Issues: Bug reports and feature requests
+· Documentation: This guide and API reference
+· Examples: Working code in /examples
+· Discord: Community support channel
+
+Contributing
+
+See CONTRIBUTING.md for contribution guidelines.
+
+Updates
+
+Subscribe to repository releases for updates and security patches.
+
+---
+
+Happy Building! 🚀
+
+For additional support, join our community or open a GitHub issue.
+EOF
