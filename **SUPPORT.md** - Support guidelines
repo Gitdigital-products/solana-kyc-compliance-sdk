@@ -1,0 +1,347 @@
+cat > SUPPORT.md << 'EOF'
+# 📞 Support Guide
+
+## Getting Help
+
+We're here to help! This guide explains how to get support for the Solana KYC Compliance SDK.
+
+## Support Channels
+
+### 1. GitHub Issues (Recommended)
+**Best for**: Bug reports, feature requests, technical issues
+
+| Issue Type | Template | Response Time |
+|------------|----------|---------------|
+| 🐛 Bug Report | [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md) | 2-3 business days |
+| 🚀 Feature Request | [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md) | 1-2 weeks |
+| ❓ Question | [Question Template](.github/ISSUE_TEMPLATE/question.md) | 3-5 business days |
+| 📖 Documentation | No template needed | 1-2 weeks |
+
+**How to use**:
+1. Go to [GitHub Issues](https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/issues)
+2. Click "New Issue"
+3. Select the appropriate template
+4. Fill in all required information
+5. Submit the issue
+
+### 2. GitHub Discussions
+**Best for**: Questions, discussions, community help
+
+| Category | Purpose | Moderated |
+|----------|---------|-----------|
+| 💬 General | General questions and discussions | Yes |
+| ❓ Q&A | Technical questions and answers | Yes |
+| 💡 Ideas | Feature ideas and suggestions | Yes |
+| 🎉 Show and Tell | Share your implementations | Yes |
+
+**How to use**:
+1. Go to [GitHub Discussions](https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/discussions)
+2. Choose a category
+3. Start a discussion
+
+### 3. Discord Community
+**Best for**: Real-time help, community support
+
+| Channel | Purpose |
+|---------|---------|
+| #general | General chat and announcements |
+| #help | Technical support and questions |
+| #developers | Developer discussions |
+| #showcase | Project showcases |
+| #jobs | Job opportunities |
+
+**Join**: [Discord Invite Link](https://discord.gg/gitdigital)
+
+### 4. Email Support
+**Best for**: Security issues, business inquiries
+
+| Purpose | Email | Response Time |
+|---------|-------|---------------|
+| Security Issues | security@gitdigital.com | 24 hours |
+| Business Inquiries | partnerships@gitdigital.com | 3-5 business days |
+| Legal Matters | legal@gitdigital.com | 5-10 business days |
+
+## Before Asking for Help
+
+### 1. Check Documentation
+- [README.md](README.md) - Quick start and overview
+- [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
+- [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) - Integration guide
+- [API Reference](https://github.com/Gitdigital-products/solana-kyc-compliance-sdk#api-reference)
+
+### 2. Search Existing Issues
+Search before creating new issues:
+- [Open Issues](https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/issues)
+- [Closed Issues](https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/issues?q=is%3Aissue+is%3Aclosed)
+- [Discussions](https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/discussions)
+
+### 3. Run Examples
+Try the included examples:
+```bash
+npm run example:register
+npm run example:token
+npm run example:transfer
+npm run example:admin
+```
+
+How to Ask for Help
+
+Provide Essential Information
+
+For Technical Issues:
+
+```markdown
+## Environment
+- OS: [e.g., macOS 12.0, Ubuntu 20.04]
+- Node.js: [e.g., 18.15.0]
+- Rust: [e.g., 1.70.0]
+- Solana CLI: [e.g., 1.17.0]
+- SDK Version: [e.g., 1.0.0]
+
+## Issue Description
+What are you trying to do?
+
+## Expected Behavior
+What should happen?
+
+## Actual Behavior
+What actually happens?
+
+## Steps to Reproduce
+1. Step 1
+2. Step 2
+3. Step 3
+
+## Code Example
+```typescript
+// Include relevant code
+```
+
+Error Messages
+
+```
+Paste error messages here
+```
+
+Screenshots/Logs
+
+[Attach relevant screenshots or logs]
+
+```
+
+**For Integration Questions**:
+```markdown
+## Use Case
+What are you building?
+
+## Current Setup
+How are you currently integrating?
+
+## Specific Question
+What specific help do you need?
+
+## Code Snippet
+```typescript
+// Show your integration code
+```
+
+What You've Tried
+
+What have you tried so far?
+
+```
+
+## Support Tiers
+
+### Community Support (Free)
+- GitHub Issues and Discussions
+- Discord community help
+- Documentation and examples
+- Basic troubleshooting
+
+**Response Time**: 3-5 business days  
+**Scope**: Public documentation, examples, community help
+
+### Priority Support (Paid)
+- Dedicated support channel
+- Faster response times
+- Integration assistance
+- Code reviews
+
+**Contact**: partnerships@gitdigital.com  
+**Response Time**: 1 business day  
+**Scope**: Commercial integration support
+
+### Enterprise Support (Custom)
+- Dedicated engineering support
+- Custom feature development
+- Security audits
+- Training and consulting
+
+**Contact**: sales@gitdigital.com  
+**Response Time**: < 4 hours  
+**Scope**: Full enterprise support
+
+## Common Issues & Solutions
+
+### 1. Build Issues
+```bash
+# Clean and rebuild
+npm run clean
+npm install
+npm run build:sdk
+npm run build:program
+```
+
+2. Test Validator Issues
+
+```bash
+# Stop existing validator
+pkill -f solana-test-validator
+
+# Start fresh
+solana-test-validator --reset --quiet
+sleep 5
+
+# Deploy program
+solana program deploy dist/program/kyc_compliance.so
+```
+
+3. Dependency Issues
+
+```bash
+# Update dependencies
+npm update
+cd programs/kyc-compliance
+cargo update
+
+# Check versions
+node --version
+rustc --version
+solana --version
+```
+
+4. Program ID Issues
+
+```typescript
+// Ensure correct program ID
+const programId = new PublicKey('KycCompliance111111111111111111111111111111111');
+
+// Verify deployment
+solana program show KycCompliance111111111111111111111111111111111
+```
+
+Support Hours
+
+Community Support
+
+· Days: Monday - Friday
+· Hours: 9:00 AM - 6:00 PM UTC
+· Response Time: 3-5 business days
+
+Priority Support
+
+· Days: Monday - Friday
+· Hours: 24/5 with SLA
+· Response Time: 1 business day (SLA)
+
+Emergency Support
+
+· Security issues: 24/7
+· Critical production issues: Case-by-case
+
+Escalation Process
+
+Level 1: Community Support
+
+· GitHub Issues/Discussions
+· Discord community
+· Documentation
+
+Expected Resolution: 3-5 days
+
+Level 2: Core Maintainers
+
+· Direct GitHub mentions
+· Tag @gitdigital/maintainers
+· Specific technical issues
+
+Expected Resolution: 1-3 days
+
+Level 3: Engineering Team
+
+· Security issues
+· Critical bugs
+· Enterprise support
+
+Expected Resolution: < 24 hours
+
+Feedback & Improvement
+
+We value your feedback to improve our support:
+
+Provide Feedback
+
+1. Support Experience: support-feedback@gitdigital.com
+2. Documentation: Create documentation issue
+3. Process Improvement: GitHub discussion
+
+Support Metrics
+
+We track and improve based on:
+
+· Response times
+· Resolution rates
+· Customer satisfaction
+· Common issue patterns
+
+Contributing to Support
+
+Help Others
+
+· Answer questions in Discussions
+· Help troubleshoot in Discord
+· Improve documentation
+· Create examples
+
+Report Issues
+
+· Documentation gaps
+· Unclear error messages
+· Missing examples
+· Common pain points
+
+Translation Help
+
+Help translate documentation:
+
+1. Fork repository
+2. Create translation branch
+3. Submit PR with translations
+
+Resources
+
+Learning Resources
+
+· Solana Docs
+· Token Extensions Guide
+· Anchor Framework
+
+Development Tools
+
+· Solana Playground
+· Solana Explorer
+· Solscan
+
+Community
+
+· Solana Stack Exchange
+· Solana Developers Discord
+· r/solana
+
+---
+
+We're here to help you succeed with on-chain compliance!
+
+For urgent security issues, email security@gitdigital.com immediately.
+EOF
