@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Architecture | Solana KYC Compliance SDK</title>
+
+  <meta name="description" content="System architecture and data flow for the Solana KYC Compliance SDK." />
+  <meta name="author" content="GitDigital Products" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --solana-purple: #9945FF;
+      --bg: #0b0b0f;
+      --card: #15151d;
+      --text: #eaeaf0;
+      --muted: #9ca3af;
+      --border: rgba(255,255,255,0.06);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    header {
+      padding: 3rem 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    header p {
+      margin-top: 0.75rem;
+      max-width: 820px;
+      color: var(--muted);
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    section {
+      margin-top: 2.5rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      margin-top: 0.25rem;
+      color: var(--text);
+    }
+
+    ul {
+      margin-top: 0.5rem;
+      padding-left: 1.25rem;
+      color: var(--muted);
+    }
+
+    .box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>System Architecture</h1>
+    <p>
+      This document describes the high-level architecture, data flow,
+      and trust boundaries of the Solana KYC Compliance SDK.
+    </p>
+  </header>
+
+  <main>
+
+    <section>
+      <h2>Design Goals</h2>
+      <div class="box">
+        <ul>
+          <li>Minimize on-chain and off-chain exposure of personal data</li>
+          <li>Remain composable with existing Solana programs</li>
+          <li>Support multiple KYC providers without lock-in</li>
+          <li>Enable auditability without centralizing trust</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>High-Level Components</h2>
+      <div class="box">
+        <h3>1. Client Application</h3>
+        <p>
+          The consuming Solana application or backend service.
+          Responsible for initiating identity verification flows and
+          enforcing access control based on verification state.
+        </p>
+
+        <h3>2. KYC Compliance SDK</h3>
+        <p>
+          A middleware layer that abstracts provider-specific logic,
+          normalizes verification states, and exposes a stable interface
+          to application developers.
+        </p>
+
+        <h3>3. Off-Chain Verification Providers</h3>
+        <p>
+          External identity verification services.
+          Providers never interact directly with Solana programs.
+        </p>
+
+        <h3>4. Solana Programs</h3>
+        <p>
+          On-chain programs consume verification proofs or flags
+          without storing personal or identifying information.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Data Flow Overview</h2>
+      <div class="box">
+        <ul>
+          <li>User initiates a verification flow through the client app</li>
+          <li>SDK routes the request to a configured verification provider</li>
+          <li>Provider performs identity checks off-chain</li>
+          <li>SDK receives a verification result or proof</li>
+          <li>Client enforces access based on verification status</li>
+          <li>Optional proof references are passed to Solana programs</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Trust Boundaries</h2>
+      <div class="box">
+        <p>
+          The SDK is explicitly designed to separate trust domains.
+          No single component has access to both identity data and
+          on-chain authority.
+        </p>
+        <ul>
+          <li>Solana programs never receive raw identity data</li>
+          <li>Verification providers never interact with on-chain logic</li>
+          <li>Client applications control enforcement logic</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Extensibility</h2>
+      <div class="box">
+        <p>
+          The architecture supports adding new providers, jurisdictions,
+          or verification methods without modifying core interfaces.
+          This allows the SDK to evolve alongside regulatory and ecosystem changes.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    © 2026 GitDigital Products · Solana KYC Compliance SDK
+  </footer>
+
+</body>
+</html>
