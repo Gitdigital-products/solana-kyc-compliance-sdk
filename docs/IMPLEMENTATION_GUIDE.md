@@ -104,7 +104,7 @@ const mainnetConnection = new Connection(
   process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
   'confirmed'
 );
-```
+
 const kycClient = new SolanaKYCClient(mainnetConnection);
 
 
@@ -122,10 +122,10 @@ const kycSchema = {
     { name: 'issuer', type: 'publicKey' },
   ]
 };
-```
+
 // Register schema (one-time operation)
 const schemaId = await kycClient.registerSchema(kycSchema);
-
+```
 
 2.2 Creating KYC Attestations
 
@@ -274,9 +274,9 @@ template KYCVerifier() {
   // Hash for verification
   kycHash <== poseidon([secretSalt, isAdult, countryCode, isSanctioned, kycLevel]);
 }
-```
-component main = KYCVerifier();
 
+component main = KYCVerifier();
+```
 
 3.2 Generating ZK Proofs
 
@@ -457,7 +457,7 @@ class CompliantTransferService {
     };
   }
 }
-```
+
 4.3 Travel Rule Compliance
 
 For Transfers > $3,000:
@@ -964,7 +964,7 @@ class BatchKYCHandler {
 
 Support Channels
 
-1. Documentation: https://docs.gitdigital.com/solana-kyc-compliance-sdk
+1. Documentation: https://docs.gitdigital.com/solana-kyc
 2. GitHub Issues: For bugs and feature requests
 3. Discord Community: Real-time help from community
 4. Enterprise Support: SLA-backed support for businesses
