@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Compliance Overview | Solana KYC Compliance SDK</title>
+
+  <meta name="description" content="Compliance principles and regulatory alignment for the Solana KYC Compliance SDK." />
+  <meta name="author" content="GitDigital Products" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:#0b0b0f; --card:#15151d; --text:#eaeaf0;
+      --muted:#9ca3af; --border:rgba(255,255,255,0.06);
+      --accent:#22c55e;
+    }
+    body {
+      margin:0; font-family:Inter,system-ui,sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.65;
+    }
+    header, footer {
+      padding:2.5rem 1.5rem; border-bottom:1px solid var(--border);
+    }
+    footer { border-top:1px solid var(--border); border-bottom:none; }
+    main { max-width:900px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+    h1,h2 { margin-bottom:0.5rem; }
+    .box {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:12px; padding:1.25rem; margin-top:1rem;
+    }
+    ul { color:var(--muted); padding-left:1.25rem; }
+    .highlight { border-left:4px solid var(--accent); padding-left:1rem; }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Compliance Overview</h1>
+  <p class="muted">
+    This document explains how the Solana KYC Compliance SDK is designed
+    to support regulatory expectations without embedding policy assumptions on-chain.
+  </p>
+</header>
+
+<main>
+  <section>
+    <h2>Compliance Philosophy</h2>
+    <div class="box highlight">
+      <p>
+        Compliance is treated as an application-layer concern.
+        The SDK provides primitives, not legal guarantees.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Regulatory Domains Considered</h2>
+    <div class="box">
+      <ul>
+        <li>Know Your Customer (KYC)</li>
+        <li>Anti-Money Laundering (AML)</li>
+        <li>Counter-Terrorist Financing (CTF)</li>
+        <li>Sanctions and restricted access controls</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>What the SDK Enables</h2>
+    <div class="box">
+      <ul>
+        <li>Verification-aware access control</li>
+        <li>Provider-agnostic identity checks</li>
+        <li>Audit-friendly verification state modeling</li>
+        <li>Privacy-preserving enforcement patterns</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>What the SDK Does Not Claim</h2>
+    <div class="box">
+      <ul>
+        <li>Automatic regulatory compliance</li>
+        <li>Legal sufficiency in all jurisdictions</li>
+        <li>Substitution for professional legal review</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  © 2026 GitDigital Products · Solana KYC Compliance SDK
+</footer>
+</body>
+</html>
