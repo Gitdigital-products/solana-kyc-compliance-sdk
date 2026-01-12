@@ -1,46 +1,28 @@
-# Code of Conduct
-Be respectful, inclusive, constructive, 
-# Code of Conduct
-
-This project is committed to maintaining a respectful, inclusive, and professional environment.
-
----
-
+# Contributor Covenant Code of Conduct
+ 
+## Our Pledge
+We pledge to make participation in our community a harassment-free experience for everyone.
+ 
 ## Our Standards
-
-We expect all contributors to:
-- Be respectful and constructive
-- Assume good intent
-- Focus on technical merit
-- Welcome diverse perspectives
-
-Unacceptable behavior includes:
-- Harassment or discrimination
-- Personal attacks or insults
-- Trolling or deliberate disruption
-
----
-
-## Scope
-
-This code of conduct applies to:
-- GitHub repositories
-- Issues and pull requests
-- Community discussions related to this project
-
----
-
+**Positive behaviors:**
+- Being respectful of differing viewpoints
+- Gracefully accepting constructive criticism
+- Focusing on what is best for the community
+- Showing empathy toward other community members
+ 
+**Unacceptable behaviors:**
+- Harassment, insults, or derogatory comments
+- Publishing others' private information
+- Any conduct reasonably considered inappropriate
+ 
 ## Enforcement
-
-Project maintainers are responsible for enforcing this code of conduct.
-
-Violations may result in:
-- Warnings
-- Temporary bans
-- Permanent removal from the project
-
----
-
+1. **Warning**: For first-time, non-severe violations
+2. **Temporary Ban**: For repeated or severe violations
+3. **Permanent Ban**: For severe or repeated violations
+ 
 ## Reporting
-
-If you experience or witness unacceptable behavior, report it privately to the maintainers.
+Report violations to conduct@gitdigital.com
+All reports will be reviewed and investigated promptly.
+ 
+## Attribution
+Adapted from Contributor Covenant, version 2.1
