@@ -1,78 +1,50 @@
-# Contributing Guidelines
-1. Fork the repository.
-2. Create a new branch for your feature or fix.
-3. Write clear, documented code.
-4. Run tests before submitting a PR.
-5. Submit a pull request with a detailed explanation.
+# Contributing to Solana KYC SDK
 
-# Contributing Guide
+Thank you for your interest in contributing! Here's how to get started.
 
-Thanks for your interest in contributing to the Solana KYC Compliance SDK.
+## 🎯 Development Process
 
-This project focuses on correctness, security, and clarity over speed.
+### Getting Started
+1. **Fork** the repository
+2. **Clone** your fork: `git clone https://github.com/YOUR_USERNAME/solana-kyc-compliance-sdk.git`
+3. **Install dependencies**: `npm install`
+4. **Run tests**: `npm test`
 
----
+### Branch Naming Convention
+- `feat/` - New features
+- `fix/` - Bug fixes  
+- `docs/` - Documentation updates
+- `test/` - Test additions/changes
+- `chore/` - Maintenance tasks
 
-## Ways to Contribute
+### Pull Request Process
+1. Update the README.md with details of changes if needed
+2. Update documentation in `/docs/` if applicable
+3. Add tests for new functionality
+4. Ensure all tests pass: `npm test`
+5. Update CHANGELOG.md following keepachangelog.com
+6. Request review from maintainers
 
-- Bug fixes
-- Documentation improvements
-- Tests and examples
-- SDK usability enhancements
+## 🧪 Testing Requirements
+- All new code must have tests
+- Maintain >90% test coverage
+- Test both success and failure cases
+- Include integration tests for new features
 
-Before starting large changes, please open an issue for discussion.
+## 📝 Code Style
+- Use TypeScript strict mode
+- Follow existing naming conventions
+- Add JSDoc comments for public APIs
+- Use ESLint and Prettier (config included)
 
----
+## 🔐 Security Considerations
+- Never commit secrets or API keys
+- Report security vulnerabilities to security@gitdigital.com
+- Follow security best practices in `/docs/SECURITY_GUIDE.md`
 
-## Development Setup
+## ❓ Need Help?
+- Check existing issues and PRs
+- Join our Discord: https://discord.gg/gitdigital
+- Ask in GitHub Discussions
 
-### Requirements
-- Solana CLI
-- Anchor
-- Node.js 18+
-- Yarn or npm
-
-### Build
-```bash
-anchor build
-
-Test
-
-anchor test
-
-
----
-
-Pull Requests
-
-Fork from main
-
-Keep PRs focused and small
-
-Add or update tests when applicable
-
-Document behavior changes clearly
-
-
-PRs that introduce breaking changes must explain migration impact.
-
-
----
-
-Code Style
-
-Prefer explicit logic over clever abstractions
-
-Avoid magic constants
-
-Comment security-relevant code paths
-
-No PII or secrets in code or tests
-
-
-
----
-
-License
-
-By contributing, you agree that your contributions will be licensed under the MIT License.
+We appreciate all contributions!
