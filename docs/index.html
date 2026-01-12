@@ -1,101 +1,94 @@
-<!-- Grant & Ecosystem -->
-![Grant Ready](https://img.shields.io/badge/Grant-Ready-brightgreen)
-![Solana](https://img.shields.io/badge/Built%20for-Solana-9945FF?logo=solana&logoColor=white)
-![Web3 Compliance](https://img.shields.io/badge/Web3-Compliance-blueviolet)
-
-<!-- Security & Compliance -->
-![KYC Compatible](https://img.shields.io/badge/KYC-Compatible-blue)
-![AML Aware](https://img.shields.io/badge/AML-Aware-blue)
-![Privacy First](https://img.shields.io/badge/Privacy-First-success)
-
-<!-- Repo Health -->
-![License](https://img.shields.io/github/license/Gitdigital-products/solana-kyc-sdk)
-![Issues](https://img.shields.io/github/issues/Gitdigital-products/solana-kyc-sdk)
-![Pull Requests](https://img.shields.io/github/issues-pr/Gitdigital-products/solana-kyc-sdk)
-![Last Commit](https://img.shields.io/github/last-commit/Gitdigital-products/solana-kyc-sdk)
-
-<!-- CI / Quality -->
-![CI](https://img.shields.io/github/actions/workflow/status/Gitdigital-products/solana-kyc-sdk/ci.yml)
-![Code Quality](https://img.shields.io/badge/Code-Quality-informational)
-![Type Safe](https://img.shields.io/badge/Type-Safe-3178C6?logo=typescript&logoColor=white)
-
-<!-- Adoption Signals -->
-![Open Source](https://img.shields.io/badge/Open%20Source-Yes-success)
-![Maintained](https://img.shields.io/badge/Maintained-Yes-brightgreen)
-![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-orange)
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Documentation | Solana KYC Compliance SDK</title>
-
-  <meta name="description" content="Technical documentation for the Solana KYC Compliance SDK by GitDigital Products." />
-  <meta name="author" content="GitDigital Products" />
-
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
+  <title>Solana KYC Compliance SDK — Documentation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Documentation for the Solana KYC Compliance SDK by GitDigital Products" />
   <style>
-    :root {
-      --solana-purple: #9945FF;
-      --bg: #0b0b0f;
-      --card: #15151d;
-      --text: #eaeaf0;
-      --muted: #9ca3af;
-      --border: rgba(255,255,255,0.06);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
     body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
-      font-family: 'Inter', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
+      padding: 2rem;
+      background: #0b0b0f;
+      color: #eaeaf0;
     }
+    h1, h2 {
+      color: #ffffff;
+    }
+    a {
+      color: #14f1ff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+    .card {
+      background: #16161d;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+    footer {
+      margin-top: 3rem;
+      opacity: 0.7;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📚 Solana KYC Compliance SDK</h1>
+    <p>
+      Official documentation for the open-source KYC & compliance SDK built for
+      the Solana ecosystem by <strong>GitDigital Products</strong>.
+    </p>
 
-    header {
-      padding: 3rem 1.5rem 2rem;
-      border-bottom: 1px solid var(--border);
-    }
+    <div class="card">
+      <h2>Getting Started</h2>
+      <ul>
+        <li><a href="overview.html">Overview</a></li>
+        <li><a href="quickstart.html">Quick Start</a></li>
+        <li><a href="architecture.html">Architecture</a></li>
+      </ul>
+    </div>
 
-    header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
+    <div class="card">
+      <h2>Compliance & Security</h2>
+      <ul>
+        <li><a href="compliance.html">Compliance Model</a></li>
+        <li><a href="threat-model.html">Threat Model</a></li>
+        <li><a href="privacy.html">Privacy Guarantees</a></li>
+      </ul>
+    </div>
 
-    header p {
-      margin-top: 0.5rem;
-      max-width: 720px;
-      color: var(--muted);
-    }
+    <div class="card">
+      <h2>Developer Docs</h2>
+      <ul>
+        <li><a href="sdk-api.html">SDK API Reference</a></li>
+        <li><a href="integration.html">Solana Integration</a></li>
+      </ul>
+    </div>
 
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 4rem;
-    }
+    <div class="card">
+      <h2>Project Info</h2>
+      <ul>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="roadmap.html">Roadmap</a></li>
+        <li><a href="grant-ready.html">Grant Readiness</a></li>
+      </ul>
+    </div>
 
-    section {
-      margin-top: 2.5rem;
-    }
-
-    section h2 {
-      font-size: 1.4rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .doc-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1.25rem;
-      margin-top: 1.25rem;
-    }
+    <footer>
+      © GitDigital Products — Built for Solana • Open Source • Grant Ready
+    </footer>
+  </div>
+</body>
+</html>    }
 
     .doc-card {
       background: var(--card);
