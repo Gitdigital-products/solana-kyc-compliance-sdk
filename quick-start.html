@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solana KYC SDK - Quick Start</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Solana KYC Compliance SDK</h1>
+    <nav>
+      <a href="installation.html">Installation</a> |
+      <a href="quick-start.html">Quick Start</a> |
+      <a href="configurations.html">Configurations</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Quick Start</h2>
+    <p>Follow these steps to integrate KYC verification into your app.</p>
+
+    <h3>Step 1: Import and Configure</h3>
+    <pre><code>
+import { KYCClient } from "@gitdigital/solana-kyc-sdk";
+
+const kyc = new KYCClient({
+  apiKey: "YOUR_API_KEY",
+  network: "devnet",
+  callbackUrl: "https://yourapp.com/kyc-callback"
+});
+    </code></pre>
+
+    <h3>Step 2: Start Verification</h3>
+    <pre><code>
+const userId = "123456";
+await kyc.startVerification(userId);
+    </code></pre>
+
+    <h3>Step 3: Listen for Status Updates</h3>
+    <pre><code>
+kyc.on("verified", (userId) => {
+  console.log(`${userId} is verified!`);
+});
+    </code></pre>
+  </main>
+
+  <footer>
+    <p>© 2026 GitDigital Products</p>
+  </footer>
+</body>
+</html>
