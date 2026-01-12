@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Audit Readiness | Solana KYC Compliance SDK</title>
+
+  <meta name="description" content="Audit readiness and review guidance for the Solana KYC Compliance SDK." />
+  <meta name="author" content="GitDigital Products" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --solana-purple: #9945FF;
+      --bg: #0b0b0f;
+      --card: #15151d;
+      --text: #eaeaf0;
+      --muted: #9ca3af;
+      --border: rgba(255,255,255,0.06);
+      --accent: #22c55e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    header {
+      padding: 3rem 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    header p {
+      margin-top: 0.75rem;
+      max-width: 820px;
+      color: var(--muted);
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    section {
+      margin-top: 2.5rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      margin-top: 0.25rem;
+    }
+
+    ul {
+      margin-top: 0.5rem;
+      padding-left: 1.25rem;
+      color: var(--muted);
+    }
+
+    .box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      border-left: 4px solid var(--accent);
+      padding-left: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Audit Readiness</h1>
+    <p>
+      This document outlines how the Solana KYC Compliance SDK is structured
+      to support third-party security, compliance, and architectural reviews.
+    </p>
+  </header>
+
+  <main>
+
+    <section>
+      <h2>Audit Philosophy</h2>
+      <div class="box">
+        <p>
+          The SDK is designed with the assumption that it may be reviewed by
+          external auditors, grant committees, or ecosystem partners.
+          Transparency and explicit boundaries are preferred over implicit trust.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Codebase Structure</h2>
+      <div class="box check">
+        <ul>
+          <li>Clear separation between core logic and provider integrations</li>
+          <li>Minimal side effects and explicit data flow</li>
+          <li>Configuration-driven behavior where possible</li>
+          <li>No hidden network calls or undocumented dependencies</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Data Handling Guarantees</h2>
+      <div class="box">
+        <ul>
+          <li>No raw identity documents are stored by the SDK</li>
+          <li>No personally identifiable information is written on-chain</li>
+          <li>Verification states are abstracted and minimized</li>
+          <li>Logging avoids sensitive or correlatable data</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Configuration & Secrets</h2>
+      <div class="box">
+        <p>
+          Provider credentials and sensitive configuration values are expected
+          to be supplied via environment variables or secure secret managers.
+        </p>
+        <ul>
+          <li>No secrets are committed to the repository</li>
+          <li>Example configuration files exclude real credentials</li>
+          <li>Rotation and revocation are supported without redeploying code</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Third-Party Dependencies</h2>
+      <div class="box">
+        <ul>
+          <li>Dependencies are intentionally minimized</li>
+          <li>Provider SDKs are isolated behind abstraction layers</li>
+          <li>Dependency upgrades are reviewed for breaking or risky changes</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Recommended Audit Focus Areas</h2>
+      <div class="box check">
+        <ul>
+          <li>Verification state transitions and enforcement logic</li>
+          <li>Boundary between off-chain verification and on-chain usage</li>
+          <li>Provider response validation and normalization</li>
+          <li>Failure modes and fallback behavior</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Known Limitations</h2>
+      <div class="box">
+        <p>
+          This SDK does not claim to guarantee regulatory compliance in all jurisdictions.
+          Final responsibility for compliance rests with the integrating application.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Continuous Improvement</h2>
+      <div class="box">
+        <p>
+          Security and compliance requirements evolve.
+          The SDK treats audit readiness as an ongoing process and welcomes
+          responsible disclosures and improvement proposals.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    © 2026 GitDigital Products · Solana KYC Compliance SDK
+  </footer>
+
+</body>
+</html>
