@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FAQ — Solana KYC Compliance SDK</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Frequently asked questions about the Solana KYC Compliance SDK" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #0b0b0f;
+      color: #eaeaf0;
+    }
+    h1, h2 {
+      color: #ffffff;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+    .faq {
+      background: #16161d;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+    a {
+      color: #14f1ff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>❓ Frequently Asked Questions</h1>
+
+    <div class="faq">
+      <h2>What problem does this SDK solve?</h2>
+      <p>
+        It provides a standardized, privacy-aware way to integrate KYC and
+        compliance checks into Solana programs without hardcoding centralized
+        logic on-chain.
+      </p>
+    </div>
+
+    <div class="faq">
+      <h2>Does this SDK store personal data on-chain?</h2>
+      <p>
+        No. Personally identifiable information (PII) is never stored on-chain.
+        The SDK relies on cryptographic proofs, attestations, and references only.
+      </p>
+    </div>
+
+    <div class="faq">
+      <h2>Is this compatible with decentralized applications?</h2>
+      <p>
+        Yes. The architecture is designed to preserve decentralization while
+        enabling compliance-aware flows where legally required.
+      </p>
+    </div>
+
+    <div class="faq">
+      <h2>Which KYC providers are supported?</h2>
+      <p>
+        The SDK is provider-agnostic and supports pluggable adapters for both
+        centralized and decentralized identity providers.
+      </p>
+    </div>
+
+    <div class="faq">
+      <h2>Is this open source?</h2>
+      <p>
+        Yes. The SDK is fully open source and maintained by GitDigital Products.
+      </p>
+    </div>
+
+    <p>
+      ← <a href="index.html">Back to Documentation Index</a>
+    </p>
+  </div>
+</body>
+</html>
