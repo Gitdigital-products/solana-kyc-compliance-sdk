@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>API Reference | Solana KYC Compliance SDK</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#0b0b0f; --card:#15151d; --text:#eaeaf0;
+      --muted:#9ca3af; --border:rgba(255,255,255,0.06);
+      --accent:#9945FF;
+    }
+    body {
+      margin:0; font-family:Inter,system-ui,sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.65;
+    }
+    header, footer {
+      padding:2.5rem 1.5rem; border-bottom:1px solid var(--border);
+    }
+    footer { border-top:1px solid var(--border); border-bottom:none; }
+    main { max-width:900px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+    .box {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:12px; padding:1.25rem; margin-top:1rem;
+    }
+    code {
+      display:block; background:#0f0f15; padding:0.75rem;
+      border-radius:8px; color:#d1d5db; font-size:0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>API Reference</h1>
+  <p>
+    This document describes the primary interfaces exposed by the
+    Solana KYC Compliance SDK.
+  </p>
+</header>
+
+<main>
+  <section>
+    <h2>Initialize SDK</h2>
+    <div class="box">
+      <code>
+initializeKycSdk({
+  provider: "exampleProvider",
+  environment: "production"
+});
+      </code>
+    </div>
+  </section>
+
+  <section>
+    <h2>Start Verification</h2>
+    <div class="box">
+      <code>
+startVerification({
+  userId,
+  jurisdiction,
+  verificationLevel
+});
+      </code>
+    </div>
+  </section>
+
+  <section>
+    <h2>Check Verification Status</h2>
+    <div class="box">
+      <code>
+getVerificationStatus(userId);
+      </code>
+    </div>
+  </section>
+
+  <section>
+    <h2>Consume On-Chain</h2>
+    <div class="box">
+      <p>
+        Applications may pass abstract verification signals to Solana programs.
+        No identity data is included.
+      </p>
+      <code>
+assertVerified(walletAddress, scope);
+      </code>
+    </div>
+  </section>
+</main>
+
+<footer>
+  © 2026 GitDigital Products · Solana KYC Compliance SDK
+</footer>
+</body>
+</html>
