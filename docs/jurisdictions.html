@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jurisdictions | Solana KYC Compliance SDK</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#0b0b0f; --card:#15151d; --text:#eaeaf0;
+      --muted:#9ca3af; --border:rgba(255,255,255,0.06);
+    }
+    body {
+      margin:0; font-family:Inter,system-ui,sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.65;
+    }
+    header, footer {
+      padding:2.5rem 1.5rem; border-bottom:1px solid var(--border);
+    }
+    footer { border-top:1px solid var(--border); border-bottom:none; }
+    main { max-width:900px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+    .box {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:12px; padding:1.25rem; margin-top:1rem;
+    }
+    ul { color:var(--muted); padding-left:1.25rem; }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Jurisdiction Support</h1>
+  <p>
+    The SDK is designed to adapt to jurisdiction-specific compliance requirements
+    without hardcoding regional policy into core logic.
+  </p>
+</header>
+
+<main>
+  <section>
+    <h2>Design Approach</h2>
+    <div class="box">
+      <ul>
+        <li>Jurisdiction logic is configuration-driven</li>
+        <li>Verification thresholds are application-defined</li>
+        <li>No region-specific assumptions are enforced by default</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Common Regional Patterns</h2>
+    <div class="box">
+      <ul>
+        <li>United States: KYC + AML with sanctions screening</li>
+        <li>European Union: GDPR-aware identity minimization</li>
+        <li>Asia-Pacific: Tiered verification requirements</li>
+        <li>Global: Restricted-region access controls</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Extending for New Regions</h2>
+    <div class="box">
+      <p>
+        Applications can add region-specific policies by:
+      </p>
+      <ul>
+        <li>Selecting appropriate verification providers</li>
+        <li>Adjusting verification state requirements</li>
+        <li>Implementing custom enforcement logic</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  © 2026 GitDigital Products · Solana KYC Compliance SDK
+</footer>
+</body>
+</html>
