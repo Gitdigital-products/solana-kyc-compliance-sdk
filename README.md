@@ -349,6 +349,60 @@ If you discover a security issue, please follow our coordinated disclosure proce
    limitations under the License.
 ---
 
+## 🧪 Examples & Testing
+
+This SDK provides practical examples and a comprehensive test suite to help you integrate KYC compliance into your Solana applications quickly.
+
+### Example Integrations
+
+**1. Circle API Integration (`/examples/circle-api-integration.ts`)**
+This example demonstrates a **KYC-gated USDC transfer** using Circle's Programmable Wallets API. It shows the complete flow:
+- Verifying a sender's KYC status via the Solana Attestation Service (SAS).
+- Generating an optional privacy-preserving Zero-Knowledge Proof (ZKP).
+- Creating a compliant USDC transfer request with KYC metadata attached.
+
+**Run the Example:**
+```bash
+# 1. Set your environment variables
+export CIRCLE_API_KEY="your_circle_api_key_here"
+export SOLANA_RPC_URL="https://api.devnet.solana.com"
+
+# 2. Navigate to the example and install dependencies if needed
+cd examples
+npm install tsx dotenv @solana/web3.js
+
+# 3. Run the example (update the wallet addresses and IDs in the code first)
+npx tsx circle-api-integration.ts
+🧪 Test Suite
+```
+We provide a robust test suite to ensure the reliability of the SDK's core functions.
+
+Test Structure:
+```
+· /test/kyc-integration.test.ts: End-to-end integration tests for the main KYC verification flows and business logic.
+· /test/sas-integration.test.ts: Low-level unit tests for the Solana Attestation Service (SAS) wrapper functions (schema registration, attestation lifecycle).
+· /test/zk-proofs.test.ts: Cryptographic tests for the Zero-Knowledge Proof generation and verification components.
+```
+Running the Tests:
+
+Prerequisites: Ensure you have a Solana Devnet RPC URL and may need a funded keypair for tests that create on-chain attestations.
+Install Dependencies: npm install in the root directory (installs Jest, @solana/web3.js, etc.).
+```Execute:
+# Run all tests
+npm test
+ 
+# Run a specific test suite
+npm test -- kyc-integration.test.ts
+ 
+# Run tests with detailed output
+npm test -- --verbose
+Testing Strategy:
+
+· Isolation: Unit tests mock external dependencies where possible.
+· Coverage: Integration tests use Solana Devnet for real SAS interactions.
+· Privacy: ZK proof tests use simulated circuits to validate cryptographic logic without needing a full prover setup.
+```
+
 ## ✨ About GitDigital Products
 
 GitDigital Products builds **infrastructure-grade tooling** for regulated blockchain systems.  
