@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Threat Model | Solana KYC Compliance SDK</title>
+
+  <meta name="description" content="Threat model and security assumptions for the Solana KYC Compliance SDK." />
+  <meta name="author" content="GitDigital Products" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --solana-purple: #9945FF;
+      --bg: #0b0b0f;
+      --card: #15151d;
+      --text: #eaeaf0;
+      --muted: #9ca3af;
+      --border: rgba(255,255,255,0.06);
+      --warn: #fbbf24;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    header {
+      padding: 3rem 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    header p {
+      margin-top: 0.75rem;
+      max-width: 820px;
+      color: var(--muted);
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    section {
+      margin-top: 2.5rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      margin-top: 0.25rem;
+    }
+
+    ul {
+      margin-top: 0.5rem;
+      padding-left: 1.25rem;
+      color: var(--muted);
+    }
+
+    .box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .warning {
+      border-left: 4px solid var(--warn);
+      padding-left: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Threat Model</h1>
+    <p>
+      This document outlines the security assumptions, threat vectors,
+      and mitigation strategies for the Solana KYC Compliance SDK.
+    </p>
+  </header>
+
+  <main>
+
+    <section>
+      <h2>Scope & Assumptions</h2>
+      <div class="box">
+        <ul>
+          <li>The SDK does not custody user funds</li>
+          <li>The SDK does not store raw identity documents</li>
+          <li>Solana programs are assumed to be publicly readable</li>
+          <li>Off-chain services may be compromised independently</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Assets to Protect</h2>
+      <div class="box">
+        <ul>
+          <li>User identity metadata and verification state</li>
+          <li>Verification proofs and attestations</li>
+          <li>Configuration secrets and provider credentials</li>
+          <li>Authorization logic linking identity to access</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Threat Actors</h2>
+      <div class="box">
+        <ul>
+          <li>Malicious users attempting to bypass KYC controls</li>
+          <li>Compromised client applications or backends</li>
+          <li>Rogue or breached KYC service providers</li>
+          <li>On-chain observers attempting correlation attacks</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Key Threats & Mitigations</h2>
+
+      <div class="box">
+        <h3>Identity Data Leakage</h3>
+        <p>
+          Exposure of personal data through logs, storage, or on-chain references.
+        </p>
+        <ul>
+          <li>No raw identity data is written on-chain</li>
+          <li>SDK avoids persistent storage of PII</li>
+          <li>Only abstract verification states are exposed</li>
+        </ul>
+      </div>
+
+      <div class="box">
+        <h3>Verification Replay or Forgery</h3>
+        <p>
+          Reuse or spoofing of verification results.
+        </p>
+        <ul>
+          <li>Verification results are scoped and time-bound</li>
+          <li>Provider responses are validated and normalized</li>
+          <li>Optional cryptographic attestations supported</li>
+        </ul>
+      </div>
+
+      <div class="box">
+        <h3>On-Chain Correlation Attacks</h3>
+        <p>
+          Linking wallets to real-world identities through repeated usage.
+        </p>
+        <ul>
+          <li>SDK does not require static identifiers</li>
+          <li>Proof references are optional and minimized</li>
+          <li>Applications control disclosure granularity</li>
+        </ul>
+      </div>
+
+      <div class="box">
+        <h3>Provider Compromise</h3>
+        <p>
+          A third-party verification provider is breached or malicious.
+        </p>
+        <ul>
+          <li>Provider abstraction prevents hard dependency</li>
+          <li>Multiple providers can be supported</li>
+          <li>No provider receives on-chain authority</li>
+        </ul>
+      </div>
+
+    </section>
+
+    <section>
+      <h2>Out of Scope</h2>
+      <div class="box warning">
+        <ul>
+          <li>End-user device security</li>
+          <li>Wallet-level key compromise</li>
+          <li>Full regulatory compliance guarantees</li>
+          <li>Application-specific access control bugs</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Security Posture</h2>
+      <div class="box">
+        <p>
+          The SDK prioritizes minimization, separation of trust, and
+          explicit boundaries over absolute guarantees.
+          Security is treated as an evolving process rather than a static claim.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    © 2026 GitDigital Products · Solana KYC Compliance SDK
+  </footer>
+
+</body>
+</html>
