@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Privacy Model | Solana KYC Compliance SDK</title>
+
+  <meta name="description" content="Privacy model and data minimization strategy for the Solana KYC Compliance SDK." />
+  <meta name="author" content="GitDigital Products" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --solana-purple: #9945FF;
+      --bg: #0b0b0f;
+      --card: #15151d;
+      --text: #eaeaf0;
+      --muted: #9ca3af;
+      --border: rgba(255,255,255,0.06);
+      --accent: #22c55e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    header {
+      padding: 3rem 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    header p {
+      margin-top: 0.75rem;
+      max-width: 820px;
+      color: var(--muted);
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    section {
+      margin-top: 2.5rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      margin-top: 0.25rem;
+    }
+
+    ul {
+      margin-top: 0.5rem;
+      padding-left: 1.25rem;
+      color: var(--muted);
+    }
+
+    .box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .highlight {
+      border-left: 4px solid var(--accent);
+      padding-left: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Privacy Model</h1>
+    <p>
+      This document explains how the Solana KYC Compliance SDK minimizes,
+      scopes, and protects user identity data across on-chain and off-chain systems.
+    </p>
+  </header>
+
+  <main>
+
+    <section>
+      <h2>Privacy Principles</h2>
+      <div class="box highlight">
+        <ul>
+          <li>Data minimization over data collection</li>
+          <li>Separation of identity and on-chain authority</li>
+          <li>Explicit consent and purpose limitation</li>
+          <li>Application-controlled disclosure</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>What the SDK Never Stores</h2>
+      <div class="box">
+        <ul>
+          <li>Government-issued identity documents</li>
+          <li>Biometric data</li>
+          <li>Full names, addresses, or dates of birth</li>
+          <li>Unencrypted identity payloads</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Off-Chain Identity Handling</h2>
+      <div class="box">
+        <p>
+          Identity verification is performed exclusively by third-party providers
+          outside of the Solana blockchain.
+        </p>
+        <ul>
+          <li>Providers receive only the data required for verification</li>
+          <li>SDK does not persist provider responses containing PII</li>
+          <li>Verification outcomes are normalized into abstract states</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>On-Chain Privacy Guarantees</h2>
+      <div class="box">
+        <ul>
+          <li>No personally identifiable information is written on-chain</li>
+          <li>Programs consume boolean or scoped verification signals</li>
+          <li>Wallet addresses are not permanently linked to identities</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Correlation Risk Mitigation</h2>
+      <div class="box">
+        <p>
+          Repeated interactions can unintentionally create identity correlations.
+          The SDK is designed to reduce these risks.
+        </p>
+        <ul>
+          <li>Verification proofs may be time-bound or revocable</li>
+          <li>Applications can rotate verification contexts</li>
+          <li>Static identifiers are avoided by default</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Application Responsibilities</h2>
+      <div class="box">
+        <p>
+          The SDK provides privacy-preserving primitives, but final privacy
+          outcomes depend on how applications integrate and enforce them.
+        </p>
+        <ul>
+          <li>Define appropriate disclosure thresholds</li>
+          <li>Limit reuse of verification signals</li>
+          <li>Communicate privacy expectations to users</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Privacy as a Process</h2>
+      <div class="box">
+        <p>
+          Privacy requirements evolve with regulation, technology, and user expectations.
+          This SDK treats privacy as an ongoing design constraint rather than a one-time feature.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    © 2026 GitDigital Products · Solana KYC Compliance SDK
+  </footer>
+
+</body>
+</html>
