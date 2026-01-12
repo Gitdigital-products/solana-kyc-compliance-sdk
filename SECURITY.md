@@ -1,81 +1,60 @@
-This project is under active development. Use in production only after:
-
-Independent audit
-
-Custom threat modeling
-
-Program ID immutability
-
-
-
----
-
-License
-
-MIT
-
----
-
-
-
-
-
-
 # Security Policy
 
-The Solana KYC Compliance SDK is security-sensitive infrastructure.
+## 🔒 Supported Versions
 
-Please treat it accordingly.
+| Version | Supported          |
+| ------- | ------------------ |
+| 1.x.x   | ✅ Active support  |
+| 0.x.x   | ⚠️ Security fixes only |
 
----
+## 🚨 Reporting a Vulnerability
 
-## Reporting a Vulnerability
+**DO NOT** create a public GitHub issue for security vulnerabilities.
 
-**Do not open public GitHub issues for security concerns.**
+### Reporting Process:
+1. **Email**: security@gitdigital.com
+2. **Encrypt**: Use our PGP key (available on website)
+3. **Include**: Detailed description and steps to reproduce
+4. **Response**: We acknowledge within 24 hours, provide timeline within 72 hours
 
-If you believe you have found a vulnerability, please report it privately.
+### What to Expect:
+- We investigate and confirm the vulnerability
+- We develop a fix in a private repository
+- We release a security advisory and patch
+- We credit you (unless you prefer anonymity)
 
-**Email:** security@gitdigital.io  
-(Or ricks.online.businesses425@gmail.com )
+## 🛡️ Security Best Practices
 
----
+### For Users:
+1. **API Keys**: Rotate keys every 90 days
+2. **Environment Variables**: Never commit to repositories
+3. **Dependencies**: Keep all packages updated
+4. **Monitoring**: Set up alerts for suspicious activity
 
-## Scope
+### For Developers:
+1. **Code Review**: All changes require security review
+2. **Dependencies**: Audit with `npm audit` weekly
+3. **Secrets**: Use secret management tools
+4. **Access Control**: Principle of least privilege
 
-In scope:
-- On-chain programs
-- Compliance enforcement logic
-- Registry and attestation validation
-- SDK interactions with on-chain programs
+## 📅 Security Updates
+- **Monthly**: Dependency updates and security patches
+- **Quarterly**: Full security review
+- **Annually**: Third-party security audit
 
-Out of scope:
-- Off-chain KYC providers
-- Risk scoring algorithms
-- Third-party services
-# Security Policy
+## 🏆 Bug Bounty Program
+We offer bounties for responsibly disclosed vulnerabilities:
 
-## Reporting Vulnerabilities
-Please report security issues responsibly.
+| Severity | Bounty Range |
+|----------|--------------|
+| Critical | $5,000 - $10,000 |
+| High     | $1,000 - $5,000  |
+| Medium   | $500 - $1,000    |
+| Low      | $100 - $500      |
 
-📧 Email: security@gitdigital.products
+**Scope**: All code in this repository and associated infrastructure.
 
-## Scope
-- Solana KYC Compliance SDK
-- APIs, services, and supporting infrastructure
-
-## Response Targets
-- Critical: 24 hours
-- High: 72 hours
-- Medium: 7 days
-
-## Safe Harbor
-We support good-faith security research and will not pursue legal action for responsible disclosure.
----
-
-## Disclosure Policy
-
-- We aim to acknowledge reports within 72 hours
-- Fixes will be prioritized based on severity
-- Public disclosure will occur only after mitigation
-
-Thank you for helping keep this project secure.
+## 🔗 Additional Resources
+- [Security Documentation](./docs/SECURITY_GUIDE.md)
+- [Audit Reports](./audits/)
+- [Dependency Dashboard](https://github.com/Gitdigital-products/solana-kyc-compliance-sdk/security/dependabot)
