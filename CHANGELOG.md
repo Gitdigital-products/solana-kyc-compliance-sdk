@@ -1,3 +1,43 @@
+# Changelog
+ 
+All notable changes to this project will be documented in this file.
+ 
+## [Unreleased]
+### Added
+- Initial release structure
+- SAS integration client
+- ZK proof system
+- Circle API integration
+- Comprehensive test suite
+- Implementation checklists
+ 
+## [1.0.0] - 2026-03-20
+### Added
+- Initial public release
+- Complete SAS attestation lifecycle
+- Privacy-preserving ZK proofs
+- KYC-gated Circle transfers
+- Example implementations
+- Security documentation
+ 
+### Changed
+- N/A (initial release)
+ 
+### Deprecated
+- N/A
+ 
+### Removed
+- N/A
+ 
+### Fixed
+- N/A
+ 
+## Versioning
+We use [Semantic Versioning](https://semver.org/).
+ 
+## Changelog Format
+Based on [Keep a Changelog](https://keepachangelog.com/)
+
 # 📜 Changelog
 
 All notable changes to this project will be documented in this file.
