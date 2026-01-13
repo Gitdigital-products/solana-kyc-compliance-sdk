@@ -84,62 +84,62 @@ Security is not an afterthought. This repository includes a full **Compliance & 
 - [`/trust`](./trust)
 
 ---
-
+~~~
 ## 📚 Repository Structure
 / ├── docs/ │   ├── business-continuity-policy.md │   ├── disaster-recovery-plan.md │   ├── incident-response-policy.md │   ├── risk-management-policy.md │   ├── backup-and-data-retention-policy.md │   ├── policy-index.md │   └── regulatory-compliance-statement.md ├── trust/ │   └── trust-center.md ├── SECURITY.md └── README.md
 ---
-
+~~~
 ## 🛡️ Compliance Alignment
 
 This SDK is designed to support customers working under:
-
+~~~
 - KYC / AML requirements
 - GDPR & data privacy laws
 - Enterprise security reviews
 - SOC 2 readiness
 - ISO/IEC 27001 controls
-
+~~~
 > **Important:** GitDigital Products provides tooling only.  
 > Customers remain responsible for their own regulatory compliance.
 
 ---
 
 ## 🧪 Status
-
+~~~
 - Architecture: Active development
 - Documentation: Production-ready
 - Compliance framework: Implemented
 - SDK implementation: MVP → Iteration
-
+~~~
 ---
 
 ## 🧩 Intended Integrations
-
+~~~
 - Solana programs
 - RPC providers (with failover)
 - Identity verification vendors
 - Audit and logging pipelines
 - Enterprise dashboards
-
+~~~
 ---
 
 ## 🤝 Responsible Disclosure
 
 If you discover a security issue, please follow our coordinated disclosure process.
-
+~~~
 📧 Contact: **security@gitdigital.products**  
 📄 See: [`SECURITY.md`](./SECURITY.md)
-
+~~~
 ---
 
 ## 🧭 Roadmap (High-Level)
-
+~~~
 - SDK reference implementation
 - Example Solana program integration
 - Compliance-aware middleware
 - Dashboard & reporting tools
 - Third-party verifier adapters
-
+~~~
 ---
 
 ## 📜 License
@@ -357,7 +357,7 @@ If you discover a security issue, please follow our coordinated disclosure proce
 This SDK provides practical examples and a comprehensive test suite to help you integrate KYC compliance into your Solana applications quickly.
 
 ### Example Integrations
-
+~~~
 **1. Circle API Integration (`/examples/circle-api-integration.ts`)**
 This example demonstrates a **KYC-gated USDC transfer** using Circle's Programmable Wallets API. It shows the complete flow:
 - Verifying a sender's KYC status via the Solana Attestation Service (SAS).
@@ -405,6 +405,7 @@ Testing Strategy:
 · Coverage: Integration tests use Solana Devnet for real SAS interactions.
 · Privacy: ZK proof tests use simulated circuits to validate cryptographic logic without needing a full prover setup.
 ```
+~~~
 ## 📋 Implementation Checklists
 
 We provide comprehensive checklists to ensure successful KYC compliance implementation on Solana.
@@ -424,8 +425,11 @@ We provide comprehensive checklists to ensure successful KYC compliance implemen
 - [**NFT Marketplace Verification**](./templates/NFT_MARKETPLACE_CHECKLIST.md)
 - [**Gaming Platform Compliance**](./templates/GAMING_PLATFORM_CHECKLIST.md)
 - [**Cross-Border Payments**](./templates/CROSS_BORDER_CHECKLIST.md)
+~~~
+
 
 ### How to Use:
+~~~
 1. **Planning**: Review [Main Checklist](./CHECKLIST.md) for requirements
 2. **Development**: Follow [Implementation Guide](./docs/IMPLEMENTATION_GUIDE.md)
 3. **Components**: Use specific checklists for SAS, ZK, Circle integration
@@ -448,41 +452,41 @@ checklist-tracker CHECKLIST.md --format json --output dashboard-data.json
 ```
 
 Checklist Features:
-
+~~~
 · Phase-based organization (8 phases from planning to growth)
 · Progress tracking with automatic percentage calculation
 · Team coordination with owner assignments and due dates
 · Risk identification with mitigation recommendations
 · Integration ready for CI/CD and project management tools
-
+~~~
 Benefits:
-
+~~~
 · 95%+ compliance success rate for implementations
 · No missed critical steps (security, regulatory, testing)
 · Faster development with clear guidance and examples
 · Better team coordination with shared checkpoints
 · Audit-ready documentation from day one
-
+~~~
 Customization:
-
+~~~
 All checklists are fully customizable:
 
 · Edit project-specific parameters
 · Assign team members to tasks
 · Adjust timelines based on complexity
 · Add jurisdiction-specific requirements
-
+~~~
 Support:
-
+~~~
 · Checklist Questions: GitHub Discussions
 · Template Requests: Open a GitHub Issue
 · Enterprise Customization: enterprise@gitdigital.com
-
+~~~
 ## ✨ About GitDigital Products
-
+~~~
 GitDigital Products builds **infrastructure-grade tooling** for regulated blockchain systems.  
 We focus on trust, resilience, and long-term viability — not hype cycles.
-
+~~~
 ---
 
 **Ship code. Earn trust. Scale responsibly.**
