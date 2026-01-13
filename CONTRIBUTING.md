@@ -6,8 +6,8 @@ Thank you for your interest in contributing! Here's how to get started.
 
 ### Getting Started
 1. **Fork** the repository
-2. **Clone** your fork: `git clone https://github.com/YOUR_USERNAME/solana-kyc-compliance-sdk.git`
-3. **Install dependencies**: `npm install`
+2. **Clone** your fork: `git clone https://github.com/gitdigital-products./solana-kyc-compliance-sdk.git`
+3. **Install dependencies**l: `npm install`
 4. **Run tests**: `npm test`
 
 ### Branch Naming Convention
