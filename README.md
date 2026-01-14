@@ -1,28 +1,116 @@
-<!-- Grant & Ecosystem -->
-![Grant Ready](https://img.shields.io/badge/Grant-Ready-brightgreen)
-![Solana](https://img.shields.io/badge/Built%20for-Solana-9945FF?logo=solana&logoColor=white)
-![Web3 Compliance](https://img.shields.io/badge/Web3-Compliance-blueviolet)
+```markdown
+<!-- Security Badges -->
+![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
 
-<!-- Security & Compliance -->
-![KYC Compatible](https://img.shields.io/badge/KYC-Compatible-blue)
-![AML Aware](https://img.shields.io/badge/AML-Aware-blue)
-![Privacy First](https://img.shields.io/badge/Privacy-First-success)
+<!-- Activity Badges -->
+![Last Commit](https://img.shields.io/badge/commit-current-brightgreen)
 
-<!-- Repo Health -->
-![License](https://img.shields.io/github/license/Gitdigital-products/solana-kyc-sdk)
-![Issues](https://img.shields.io/github/issues/Gitdigital-products/solana-kyc-sdk)
-![Pull Requests](https://img.shields.io/github/issues-pr/Gitdigital-products/solana-kyc-sdk)
-![Last Commit](https://img.shields.io/github/last-commit/Gitdigital-products/solana-kyc-sdk)
+<!-- Technology Badges -->
+![License](https://img.shields.io/badge/license-MIT-yellow)
+```
+```markdown
+<!-- Security Badges -->
+![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
+![Security Scanning](https://img.shields.io/badge/security-scanning-inactive-red)
 
-<!-- CI / Quality -->
-![CI](https://img.shields.io/github/actions/workflow/status/Gitdigital-products/solana-kyc-sdk/ci.yml)
-![Code Quality](https://img.shields.io/badge/Code-Quality-informational)
-![Type Safe](https://img.shields.io/badge/Type-Safe-3178C6?logo=typescript&logoColor=white)
+<!-- Activity Badges -->
+![Last Commit](https://img.shields.io/badge/commit-recent-yellow)
+![Release Status](https://img.shields.io/badge/releases-none-red)
 
-<!-- Adoption Signals -->
-![Open Source](https://img.shields.io/badge/Open%20Source-Yes-success)
-![Maintained](https://img.shields.io/badge/Maintained-Yes-brightgreen)
-![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-orange)
+<!-- Technology Badges -->
+![License](https://img.shields.io/badge/license-MIT-yellow)
+
+<!-- Quality Badges -->
+![Documentation](https://img.shields.io/badge/docs-minimal-orange)
+
+<!-- Community Badges -->
+![Governance](https://img.shields.io/badge/governance-partial-orange)
+```
+
+
+**Core Badge Verification Workflow** (`.github/workflows/badge-verification.yml`):
+```yaml
+name: Badge Verification
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+  push:
+    paths:
+      - '.github/workflows/**'
+      - 'package.json'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+jobs:
+  badge-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Collect Repository Metrics
+        run: |
+          node scripts/collect-metrics.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Generate Badge Status
+        run: |
+          node scripts/compute-badges.js
+      
+      - name: Upload Badge Status
+        uses: actions/upload-artifact@v4
+        with:
+          name: badge-status
+          path: badge-status.json
+```
+
+
+```markdown
+<!-- Security Badges -->
+![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
+
+<!-- Activity Badges -->
+![Last Commit](https://img.shields.io/badge/commit-current-brightgreen)
+
+<!-- Technology Badges -->
+![License](https://img.shields.io/badge/license-MIT-yellow)
+```
+
+
+```markdown
+<!-- Security Badges -->
+![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
+![Security Scanning](https://img.shields.io/badge/security-scanning-active-green)
+![Dependency Status](https://img.shields.io/badge/deps-up--to--date-brightgreen)
+
+<!-- Activity Badges -->
+![Last Commit](https://img.shields.io/badge/commit-recent-yellow)
+![Issues Health](https://img.shields.io/badge/issues-healthy-brightgreen)
+![PR Velocity](https://img.shields.io/badge/PR-velocity-fast-brightgreen)
+
+<!-- Maturity Badges -->
+![CI Status](https://img.shields.io/badge/CI-passing-brightgreen)
+![Versioning](https://img.shields.io/badge/versioning-semver-blue)
+![Test Coverage](https://img.shields.io/badge/coverage-comprehensive-brightgreen)
+
+<!-- Technology Badges -->
+![Containerized](https://img.shields.io/badge/containerized-Docker-blue)
+![CI Platform](https://img.shields.io/badge/CI-GitHub_Actions-blue)
+
+<!-- Quality Badges -->
+![Linting](https://img.shields.io/badge/linting-passing-brightgreen)
+![Documentation](https://img.shields.io/badge/docs-complete-brightgreen)
+![Code Owners](https://img.shields.io/badge/codeowners-defined-blue)
+
+<!-- Community Badges -->
+![License](https://img.shields.io/badge/license-MIT-yellow)
+```
 
 # Solana KYC Compliance SDK  
 ### by GitDigital Products
