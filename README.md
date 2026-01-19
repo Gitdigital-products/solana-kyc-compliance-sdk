@@ -1,4 +1,4 @@
-```markdown
+markdown
 <!-- Security Badges -->
 ![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
 
@@ -7,8 +7,8 @@
 
 <!-- Technology Badges -->
 ![License](https://img.shields.io/badge/license-MIT-yellow)
-```
-```markdown
+
+markdown
 <!-- Security Badges -->
 ![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
 ![Security Scanning](https://img.shields.io/badge/security-scanning-inactive-red)
@@ -25,11 +25,11 @@
 
 <!-- Community Badges -->
 ![Governance](https://img.shields.io/badge/governance-partial-orange)
-```
+
 
 
 **Core Badge Verification Workflow** (`.github/workflows/badge-verification.yml`):
-```yaml
+`yaml
 name: Badge Verification
 
 on:
@@ -48,17 +48,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js
+  `
+     - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
+ `     
       - name: Collect Repository Metrics
         run: |
           node scripts/collect-metrics.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+  `     
       - name: Generate Badge Status
         run: |
           node scripts/compute-badges.js
@@ -68,22 +69,22 @@ jobs:
         with:
           name: badge-status
           path: badge-status.json
-```
 
 
-```markdown
+
+`markdown
 <!-- Security Badges -->
 ![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
-
+`
 <!-- Activity Badges -->
 ![Last Commit](https://img.shields.io/badge/commit-current-brightgreen)
 
 <!-- Technology Badges -->
 ![License](https://img.shields.io/badge/license-MIT-yellow)
-```
+`
 
 
-```markdown
+`markdown
 <!-- Security Badges -->
 ![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
 ![Security Scanning](https://img.shields.io/badge/security-scanning-active-green)
@@ -110,7 +111,7 @@ jobs:
 
 <!-- Community Badges -->
 ![License](https://img.shields.io/badge/license-MIT-yellow)
-```
+`
 
 # Solana KYC Compliance SDK  
 ### by GitDigital Products
@@ -171,69 +172,71 @@ Security is not an afterthought. This repository includes a full **Compliance & 
 - [`/docs`](./docs)
 - [`/trust`](./trust)
 
----
-~~~
+-
+~
+`
 ## 📚 Repository Structure
 / ├── docs/ │   ├── business-continuity-policy.md │   ├── disaster-recovery-plan.md │   ├── incident-response-policy.md │   ├── risk-management-policy.md │   ├── backup-and-data-retention-policy.md │   ├── policy-index.md │   └── regulatory-compliance-statement.md ├── trust/ │   └── trust-center.md ├── SECURITY.md └── README.md
----
-~~~
+`
+-
+~
 ## 🛡️ Compliance Alignment
 
 This SDK is designed to support customers working under:
-~~~
+~
 - KYC / AML requirements
 - GDPR & data privacy laws
 - Enterprise security reviews
 - SOC 2 readiness
 - ISO/IEC 27001 controls
-~~~
+  
 > **Important:** GitDigital Products provides tooling only.  
 > Customers remain responsible for their own regulatory compliance.
 
----
+-
 
 ## 🧪 Status
-~~~
+~
 - Architecture: Active development
 - Documentation: Production-ready
 - Compliance framework: Implemented
 - SDK implementation: MVP → Iteration
-~~~
----
+  
+-
 
 ## 🧩 Intended Integrations
-~~~
+~
 - Solana programs
 - RPC providers (with failover)
 - Identity verification vendors
 - Audit and logging pipelines
 - Enterprise dashboards
-~~~
+  
 ---
 
 ## 🤝 Responsible Disclosure
 
 If you discover a security issue, please follow our coordinated disclosure process.
-~~~
+~
 📧 Contact: **security@gitdigital.products**  
 📄 See: [`SECURITY.md`](./SECURITY.md)
-~~~
----
+~
+-
 
 ## 🧭 Roadmap (High-Level)
-~~~
+~
 - SDK reference implementation
 - Example Solana program integration
 - Compliance-aware middleware
 - Dashboard & reporting tools
 - Third-party verifier adapters
-~~~
----
+  
+-
 
 ## 📜 License
 
                                  Apache License
-                           Version 2.0, January 2004
+                           Version 2.0, January 2026
                         http://www.apache.org/licenses/
 
    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
@@ -413,7 +416,7 @@ If you discover a security issue, please follow our coordinated disclosure proce
 
    APPENDIX: How to apply the Apache License to your work.
 
-      To apply the Apache License to your work, attach the following
+# To apply the Apache License to your work, attach the following
       boilerplate notice, with the fields enclosed by brackets "[]"
       replaced with your own identifying information. (Don't include
       the brackets!)  The text should be enclosed in the appropriate
@@ -422,7 +425,7 @@ If you discover a security issue, please follow our coordinated disclosure proce
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright [2025] [Richard Kindler]
+   Copyright [2026] [Richard Kindler]
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -445,7 +448,7 @@ If you discover a security issue, please follow our coordinated disclosure proce
 This SDK provides practical examples and a comprehensive test suite to help you integrate KYC compliance into your Solana applications quickly.
 
 ### Example Integrations
-~~~
+~~
 **1. Circle API Integration (`/examples/circle-api-integration.ts`)**
 This example demonstrates a **KYC-gated USDC transfer** using Circle's Programmable Wallets API. It shows the complete flow:
 - Verifying a sender's KYC status via the Solana Attestation Service (SAS).
@@ -453,7 +456,7 @@ This example demonstrates a **KYC-gated USDC transfer** using Circle's Programma
 - Creating a compliant USDC transfer request with KYC metadata attached.
 
 **Run the Example:**
-```bash
+`bash
 # 1. Set your environment variables
 export CIRCLE_API_KEY="your_circle_api_key_here"
 export SOLANA_RPC_URL="https://api.devnet.solana.com"
@@ -465,20 +468,20 @@ npm install tsx dotenv @solana/web3.js
 # 3. Run the example (update the wallet addresses and IDs in the code first)
 npx tsx circle-api-integration.ts
 🧪 Test Suite
-```
+
 We provide a robust test suite to ensure the reliability of the SDK's core functions.
 
 Test Structure:
-```
+
 · /test/kyc-integration.test.ts: End-to-end integration tests for the main KYC verification flows and business logic.
 · /test/sas-integration.test.ts: Low-level unit tests for the Solana Attestation Service (SAS) wrapper functions (schema registration, attestation lifecycle).
 · /test/zk-proofs.test.ts: Cryptographic tests for the Zero-Knowledge Proof generation and verification components.
-```
+`
 Running the Tests:
 
 Prerequisites: Ensure you have a Solana Devnet RPC URL and may need a funded keypair for tests that create on-chain attestations.
 Install Dependencies: npm install in the root directory (installs Jest, @solana/web3.js, etc.).
-```Execute:
+`Execute:
 # Run all tests
 npm test
  
@@ -492,8 +495,7 @@ Testing Strategy:
 · Isolation: Unit tests mock external dependencies where possible.
 · Coverage: Integration tests use Solana Devnet for real SAS interactions.
 · Privacy: ZK proof tests use simulated circuits to validate cryptographic logic without needing a full prover setup.
-```
-~~~
+`
 ## 📋 Implementation Checklists
 
 We provide comprehensive checklists to ensure successful KYC compliance implementation on Solana.
@@ -525,7 +527,7 @@ We provide comprehensive checklists to ensure successful KYC compliance implemen
 5. **Deployment**: Follow [Production Deployment Checklist](./templates/PRODUCTION_DEPLOYMENT_CHECKLIST.md)
 
 ### Automated Progress Tracking:
-```bash
+`bash
 # Install tracker
 npm install -g @gitdigital/checklist-tracker
 
@@ -537,45 +539,47 @@ checklist-tracker CHECKLIST.md --output progress-report.txt
 
 # JSON output for dashboards
 checklist-tracker CHECKLIST.md --format json --output dashboard-data.json
-```
+`
 
 Checklist Features:
-~~~
+~
 · Phase-based organization (8 phases from planning to growth)
 · Progress tracking with automatic percentage calculation
 · Team coordination with owner assignments and due dates
 · Risk identification with mitigation recommendations
 · Integration ready for CI/CD and project management tools
-~~~
+~
 Benefits:
-~~~
+
 · 95%+ compliance success rate for implementations
 · No missed critical steps (security, regulatory, testing)
 · Faster development with clear guidance and examples
 · Better team coordination with shared checkpoints
 · Audit-ready documentation from day one
-~~~
+`
 Customization:
-~~~
+~
 All checklists are fully customizable:
 
 · Edit project-specific parameters
 · Assign team members to tasks
 · Adjust timelines based on complexity
 · Add jurisdiction-specific requirements
-~~~
+~
 Support:
-~~~
+~
 · Checklist Questions: GitHub Discussions
 · Template Requests: Open a GitHub Issue
-· Enterprise Customization: enterprise@gitdigital.com
-~~~
+· Enterprise Customization: Organization@gitdigital.com
+~
 ## ✨ About GitDigital Products
-~~~
+~
 GitDigital Products builds **infrastructure-grade tooling** for regulated blockchain systems.  
 We focus on trust, resilience, and long-term viability — not hype cycles.
-~~~
----
+~
+-
+
+
 
 **Ship code. Earn trust. Scale responsibly.**
 
