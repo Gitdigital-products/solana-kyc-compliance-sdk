@@ -1,0 +1,24 @@
+name: Repo Hygiene
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-message: "This issue has gone quiet."
+          stale-pr-message: "This PR has gone quiet."
+
+  link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lycheeverse/lychee-action@v1
+        with:
+          args: --verbose .
