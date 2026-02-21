@@ -1,4 +1,8 @@
 ![MiCA Ready 2026](https://img.shields.io/badge/MiCA-READY_2026-blue?style=for-the-badge)
+![ZK-Compressed State](https://img.shields.io/badge/ZK--COMPRESSION-ENABLED-green?style=for-the-badge)
+![Firedancer Tested](https://img.shields.io/badge/FIREDANCER-1M_TPS_READY-orange?style=for-the-badge)
+
+![MiCA Ready 2026](https://img.shields.io/badge/MiCA-READY_2026-blue?style=for-the-badge)
 ![CLARITY Act Compliant](https://img.shields.io/badge/CLARITY_ACT-COMPLIANT-green?style=for-the-badge)
 
 <p align="center">
