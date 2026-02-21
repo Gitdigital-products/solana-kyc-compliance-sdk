@@ -1,3 +1,6 @@
+![MiCA Ready 2026](https://img.shields.io/badge/MiCA-READY_2026-blue?style=for-the-badge)
+![CLARITY Act Compliant](https://img.shields.io/badge/CLARITY_ACT-COMPLIANT-green?style=for-the-badge)
+
 <p align="center">
   <img src="https://img.shields.io/badge/SOLANA-2026_READY-blueviolet?style=for-the-badge&logo=solana" />
   <img src="https://img.shields.io/badge/RWA-COMPLIANT-green?style=for-the-badge" />
