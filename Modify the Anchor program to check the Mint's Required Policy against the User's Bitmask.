@@ -1,0 +1,15 @@
+// Logic snippet for your Transfer Hook
+pub fn execute(ctx: Context<TransferHook>, amount: u64) -> Result<()> {
+    let source_info = &ctx.accounts.source_kyc_info;
+    let destination_info = &ctx.accounts.destination_kyc_info;
+    let mint_policy = ctx.accounts.mint_config.required_bitmask;
+
+    // Ensure BOTH sender and receiver satisfy the mint's specific compliance bitmask
+    if (source_info.bitmask & mint_policy) != mint_policy {
+        return err!(ComplianceError::SourceNotEligible);
+    }
+    if (destination_info.bitmask & mint_policy) != mint_policy {
+        return err!(ComplianceError::DestinationNotEligible);
+    }
+    Ok(())
+}
