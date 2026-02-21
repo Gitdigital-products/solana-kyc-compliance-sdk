@@ -1,3 +1,13 @@
+<p align="center">
+  <img src="https://img.shields.io/badge/SOLANA-2026_READY-blueviolet?style=for-the-badge&logo=solana" />
+  <img src="https://img.shields.io/badge/RWA-COMPLIANT-green?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/AI--SANCTIONS-ENABLED-red?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/AUDIT-PRO_REPORTING-yellow?style=for-the-badge" />
+</p>
+
+## 🛡️ GitDigital: Institutional Compliance SDK
+**The automated gatekeeper for Regulated Assets on Solana.**
+
 ## 🛡️ GitDigital Compliance Ecosystem
 
 | Module | Status | Tech Stack |
