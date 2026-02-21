@@ -1,3 +1,12 @@
+## 🛡️ GitDigital Compliance Ecosystem
+
+| Module | Status | Tech Stack |
+| :--- | :--- | :--- |
+| **On-Chain Hook** | ![Live](https://img.shields.io/badge/Status-Live-green) | Rust / Anchor / Token-2022 |
+| **Risk Reporting** | ![Active](https://img.shields.io/badge/Status-Active-blue) | TS / Indexer / JSON-Export |
+| **AI Enforcement** | ![Beta](https://img.shields.io/badge/Status-Beta-orange) | SendAI / Range Risk API |
+| **Audit Logs** | ![Verified](https://img.shields.io/badge/Status-Verified-green) | Permanent Delegate / Events |
+
 markdown
 <!-- Security Badges -->
 ![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
