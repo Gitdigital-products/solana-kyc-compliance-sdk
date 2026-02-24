@@ -38,6 +38,9 @@ const RiskDashboard = () => {
   const fetchDashboardStats = async () => {
     try {
       const response = await fetch('/api/risk/dashboard-stats');
+      const response = await fetch('/api/risk/dashboard-stats');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch dashboard stats: ${response.status} ${response.statusText}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch dashboard stats: ${response.status} ${response.statusText}`);
       }
@@ -48,6 +51,9 @@ const RiskDashboard = () => {
     }
   };
 
+      const response = await fetch('/api/risk/recent-alerts');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch recent alerts: ${response.status} ${response.statusText}`);
   const fetchRecentAlerts = async () => {
     try {
       const response = await fetch('/api/risk/recent-alerts');
@@ -55,9 +61,6 @@ const RiskDashboard = () => {
         throw new Error(`Failed to fetch recent alerts: ${response.status} ${response.statusText}`);
       }
       const data = await response.json();
-      setRecentAlerts(data);
-    } catch (error) {
-      console.error('Failed to fetch recent alerts:', error);
     }
   };
 
