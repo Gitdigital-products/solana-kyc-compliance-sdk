@@ -1,4 +1,4 @@
-import { Connection, PublicKey, Signer, TransactionSignature } from '@solana/web3.js';
+import { TransactionSignature } from '@solana/web3.js';
 import { TransferHookService } from './services/transfer-hook-service';
 import {
   InitializeCompliantMintParams,
