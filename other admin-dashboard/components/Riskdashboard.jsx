@@ -61,6 +61,8 @@ const RiskDashboard = () => {
     }
   };
 
+    setLoading(true);
+    try {
   const searchWallet = async () => {
     if (!walletSearch.trim()) return;
       const response = await fetch(`/api/risk/wallet/${walletSearch}`);
