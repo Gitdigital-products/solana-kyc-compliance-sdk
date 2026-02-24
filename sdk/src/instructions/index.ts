@@ -6,8 +6,6 @@ import {
 } from '@solana/web3.js';
 import {
   TOKEN_2022_PROGRAM_ID,
-} from '@solana/spl-token';
-import { findExtraAccountsMetaPda } from '../utils';
 
 /**
  * Instruction builders for the KYC Compliance Transfer Hook program.
