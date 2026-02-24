@@ -1,5 +1,5 @@
 import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
-import * as anchor from '@coral-xyz/anchor';
+
 
 // =======================================================================
 // === ACTION REQUIRED: REPLACE THESE PLACEHOLDERS WITH ACTUAL VALUES ===
