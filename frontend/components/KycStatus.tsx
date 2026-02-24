@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
-import { attestationPda, REGISTRY_PROGRAM_ID } from "../utils/anchorClient";
- 
+import { attestationPda } from "../utils/anchorClient";
+ 
 export default function KycStatus({ wallet }: { wallet: string | null }) {
   const [status, setStatus] = useState<string | null>(null);
 
