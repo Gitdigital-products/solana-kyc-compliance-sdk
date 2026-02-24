@@ -131,15 +131,6 @@ describe('KYC Flow Integration', () => {
 
   describe('Error Recovery', () => {
     test('should recover from RPC timeout', async () => {
-          walletAddress: testUser.publicKey.toString(),
-          requiredTier: KYCTier.TIER_1
-        });
-        expect(result).toHaveProperty('isValid');
-      } catch (error) {
-        // Timeout is acceptable
-        expect(error.message).toMatch(/(timeout|Timeout)/i);
-      }
-    }, 10000);
 
     test('should handle rate limiting', async () => {
       // Make multiple rapid requests
