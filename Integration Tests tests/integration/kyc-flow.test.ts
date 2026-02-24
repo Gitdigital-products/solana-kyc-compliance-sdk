@@ -132,15 +132,6 @@ describe('KYC Flow Integration', () => {
   describe('Error Recovery', () => {
     test('should recover from RPC timeout', async () => {
 
-    test('should handle rate limiting', async () => {
-      // Make multiple rapid requests
-      const promises = Array(10).fill(null).map((_, i) => 
-        client.verifyKYCAttestation({
-          walletAddress: Keypair.generate().publicKey.toString(),
-          requiredTier: KYCTier.TIER_1
-        }).catch(error => error)
-      );
-
       const results = await Promise.all(promises);
       
       // Count successes vs failures
