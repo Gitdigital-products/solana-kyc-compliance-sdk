@@ -32,7 +32,7 @@ export async function issueAttestation(
   dataHash: Uint8Array // 32 bytes
 ) {
   const program = await loadRegistryProgram(provider, programId);
-  const [attPda, bump] = await PublicKey.findProgramAddress(
+  const [attPda] = await PublicKey.findProgramAddress(
     [Buffer.from("attestation"), wallet.toBuffer()],
     program.programId
   );
