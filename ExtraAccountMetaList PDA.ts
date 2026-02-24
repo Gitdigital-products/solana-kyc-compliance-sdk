@@ -1,8 +1,4 @@
 import * as anchor from "@coral-xyz/anchor";
-import { 
-  getExtraAccountMetaAddress, 
-  getTransferHookInstruction 
-} from "@solana/spl-token";
 
 export async function initializeExtraAccounts(
   program: anchor.Program<any>,
