@@ -5,7 +5,7 @@
  */
 
 import { ComplianceSDK } from '../src/compliance-sdk';
-import { Connection, Keypair, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Connection, Keypair, clusterApiUrl } from '@solana/web3.js';
 import { WalletNotConnectedError, TransferDeniedByHookError } from '../src/errors';
 
 async function main() {
