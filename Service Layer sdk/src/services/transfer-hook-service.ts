@@ -1,7 +1,6 @@
 import {
   Connection,
   PublicKey,
-} from '@solana/web3.js';
 import {
   InitializeCompliantMintParams,
   TransferCheckedWithHookParams,
