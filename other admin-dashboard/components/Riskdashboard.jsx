@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 import { 
   Search, 
   AlertTriangle, 
@@ -37,6 +38,9 @@ const RiskDashboard = () => {
   const fetchDashboardStats = async () => {
     try {
       const response = await fetch('/api/risk/dashboard/stats');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch dashboard stats: ${response.status} ${response.statusText}`);
+      }
       const data = await response.json();
       setDashboardStats(data);
     } catch (error) {
@@ -47,6 +51,9 @@ const RiskDashboard = () => {
   const fetchRecentAlerts = async () => {
     try {
       const response = await fetch('/api/risk/alerts/recent');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch recent alerts: ${response.status} ${response.statusText}`);
+      }
       const data = await response.json();
       setRecentAlerts(data);
     } catch (error) {
@@ -60,6 +67,9 @@ const RiskDashboard = () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/risk/wallet/${walletSearch}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch wallet risk: ${response.status} ${response.statusText}`);
+      }
       const data = await response.json();
       setRiskData(data);
     } catch (error) {
