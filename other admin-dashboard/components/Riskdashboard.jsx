@@ -61,9 +61,6 @@ const RiskDashboard = () => {
 
   const searchWallet = async () => {
     if (!walletSearch.trim()) return;
-    
-    setLoading(true);
-    try {
       const response = await fetch(`/api/risk/wallet/${walletSearch}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch wallet risk: ${response.status} ${response.statusText}`);
