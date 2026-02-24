@@ -14,8 +14,6 @@ import {
 } from '@solana/web3.js';
 import { 
   AnchorProvider, 
-  Program, 
-  BN 
 } from '@coral-xyz/anchor';
 import { 
   TOKEN_2022_PROGRAM_ID, 
