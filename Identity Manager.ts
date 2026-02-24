@@ -3,10 +3,10 @@ import { PublicKey } from "@solana/web3.js";
 
 // Standard Bitmask Flags
 export enum ComplianceFlags {
-  US_ACCREDITED = 1 << 0,  // 1
-  EU_MICA        = 1 << 1,  // 2
-  INSTITUTIONAL  = 1 << 2,  // 4
-  SANCTIONED     = 1 << 63, // High bit for immediate blocking
+  US_ACCREDITED = 1 << 0,     // 1
+  EU_MICA        = 1 << 1,    // 2
+  INSTITUTIONAL  = 1 << 2,    // 4
+  SANCTIONED     = 0x80000000, // High 32-bit bit for immediate blocking
 }
 
 export class IdentityManager {
