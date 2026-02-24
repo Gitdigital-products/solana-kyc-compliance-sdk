@@ -1,5 +1,5 @@
 import { ComplianceSDK } from '../src/compliance-sdk';
-import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import { Keypair, PublicKey } from '@solana/web3.js';
 import { WalletNotConnectedError, TransferDeniedByHookError } from '../src/errors';
 
 // Mock web3.js and spl-token
