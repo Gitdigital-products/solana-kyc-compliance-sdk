@@ -6,7 +6,7 @@
  */
 
 import { describe, test, expect, beforeAll } from '@jest/globals';
-import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import { Connection, Keypair } from '@solana/web3.js';
 import { SolanaKYCClient, SASAttestation } from '../src/sas-integration';
 
 const DEVNET_RPC = 'https://api.devnet.solana.com';
