@@ -38,7 +38,6 @@ export async function createCompliantUSDCTransfer(
   
   // Convert addresses to PublicKey objects
   const senderPubKey = new PublicKey(senderWalletAddress);
-  const recipientPubKey = new PublicKey(recipientWalletAddress);
   
   // Verify the sender has a valid, non-revoked KYC attestation from a trusted issuer[citation:2][citation:10]
   const kycStatus = await kycClient.verifySASAttestation(senderPubKey, 'kyc/v1', kycIssuer);
