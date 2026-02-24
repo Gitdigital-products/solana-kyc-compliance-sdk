@@ -3,98 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solana KYC Compliance SDK</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Solana KYC Compliance SDK | Developer Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; line-height: 1.6; min-height: 100vh; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        header { text-align: center; padding: 4rem 1rem; color: white; }
-        header h1 { font-size: 3.5rem; margin-bottom: 1rem; font-weight: 800; }
-        header p { font-size: 1.4rem; max-width: 700px; margin: 0 auto 2rem; opacity: 0.9; }
-        .btn { display: inline-block; background: #00d084; color: white; padding: 1rem 2.5rem; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.2rem; transition: all 0.3s ease; border: none; cursor: pointer; }
-        .btn:hover { background: #00b874; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        .btn-secondary { background: transparent; border: 2px solid white; margin-left: 15px; }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
-        main { background: white; border-radius: 20px; padding: 3rem; box-shadow: 0 20px 60px rgba(0,0,0,0.15); margin-top: -30px; position: relative; }
-        section { margin-bottom: 3rem; }
-        h2 { color: #444; border-bottom: 3px solid #764ba2; padding-bottom: 0.7rem; margin-bottom: 1.5rem; font-size: 2.2rem; }
-        h3 { color: #667eea; margin: 1.5rem 0 0.8rem; font-size: 1.5rem; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
-        .feature-card { background: #f8f9ff; padding: 2rem; border-radius: 15px; border-left: 5px solid #667eea; }
-        .feature-card i { font-size: 2.5rem; color: #667eea; margin-bottom: 1rem; }
-        code, pre { background: #f4f4f4; padding: 0.2rem 0.6rem; border-radius: 5px; font-family: 'Courier New', monospace; }
-        pre { padding: 1.5rem; overflow-x: auto; margin: 1rem 0; }
-        footer { text-align: center; padding: 2rem; color: white; opacity: 0.8; margin-top: 2rem; }
-        @media (max-width: 768px) {
-            header h1 { font-size: 2.5rem; }
-            .btn { display: block; width: 100%; margin-bottom: 1rem; }
-            .btn-secondary { margin-left: 0; }
+        .gradient-text {
+            background: linear-gradient(90deg, #9945FF, #14F195);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Solana KYC Compliance SDK</h1>
-            <p>A robust developer toolkit to integrate seamless Know Your Customer (KYC) and Anti-Money Laundering (AML) checks directly into your Solana applications. Ensure regulatory compliance with minimal friction.</p>
-            <a href="#get-started" class="btn"><i class="fas fa-rocket"></i> Get Started</a>
-            <a href="https://github.com/gitdigital-products/solana-kyc-compliance-sdk" class="btn btn-secondary" target="_blank"><i class="fab fa-github"></i> View on GitHub</a>
-        </header>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased">
 
-        <main>
-            <section id="overview">
-                <h2>Overview</h2>
-                <p>This SDK simplifies the complex process of embedding regulatory compliance into decentralized applications (dApps) on the Solana blockchain. It provides a unified interface for identity verification, risk assessment, and compliance reporting, allowing you to focus on building your core product.</p>
-            </section>
+    <nav class="border-b border-slate-800 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-gradient-to-tr from-purple-600 to-green-400 rounded-lg"></div>
+                <span class="text-xl font-bold tracking-tight">Solana <span class="gradient-text">KYC SDK</span></span>
+            </div>
+            <div class="hidden md:flex space-x-6 text-sm font-medium">
+                <a href="#docs" class="hover:text-green-400 transition">Documentation</a>
+                <a href="#demo" class="hover:text-green-400 transition">Live Demo</a>
+                <a href="https://github.com/gitdigital-products/solana-kyc-compliance-sdk" class="hover:text-green-400 transition">GitHub</a>
+            </div>
+            <button class="bg-white text-slate-900 px-4 py-2 rounded-full text-sm font-bold hover:bg-green-400 transition">
+                Connect Wallet
+            </button>
+        </div>
+    </nav>
 
-            <section id="features">
-                <h2>Core Features</h2>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <i class="fas fa-user-check"></i>
-                        <h3>Identity Verification</h3>
-                        <p>Integrate with leading providers for document checks, liveness detection, and biometric verification. Store results as on-chain attestations.</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="fas fa-shield-alt"></i>
-                        <h3>Risk Scoring</h3>
-                        <p>Automated AML screening and transaction monitoring. Real-time risk scoring for wallets and transactions based on global watchlists.</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="fas fa-cogs"></i>
-                        <h3>Program Library</h3>
-                        <p>A set of on-chain Solana programs for managing verified user statuses, whitelists, and compliance rules enforced by smart contracts.</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="fas fa-file-contract"></i>
-                        <h3>Audit Trail</h3>
-                        <p>Generate immutable, on-chain records of all KYC checks and compliance decisions for easy reporting to auditors and regulators.</p>
-                    </div>
+    <header class="container mx-auto py-16 px-4 text-center">
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-6">
+            Institutional Compliance <br/>
+            <span class="gradient-text text-4xl md:text-6xl">On-Chain & Permissionless</span>
+        </h1>
+        <p class="text-slate-400 text-lg max-w-2xl mx-auto mb-10">
+            Enforce KYC/AML regulations using Solana Token Extensions. Secure, scalable, and fully open-source.
+        </p>
+        <div class="flex justify-center space-x-4">
+            <code class="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700 text-green-400">
+                npm install @gitdigital/solana-kyc-sdk
+            </code>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-12">
+        <div class="grid md:grid-cols-3 gap-8">
+            
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="text-purple-500 mb-4 text-2xl"><i class="fas fa-link"></i></div>
+                <h3 class="text-xl font-bold mb-2">Transfer Hooks</h3>
+                <p class="text-slate-400 text-sm">Intercept and validate every transaction against the compliance registry in real-time.</p>
+            </div>
+
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="text-green-400 mb-4 text-2xl"><i class="fas fa-shield-halved"></i></div>
+                <h3 class="text-xl font-bold mb-2">Token-2022 Ready</h3>
+                <p class="text-slate-400 text-sm">Fully compatible with the latest Solana Token Extensions for RWAs and stablecoins.</p>
+            </div>
+
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="text-blue-400 mb-4 text-2xl"><i class="fas fa-id-card"></i></div>
+                <h3 class="text-xl font-bold mb-2">Identity Registry</h3>
+                <p class="text-slate-400 text-sm">Maintain a decentralized list of verified users across multiple jurisdictions.</p>
+            </div>
+
+        </div>
+
+        <section id="demo" class="mt-20 glass-card p-8 rounded-3xl border-green-500/20">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold mb-2">Compliance Simulator</h2>
+                    <p class="text-slate-400">Check if an address is eligible for regulated transfers.</p>
                 </div>
-            </section>
+                <div class="mt-4 md:mt-0 flex space-x-2">
+                    <input type="text" placeholder="Enter Solana Address..." class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg w-64 focus:outline-none focus:border-green-400">
+                    <button class="bg-green-500 text-slate-900 px-6 py-2 rounded-lg font-bold hover:shadow-[0_0_15px_rgba(20,241,149,0.4)] transition">
+                        Verify
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
 
-            <section id="get-started">
-                <h2>Quick Start</h2>
-                <h3>Installation</h3>
-                <p>Install the SDK package via npm or yarn:</p>
-                <pre><code>npm install @gitdigital-products/solana-kyc-sdk
-# or
-yarn add @gitdigital-products/solana-kyc-sdk</code></pre>
-                <h3>Basic Usage</h3>
-                <p>Initialize the SDK and perform a basic check:</p>
-                <pre><code>import { KYCClient } from '@gitdigital-products/solana-kyc-sdk';
-import { Connection, clusterApiUrl } from '@solana/web3.js';
+    <footer class="border-t border-slate-800 py-10 mt-20">
+        <div class="container mx-auto px-4 text-center text-slate-500 text-sm">
+            <p>&copy; 2024 GitDigital Products. Built for the Solana Global Ecosystem.</p>
+        </div>
+    </footer>
 
-const connection = new Connection(clusterApiUrl('devnet'));
-const client = new KYCClient(connection, YOUR_PROVIDER_CONFIG);
-
-// Example: Check a user's wallet status
-const walletAddress = '...';
-const status = await client.getVerificationStatus(walletAddress);
-console.log(`KYC Status: ${status}`);</code></pre>
-                <a href="#" class="btn" style="margin-top:1rem;"><i class="fas fa-book"></i> Read Full Documentation</a>
-            </section>
+</body>
+</html>
         </main>
 
         <footer>
