@@ -5,7 +5,7 @@
  * with a prerequisite KYC check using the GitDigital KYC SDK.
  */
 
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { SolanaKYCClient } from '../src/sas-integration';
 import { ZKKYCVerifier } from '../src/zk-kyc';
 
