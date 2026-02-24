@@ -1,7 +1,6 @@
 import {
   Connection,
   PublicKey,
-  Transaction,
   TransactionSignature,
   sendAndConfirmTransaction,
   Keypair
