@@ -167,7 +167,8 @@ export class PersonaKYCProvider implements KYCProvider {
   }
 
   private generateSessionId(): string {
-    return `inq_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const randomPart = crypto.randomBytes(12).toString('base64url');
+    return `inq_${Date.now()}_${randomPart}`;
   }
 }
 
