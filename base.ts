@@ -5,6 +5,7 @@
 
 import type { UserData, KYCSession, VerificationResult } from '../../types/identity';
 import type { ComplianceLevel } from '../../types/index';
+import * as crypto from 'crypto';
 
 /**
  * Base KYC Provider interface
@@ -348,7 +349,8 @@ export class GoogleIdentityProvider implements KYCProvider {
   }
 
   private generateSessionId(): string {
-    return `ggl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const randomSuffix = crypto.randomBytes(16).toString('hex');
+    return `ggl_${Date.now()}_${randomSuffix}`;
   }
 }
 
