@@ -1,0 +1,10 @@
+Tier_Badges.svg (SVG)
+These are text‑based SVGs you can drop into any repo.
+
+🟣 Community Supporter
+`svg
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="32">
+  <rect width="180" height="32" fill="#7D3AC1"/>
+  <text x="90" y="21" font-size="14" text-anchor="middle" fill="white">Community Supporter</text>
+</svg>
+`
