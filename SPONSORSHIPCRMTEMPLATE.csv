@@ -1,0 +1,11 @@
+SPONSORSHIPCRMTEMPLATE.csv (structure)
+A CRM‑style table for tracking supporters, upgrades, and engagement.
+
+`
+id,name,tier,joinedat,contactemail,link,notes,lastengagement,nextfollowup
+,,community,,,,"",,
+,,developer,,,,"",,
+,,infrastructure,,,,"",,
+,,ecosystem,,,,"",,
+,,institutional,,,,"",,
+`
