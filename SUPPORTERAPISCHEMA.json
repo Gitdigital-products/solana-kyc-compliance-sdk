@@ -1,0 +1,29 @@
+SUPPORTERAPISCHEMA.json
+
+---
+
+🧪 Examples
+
+Fetch all supporters
+`
+GET /supporters
+`
+
+Fetch a single supporter
+`
+GET /supporters/12345
+`
+
+---
+
+🛠️ Changelog
+- v1.0 — Initial read‑only API  
+- v1.1 — Added tier endpoint  
+- v1.2 — Added metadata fields  
+
+---
+
+❤️ Thank You
+This API ex
+& hosting  ion playbook   support.
+`
