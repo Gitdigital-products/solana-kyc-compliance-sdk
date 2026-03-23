@@ -1,0 +1,7 @@
+🟡 Ecosystem_Sponsor.svg
+`svg
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="32">
+  <rect width="180" height="32" fill="#E5C100"/>
+  <text x="90" y="21" font-size="14" text-anchor="middle" fill="black">Ecosystem Sponsor</text>
+</svg>
+`
