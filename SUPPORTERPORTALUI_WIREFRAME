@@ -1,0 +1,33 @@
+SUPPORTERPORTALUI_WIREFRAME (ASCII)
+A clean, GitDigital‑style wireframe you can use for a future UI.
+
+`
++------------------------------------------------------+
+|                RICKCREATOR87 PORTAL                  |
++------------------------------------------------------+
+
+[ NAVIGATION ]
+ Home | Dashboard | Benefits | Wall | Governance | Contact
+
++------------------------------------------------------+
+|                    YOUR TIER                         |
+|        [ TIER BADGE ]  [ Supporter Name ]            |
++------------------------------------------------------+
+
++----------------------+   +-------------<img src="https://emoticons.hzchu.top/emoticons/Blob/A_BlobCat_Code.png" alt="Blob_A_BlobCat_Code" title="Blob_A_BlobCat_Code" class="emoji-image"> --------------+
+|      DASHBOARD       |   |       BENEFITS           |
+| - Metrics            |   | - Early Access           |
+| - Activity           |   | - Recognition            |
+| - Releases           |   | - Reports                |
++----------------------+   +---------------------------+
+
++------------------------------------------------------+
+|                 SUPPORTER WALL                       |
+|  Community | Developer | Infrastructure | Ecosystem |
++------------------------------------------------------+
+
++------------------------------------------------------+
+|                     FOOTER                           |
+|   Governance | Roadmap | Policy | Contact            |
++------------------------------------------------------+
+`
