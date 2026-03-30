@@ -1,0 +1,27 @@
+.github/workflows/issue-reward.yml (Pay contributors for solving issues)
+
+```yaml
+name: Issue Reward
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  reward:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Calculate Reward
+        id: calc
+        run: |
+          # A simple calculation: $5 per commit, or based on labels
+          reward_amount=$((${{ github.event.pull_request.commits }} * 5))
+          echo "amount=$reward_amount" >> $GITHUB_OUTPUT
+          echo "user=${{ github.event.pull_request.user.login }}" >> $GITHUB_OUTPUT
+      - name: Trigger Funding Payout
+        # This is a placeholder. You'd integrate with Stripe, OpenCollective, etc.
+        run: |
+          echo "Paying ${{ steps.calc.outputs.amount }} USD to @${{ steps.calc.outputs.user }}"
+          # curl -X POST ... to your funding oracle endpoint
+```
