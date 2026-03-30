@@ -1,3 +1,19 @@
+
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Name - Funding OS</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Welcome to the Funding OS</h1>
+    <p>Building the future of sustainable open source.</p>
+    <a href="https://github.com/yourusername/your-repo-name" class="button">View on GitHub</a>
+    <script src="app.js"></script>
+</body>
+</html>
 hereimport { Connection, PublicKey } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 
