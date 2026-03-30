@@ -1,0 +1,24 @@
+badge-wall/badges.json
+
+```json
+{
+  "ci": {
+    "label": "CI",
+    "status": "passing",
+    "color": "brightgreen",
+    "link": "https://github.com/yourusername/your-repo-name/actions"
+  },
+  "contributors": {
+    "label": "contributors",
+    "value": "42",
+    "color": "blue",
+    "link": "https://github.com/yourusername/your-repo-name/graphs/contributors"
+  },
+  "funding": {
+    "label": "funding",
+    "value": "$12,345",
+    "color": "yellow",
+    "link": "https://github.com/sponsors/yourusername"
+  }
+}
+```
