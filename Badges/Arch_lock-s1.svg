@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="40">
+  <rect width="180" height="40" fill="#C0C0C0" rx="6"/>
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Arial" font-size="14" fill="#000">
+    ARCH_LOCK • S1
+  </text>
+</svg>
