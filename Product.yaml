@@ -1,0 +1,26 @@
+product_id: solana-kyc-compliance-sdk
+product_name: Solana KYC Compliance SDK
+product_stage: Product Ready
+product_category: Compliance / KYC
+product_owner: GitDigital
+product_version: 1.0.0
+product_registry_url: https://gitdigital-products.io/registry/solana-kyc-compliance-sdk
+
+architecture_stage: Architecture Locked
+architecture_badge: ARCH_LOCK-G1
+product_badge: ARCH_PROD-G1
+
+certificate_id: {{CERT_ID}}
+primary_branch: main
+release_channel: stable
+
+governance:
+  license: MIT
+  security_policy: true
+  contribution_policy: true
+  codeowners: true
+
+automation:
+  release_workflow: true
+  versioning: semantic
+  changelog: auto
