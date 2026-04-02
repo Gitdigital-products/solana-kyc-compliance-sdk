@@ -1,0 +1,57 @@
+# Cryptographic Certificate of Completion
+
+**Certificate ID:** {{CERT_ID}}
+**Repository:** {{ORG}}/{{REPO_NAME}}
+**Stage:** {{STAGE_NAME}}  
+**Badge Tier:** {{BADGE_TIER}}  
+**Issued On:** {{ISO_DATE}}  
+
+---
+
+## 1. Scope of Completion
+
+- **Primary Branch:** {{PRIMARY_BRANCH}}
+- **Reference Commit:** `{{COMMIT_HASH}}`
+- **Content Merkle Root (optional):** `{{MERKLE_ROOT}}`
+- **Included Paths:**  
+  - `README.md`  
+  - `DONE.md`  
+  - `.github/workflows/`  
+  - `LICENSE`  
+  - `docs/`  
+  - `config/`  
+  - {{ANY_OTHER_KEY_PATHS}}
+
+This certificate attests that the above components are present, structurally complete, and aligned with the GitDigital governance baseline for this stage.
+
+---
+
+## 2. Governance & Compliance Status
+
+- **Governance Alignment:** ✅ Baseline policies integrated  
+- **Security Posture:** ✅ Minimum security files present (`SECURITY.md` or equivalent)  
+- **Contribution Model:** ✅ Documented (`CONTRIBUTING.md` or equivalent)  
+- **License:** ✅ Declared (`LICENSE`)  
+- **Automation:** ✅ CI/CD workflows configured
+
+---
+
+## 3. Badge Assignment
+
+- **Stage Badge:** `{{BADGE_CODE}}`  
+- **Badge Group:** `{{BADGE_GROUP}}`  
+- **Badge File:** `badges/{{BADGE_CODE}}.svg`
+
+This repository is authorized to display the `{{BADGE_CODE}}` badge in its README and ecosystem registries.
+
+---
+
+## 4. Issuer & Signature
+
+- **Issuer:** GitDigital Badge Authority  
+- **Issuer ID:** `GDBA-{{ISSUER_ID}}`  
+- **Signature Algorithm:** `ed25519` (recommended)  
+- **Signature:**  
+
+```text
+{{BASE64_SIGNATURE}}
