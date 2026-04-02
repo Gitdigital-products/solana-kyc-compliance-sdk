@@ -10,6 +10,19 @@
     C -->|Generates Report| E[Report Service];
     E -->|Delivers Report| A;
 ```
+/badges/ARCH_LOCK-G1.svg
+/badges/ARCH_PROD-G1.svg
+> **GitDigital Product — Solana KYC Compliance SDK**  
+> Certified **Architecture Locked** and **Product Ready**.
+
+![Architecture Badge](./badges/ARCH_LOCK-G1.svg)  
+![Product Badge](./badges/ARCH_PROD-G1.svg)
+
+---
+
+## Product Overview
+
+The **Solana KYC Compliance SDK** provides a governance‑aligned, production‑ready toolkit for integrating KYC and compliance flows into Solana‑based applications.
 
 https://buy.polar.sh/polar_cl_RF40qWYgiCob4z80EjoLU39XP2mxzRvTA6jAe0XIJo8
 ```js
