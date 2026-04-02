@@ -1,13 +1,14 @@
 {
   "cert_id": "{{CERT_ID}}",
-  "org": "{{Gitdigital_Products}}",
-  "repo": "{{Solana-kyc-compliance-sdk}}",
-  "stage": "{{Product_Ready_Complete}}",
-  "badge_tier": "{{BADGE_TIER}}",
-  "badge_code": "{{BADGE_CODE}}",
-  "primary_branch": "{{PRIMARY_BRANCH}}",
+  "org": "Gitdigital-products",
+  "repo": "solana-kyc-compliance-sdk",
+  "stage": "Architecture Locked",
+  "badge_group": "ARCH_LOCK_SERIES",
+  "badge_tier": "ARCH_LOCK-G1",
+  "badge_code": "ARCH_LOCK-G1",
+  "primary_branch": "main",
   "commit_hash": "{{COMMIT_HASH}}",
   "merkle_root": "{{MERKLE_ROOT}}",
   "issued_on": "{{ISO_DATE}}",
-  "issuer_id": "GDBA-{{ISSUER_ID}}"
+  "issuer_id": "GDBA-CORE"
 }
