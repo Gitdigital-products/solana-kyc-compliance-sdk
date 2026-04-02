@@ -1,56 +1,55 @@
-# Cryptographic Certificate of Completion
+# Cryptographic Certificate of Completion  
+**Stage:** Architecture Locked  
+**Badge Group:** ARCH_LOCK_SERIES  
 
-**Certificate ID:** {{CERT_ID}}
-**Repository:** {{ORG}}/{{REPO_NAME}}
-**Stage:** {{STAGE_NAME}}  
-**Badge Tier:** {{BADGE_TIER}}  
+**Certificate ID:** {{CERT_ID}}  
+**Repository:** Gitdigital-products/solana-kyc-compliance-sdk  
+**Badge Tier:** ARCH_LOCK-G1  
 **Issued On:** {{ISO_DATE}}  
 
 ---
 
 ## 1. Scope of Completion
 
-- **Primary Branch:** {{PRIMARY_BRANCH}}
+- **Primary Branch:** main
 - **Reference Commit:** `{{COMMIT_HASH}}`
-- **Content Merkle Root (optional):** `{{MERKLE_ROOT}}`
-- **Included Paths:**  
-  - `README.md`  
-  - `DONE.md`  
-  - `.github/workflows/`  
-  - `LICENSE`  
-  - `docs/`  
-  - `config/`  
-  - {{ANY_OTHER_KEY_PATHS}}
+- **Content Merkle Root:** `{{MERKLE_ROOT}}`
+- **Verified Components:**  
+  - README.md  
+  - DONE.md  
+  - LICENSE  
+  - .github/workflows/  
+  - docs/  
+  - config/  
 
-This certificate attests that the above components are present, structurally complete, and aligned with the GitDigital governance baseline for this stage.
+This certificate attests that the repository’s architecture is **locked**, stable, and aligned with GitDigital governance requirements.
 
 ---
 
 ## 2. Governance & Compliance Status
 
-- **Governance Alignment:** ✅ Baseline policies integrated  
-- **Security Posture:** ✅ Minimum security files present (`SECURITY.md` or equivalent)  
-- **Contribution Model:** ✅ Documented (`CONTRIBUTING.md` or equivalent)  
-- **License:** ✅ Declared (`LICENSE`)  
-- **Automation:** ✅ CI/CD workflows configured
+- Governance Baseline: **Aligned**  
+- Security Files: **Present**  
+- Contribution Model: **Documented**  
+- License: **Declared**  
+- Automation: **Operational**
 
 ---
 
 ## 3. Badge Assignment
 
-- **Stage Badge:** `{{BADGE_CODE}}`  
-- **Badge Group:** `{{BADGE_GROUP}}`  
-- **Badge File:** `badges/{{BADGE_CODE}}.svg`
+- **Stage Badge:** `ARCH_LOCK-G1`
+- **Badge File:** `/badges/ARCH_LOCK-G1.svg`
 
-This repository is authorized to display the `{{BADGE_CODE}}` badge in its README and ecosystem registries.
+This repository is authorized to display the **Architecture Locked** badge.
 
 ---
 
 ## 4. Issuer & Signature
 
 - **Issuer:** GitDigital Badge Authority  
-- **Issuer ID:** `GDBA-{{ISSUER_ID}}`  
-- **Signature Algorithm:** `ed25519` (recommended)  
+- **Issuer ID:** `GDBA-CORE`  
+- **Signature Algorithm:** `ed25519`  
 - **Signature:**  
 
 ```text
