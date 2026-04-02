@@ -16,10 +16,10 @@
 ```
 > **GitDigital Product — Solana KYC Compliance SDK**  
 > Certified **Architecture Locked** and **Product Ready**.
-
+```svg
 ![Architecture Badge](./badges/ARCH_LOCK-G1.svg)  
 ![Product Badge](./badges/ARCH_PROD-G1.svg)
-
+```
 ---
 
 ## Product Overview
