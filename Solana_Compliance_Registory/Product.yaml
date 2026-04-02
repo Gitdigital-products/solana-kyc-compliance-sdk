@@ -1,0 +1,26 @@
+product_id: solana-governance-policy-engine
+product_name: Solana Governance Policy Engine
+product_stage: Product Ready
+product_category: Governance / Policy
+product_owner: GitDigital
+product_version: 1.0.0
+product_registry_url: https://gitdigital-products.io/registry/solana-governance-policy-engine
+
+architecture_stage: Architecture Locked
+architecture_badge: ARCH_LOCK-G1
+product_badge: ARCH_PROD-G1
+
+certificate_id: {{CERT_ID}}
+primary_branch: main
+release_channel: stable
+
+governance:
+  license: MIT
+  security_policy: true
+  contribution_policy: true
+  codeowners: true
+
+automation:
+  release_workflow: true
+  versioning: semantic
+  changelog: auto
