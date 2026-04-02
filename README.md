@@ -10,8 +10,10 @@
     C -->|Generates Report| E[Report Service];
     E -->|Delivers Report| A;
 ```
+```svg
 /badges/ARCH_LOCK-G1.svg
 /badges/ARCH_PROD-G1.svg
+```
 > **GitDigital Product — Solana KYC Compliance SDK**  
 > Certified **Architecture Locked** and **Product Ready**.
 
