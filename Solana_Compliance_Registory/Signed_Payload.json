@@ -1,0 +1,14 @@
+{
+  "cert_id": "{{CERT_ID}}",
+  "org": "Gitdigital-products",
+  "repo": "solana-compliance-registry",
+  "stage": "Architecture Locked",
+  "badge_group": "ARCH_LOCK_SERIES",
+  "badge_tier": "ARCH_LOCK-G1",
+  "badge_code": "ARCH_LOCK-G1",
+  "primary_branch": "main",
+  "commit_hash": "{{COMMIT_HASH}}",
+  "merkle_root": "{{MERKLE_ROOT}}",
+  "issued_on": "{{ISO_DATE}}",
+  "issuer_id": "GDBA-CORE"
+}
