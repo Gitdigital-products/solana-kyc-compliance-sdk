@@ -1,0 +1,19 @@
+---
+
+## 🗂️ Product Folder Structure (repo‑specific)
+
+```text
+product/
+  config/
+    product.json
+    environment.json
+  docs/
+    overview.md
+    integration.md
+    api.md
+  examples/
+    basic-usage.md
+    advanced-usage.md
+  release/
+    changelog.md
+    release-notes.md
