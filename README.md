@@ -1,4 +1,34 @@
+
+* @RickCreator87
+/docs/ @RickCreator87
+/src/ @RickCreator87
+
+https://cdn.buymeacoffee.com/stream-alerts/bmc-stream-alert-gif.webp
+                                                https://studio.buymeacoffee.com/stream-alert/page/Rickcreator1987?user_key=93ebad4c-f9cd-4d46-96a6-302ce2a29e03                                            
+                    buymeacoffee.com/rickcreator1987  
+              
+<a href="https://www.buymeacoffee.com/Rickcreator1987" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-green.png" alt="Buy Me a Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+.github/workflows/test.yml
+.github/workflows/lint.yml
+<p align="center">
+  <img src="./banner/gitdigital-cryptographic-banner.svg" width="600" />
+</p>
+
+
+For a live demonstration of compliance at the token level, see [GitDigital Solana Platform](https://gitdigi-sol-ux7fw2nh.manus.space/).
+
+<iframe src="https://gitdigi-sol-ux7fw2nh.manus.space/" 
+        width="100%" height="600" style="border:0;" 
+        title="GitDigital Solana Compliance Demo">
+</iframe>
+
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-GitDigital_Solana_Platform-blue?style=for-the-badge)](https://gitdigi-sol-ux7fw2nh.manus.space/)
+
+Check out the live compliance engine:
+https://gitdigi-sol-ux7fw2nh.manus.space/
+
 <a href='https://ko-fi.com/T6T61WAZYZ' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+
 > **GitDigital Product — Solana KYC Compliance SDK**  
 > Certified **Architecture Locked** and **Product Ready**.
 
@@ -21,12 +51,14 @@ The **Solana KYC Compliance SDK** provides a governance‑aligned, production‑
     C -->|Generates Report| E[Report Service];
     E -->|Delivers Report| A;
 ```
+
 ```svg
 /badges/ARCH_LOCK-G1.svg
 /badges/ARCH_PROD-G1.svg
 ```
 > **GitDigital Product — Solana KYC Compliance SDK**  
 > Certified **Architecture Locked** and **Product Ready**.
+
 ```svg
 ![Architecture Badge](./badges/ARCH_LOCK-G1.svg)  
 ![Product Badge](./badges/ARCH_PROD-G1.svg)
@@ -38,7 +70,8 @@ The **Solana KYC Compliance SDK** provides a governance‑aligned, production‑
 The **Solana KYC Compliance SDK** provides a governance‑aligned, production‑ready toolkit for integrating KYC and compliance flows into Solana‑based applications.
 
 https://buy.polar.sh/polar_cl_RF40qWYgiCob4z80EjoLU39XP2mxzRvTA6jAe0XIJo8
-```js
+
+```javascript
 <a href="https://buy.polar.sh/polar_cl_RF40qWYgiCob4z80EjoLU39XP2mxzRvTA6jAe0XIJo8" data-polar-checkout data-polar-checkout-theme="dark">Purchase</a>
 <script src="https://cdn.jsdelivr.net/npm/@polar-sh/checkout@0.1/dist/embed.global.js" defer data-auto-init></script>
 ```
@@ -48,9 +81,13 @@ Updated README.md
 # Solana KYC Compliance SDK 🛡️
 
 [![GitHub License](https://img.shields.io/github/license/gitdigital-products/solana-kyc-compliance-sdk?style=for-the-badge&color=blue)](LICENSE)
+
 [![Solana Version](https://img.shields.io/badge/Solana-1.18+-black?style=for-the-badge&logo=solana&logoColor=white)](https://docs.solana.com/)
+
 [![Rust](https://img.shields.io/badge/Rust-2021-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
+
 [![TypeScript SDK](https://img.shields.io/badge/TypeScript-SDK-blue?style=for-the-badge&logo=typescript)](/sdk)
+
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge)](CONTRIBUTING.md)
 
 **An institutional-grade Open-Source SDK for enforcing KYC/AML compliance directly at the token level on Solana.**
@@ -82,15 +119,18 @@ The SDK is composed of three primary layers:
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 * [Rust](https://rustup.rs/) & [Solana CLI](https://docs.solana.com/cli/install-solana-cli-tools)
+
 * [Anchor Framework](https://www.anchor-lang.com/)
+
 * [Node.js / Yarn](https://nodejs.org/)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone [https://github.com/gitdigital-products/solana-kyc-compliance-sdk.git](https://github.com/gitdigital-products/solana-kyc-compliance-sdk.git)
+git clone [https://github.com/gitdigital-solana/solana-kyc-compliance-sdk.git](https://github.com/gitdigital-solana/solana-kyc-compliance-sdk.git)
 ```
 # Install dependencies
 cd solana-kyc-compliance-sdk
@@ -125,8 +165,9 @@ The Transfer Hook automatically checks if the source and destination accounts ha
 Contributions are welcome! Please see our Contributing Guide for details on our code of conduct and the process for submitting pull requests.
 📄 License
 This project is licensed under the MIT License - see the LICENSE file for details.
+
 <div align="center">
-<sub>Built with ❤️ by <b>GitDigital Products</b></sub>
+<sub>Built with ❤️ by <b>GitDigital Solana</b></sub>
 </div>
 
 ### Key Enhancements Made:
@@ -140,10 +181,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 
 ![MiCA Ready 2026](https://img.shields.io/badge/MiCA-READY_2026-blue?style=for-the-badge)
+
 ![ZK-Compressed State](https://img.shields.io/badge/ZK--COMPRESSION-ENABLED-green?style=for-the-badge)
+
 ![Firedancer Tested](https://img.shields.io/badge/FIREDANCER-1M_TPS_READY-orange?style=for-the-badge)
 
 ![MiCA Ready 2026](https://img.shields.io/badge/MiCA-READY_2026-blue?style=for-the-badge)
+
 ![CLARITY Act Compliant](https://img.shields.io/badge/CLARITY_ACT-COMPLIANT-green?style=for-the-badge)
 
 <p align="center">
@@ -165,38 +209,47 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 | **AI Enforcement** | ![Beta](https://img.shields.io/badge/Status-Beta-orange) | SendAI / Range Risk API |
 | **Audit Logs** | ![Verified](https://img.shields.io/badge/Status-Verified-green) | Permanent Delegate / Events |
 
-``markdown
+
 <!-- Security Badges -->
+
 ![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
 
 <!-- Activity Badges -->
+
 ![Last Commit](https://img.shields.io/badge/commit-current-brightgreen)
 
 <!-- Technology Badges -->
+
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 
-markdown
+
 <!-- Security Badges -->
+
 ![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
+
 ![Security Scanning](https://img.shields.io/badge/security-scanning-inactive-red)
 
 <!-- Activity Badges -->
+
 ![Last Commit](https://img.shields.io/badge/commit-recent-yellow)
 ![Release Status](https://img.shields.io/badge/releases-none-red)
 
 <!-- Technology Badges -->
+
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 
 <!-- Quality Badges -->
+
 ![Documentation](https://img.shields.io/badge/docs-minimal-orange)
 
 <!-- Community Badges -->
+
 ![Governance](https://img.shields.io/badge/governance-partial-orange)
-```
+
 
 
 **Core Badge Verification Workflow** (`.github/workflows/badge-verification.yml`):
-`yaml
+```yaml
 name: Badge Verification
 
 on:
@@ -239,44 +292,61 @@ jobs:
 ```
 
 
-markdown
+
 <!-- Security Badges -->
+
 ![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
 `
 <!-- Activity Badges -->
+
 ![Last Commit](https://img.shields.io/badge/commit-current-brightgreen)
 
 <!-- Technology Badges -->
+
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 
 
 
-markdown
+
 <!-- Security Badges -->
 ![Security Foundational](https://img.shields.io/badge/security-foundational-blue)
+
 ![Security Scanning](https://img.shields.io/badge/security-scanning-active-green)
+
 ![Dependency Status](https://img.shields.io/badge/deps-up--to--date-brightgreen)
 
 <!-- Activity Badges -->
+
 ![Last Commit](https://img.shields.io/badge/commit-recent-yellow)
+
 ![Issues Health](https://img.shields.io/badge/issues-healthy-brightgreen)
+
 ![PR Velocity](https://img.shields.io/badge/PR-velocity-fast-brightgreen)
 
 <!-- Maturity Badges -->
+
 ![CI Status](https://img.shields.io/badge/CI-passing-brightgreen)
+
 ![Versioning](https://img.shields.io/badge/versioning-semver-blue)
+
 ![Test Coverage](https://img.shields.io/badge/coverage-comprehensive-brightgreen)
 
 <!-- Technology Badges -->
+
 ![Containerized](https://img.shields.io/badge/containerized-Docker-blue)
+
 ![CI Platform](https://img.shields.io/badge/CI-GitHub_Actions-blue)
 
 <!-- Quality Badges -->
+
 ![Linting](https://img.shields.io/badge/linting-passing-brightgreen)
+
 ![Documentation](https://img.shields.io/badge/docs-complete-brightgreen)
+
 ![Code Owners](https://img.shields.io/badge/codeowners-defined-blue)
 
 <!-- Community Badges -->
+
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 `
 
@@ -740,20 +810,22 @@ Support:
 · Enterprise Customization: Organization@gitdigital.com
 ~
 
-```
+
 
 /* Author: RickCreator87 | Copyright: GitDigital Solana  2026 */
 /README.md
 
 ```
-```markdown
 # GitDigital Solana KYC SDK
 
 **Production-ready compliance SDK for institutional RWA issuance on Solana**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 [![Solana](https://img.shields.io/badge/Solana-2.0+-blue)](https://solana.com)
+
 [![Anchor](https://img.shields.io/badge/Anchor-0.30+-red)](https://www.anchor-lang.com)
+
 [![Audit](https://img.shields.io/badge/Audit-Trail%20of%20Bits-green)](https://trailofbits.com)
 
 ## Legal Notice
@@ -907,13 +979,13 @@ MIT License - See LICENSE file for details
 
 Contact
 
-Technical: Rick Creator87 - rick@gitdigital.io
-Legal: Sarah Chen, Esq. - sarah.chen@gitdigital.io
+Technical: Rick Creator87 - rickcreator87@gitdigital.io
+Legal: Richard Kindler, Esq. - Rickcreator87@gitdigital.io
 Security: security@gitdigital.io
 
 GitDigital Solana  (In Formation)
-1515 Arapahoe St, Suite 100
-Aurora, CO 80011
+18843 e.union pl. 
+Aurora, CO 80015
 
 Acknowledgments
 

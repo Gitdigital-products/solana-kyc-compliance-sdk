@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>GitDigital Solana — KYC Compliance SDK Demo</title>
+  <meta name="description" content="Interactive demo of the Solana KYC Compliance SDK — Token-2022 Transfer Hooks, Compliance Registry, and command terminal" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-inner">
+        <div class="logo">
+          <div class="logo-mark">🛡️</div>
+          <span>GitDigital Solana</span>
+        </div>
+        <div class="badge-row">
+          <span class="badge">Token-2022</span>
+          <span class="badge">Transfer Hook</span>
+          <span class="badge">v1.0.0</span>
+          <span class="badge">Production-Ready</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1>
+        KYC / AML at the Token Level
+        <span>Compliance Enforced On-Chain</span>
+      </h1>
+      <p>
+        Interactive demo of the Solana KYC Compliance SDK.
+        Transfer Hooks validate every transfer against a versioned Compliance Registry — no centralized middleman required per trade.
+      </p>
+      <div class="cta-row">
+        <a class="btn primary" href="https://github.com/GitDigital-Solana/solana-kyc-compliance-sdk" target="_blank" rel="noopener">
+          View Repository
+        </a>
+        <a class="btn" href="https://github.com/GitDigital-Solana/solana-kyc-compliance-sdk/releases" target="_blank" rel="noopener">
+          Releases
+        </a>
+        <a class="btn" href="#terminal">Open Terminal</a>
+      </div>
+    </section>
+
+    <!-- Interactive Transfer Demo -->
+    <section class="demo-panel">
+      <h2>Interactive Transfer Hook Demo</h2>
+      <p class="subtitle">
+        Simulated on-chain Compliance Registry. Try transferring between verified and unverified wallets to see the Transfer Hook in action.
+      </p>
+
+      <div class="demo-controls">
+        <div class="field">
+          <label>Source Wallet (From)</label>
+          <select id="fromWallet">
+            <option value="verified">Verified — Enterprise (US)</option>
+            <option value="verified2">Verified — Enhanced (CO)</option>
+            <option value="pending">Pending — Basic (EU)</option>
+            <option value="unverified">Unverified Anon</option>
+            <option value="custom">Custom address…</option>
+          </select>
+          <input id="fromCustom" type="text" placeholder="Enter wallet address" style="display:none; margin-top:0.5rem;" autocomplete="off" />
+          <div id="fromStatus" class="status-row"></div>
+        </div>
+
+        <div class="field">
+          <label>Destination Wallet (To)</label>
+          <select id="toWallet">
+            <option value="verified2">Verified — Enhanced (CO)</option>
+            <option value="verified">Verified — Enterprise (US)</option>
+            <option value="pending">Pending — Basic (EU)</option>
+            <option value="unverified" selected>Unverified Anon</option>
+            <option value="custom">Custom address…</option>
+          </select>
+          <input id="toCustom" type="text" placeholder="Enter wallet address" style="display:none; margin-top:0.5rem;" autocomplete="off" />
+          <div id="toStatus" class="status-row"></div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn primary" id="btnTransfer" type="button">Simulate Transfer</button>
+        <button class="btn" id="btnVerify" type="button">Start Verification (Source)</button>
+        <button class="btn" id="btnClear" type="button">Clear Log</button>
+      </div>
+
+      <div class="log" id="log" aria-live="polite"></div>
+    </section>
+
+    <!-- Command Terminal -->
+    <section class="terminal-panel" id="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <span class="terminal-title">gitdigital@kyc-sdk — make terminal</span>
+        <span class="terminal-status" id="termStatus">connecting…</span>
+      </div>
+      <div class="terminal-body" id="termBody" tabindex="0">
+        <div class="term-output" id="termOutput"></div>
+        <div class="term-input-line">
+          <span class="term-prompt">$</span>
+          <input type="text" id="termInput" class="term-input" autocomplete="off" spellcheck="false" placeholder="make help" />
+        </div>
+      </div>
+      <div class="terminal-hints">
+        <button type="button" class="hint" data-cmd="make help">make help</button>
+        <button type="button" class="hint" data-cmd="make status">make status</button>
+        <button type="button" class="hint" data-cmd="make build">make build</button>
+        <button type="button" class="hint" data-cmd="make test">make test</button>
+        <button type="button" class="hint" data-cmd="make registry">make registry</button>
+        <button type="button" class="hint" data-cmd="make verify">make verify</button>
+        <button type="button" class="hint" data-cmd="make check">make check</button>
+        <button type="button" class="hint" data-cmd="info">info</button>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <h2 class="section-title">How Enforcement Works</h2>
+    <div class="flow">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h4>Identity Verification</h4>
+        <p>User completes KYC via supported provider (identity + sanctions + age).</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h4>On-Chain Attestation</h4>
+        <p>Provider signs a proof; status is written to the Compliance Registry.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h4>Transfer Hook Fires</h4>
+        <p>Every Token-2022 transfer is intercepted and checked against the registry.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h4>Approve or Reject</h4>
+        <p>Non-compliant source or destination → transaction fails at runtime.</p>
+      </div>
+    </div>
+
+    <!-- Feature cards -->
+    <div class="grid">
+      <div class="card">
+        <h3><span class="icon">🔗</span> Transfer Hook</h3>
+        <p>Automatic interception of every transfer. Validates both source and destination against the on-chain registry.</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon">📋</span> Compliance Registry</h3>
+        <p>Versioned directory of verified wallets, roles, jurisdiction bitmasks, and policy versions. Zero PII on-chain.</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon">🔐</span> Permanent Delegate</h3>
+        <p>Secure recovery / clawback path gated by multi-sig or time-lock patterns for institutional control.</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon">📦</span> TypeScript SDK</h3>
+        <p>High-level client for createCompliantMint, startVerification, isVerified, getOnChainProof, and revoke.</p>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-links">
+        <a href="https://github.com/GitDigital-Solana/solana-kyc-compliance-sdk">Repository</a>
+        <a href="https://github.com/GitDigital-Solana/solana-kyc-compliance-sdk/releases">Releases</a>
+        <a href="https://github.com/GitDigital-Solana">GitDigital Solana</a>
+      </div>
+      <p>
+        Demo + terminal backend · Run <code>python3 server.py</code> for live Makefile commands<br>
+        © 2026 GitDigital Solana · MIT License · Built in the open
+      </p>
+    </footer>
+  </div>
+
+  <script src="js/demo.js"></script>
+  <script src="js/terminal.js"></script>
+</body>
+</html>
